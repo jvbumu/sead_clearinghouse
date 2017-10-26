@@ -1,0 +1,40 @@
+
+<!-- Note: data-parent changed from "#accordion" to "#accordion2" to allow non-mutual-exclusive toggling -->
+
+<div class="panel-group" id="sample_accordion">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+     <h4 class="panel-title row">
+       <span id="sample_indicator_container" class="col-md-1"></span>
+       <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#sample_collapse">
+         Sample information
+       </a>
+     </h4>
+    </div>
+    <div id="sample_collapse" class="panel-collapse collapse in">
+        <div class="panel-body">
+            <div class="row">
+               <div class="col-md-6">
+                   <label for="sample_name">Sample name (ID <span id="sample_id"></span>)</label><br>
+                   <span id="sample_name" class="input-sm"></span>
+               </div>
+               <div class="col-md-6">
+                   <label for="sample_name_type">Sample name type</label><br>
+                   <span id="sample_name_type" class="input-sm"></span>
+               </div>
+            </div>
+            <div class="row">
+               <div class="col-md-6">
+                   <label for="date_sampled">Date sampled</label><br>
+                   <span id="date_sampled" class="input-sm"></span>
+               </div>
+               <div class="col-md-6">
+                   <label for="type_name">Sample type</label><br>
+                   <span id="type_name" class="input-sm"></span>
+               </div>
+            </div>
+        </div>
+    </div>
+  </div>
+      
+  </div>

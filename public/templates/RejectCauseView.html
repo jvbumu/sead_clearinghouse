@@ -1,0 +1,69 @@
+<div id="reject-cause-edit-dialog" class="modal fade" role="dialog" >
+    
+    <div class="modal-dialog">
+        <div class="modal-content">
+        
+            <div class="modal-header">
+                  <a class="close" data-dismiss="modal" aria-hidden="true">×</a>
+                  <h3>Edit submission reject cause</h3>
+            </div>
+            
+            <div class="modal-body">
+                
+                <form class="form-horizontal" role="form">
+                    
+                    <div class="form-group">
+                        <label class="col-md-2">
+                            Entities
+                        </label>
+                        <div class="col-md-1">
+                            <span class="input-xlarge disabled" id="reject_entities"> </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-2">
+                            Type
+                        </label>
+                        <div id="entity_type_select_container" class="col-md-6">
+                          <select class="form-control" id="entity_type_id" name="entity_type_id">
+                          </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                      <div class="col-md-offset-2 col-md-10">
+                          <div class="radio-inline">
+                          <label>
+                            <input type="radio" name="reject_scope_id" id="reject_cause_scope1" value="1">
+                            Specific
+                          </label>
+                          </div>
+                          <div class="radio-inline">
+                          <label>
+                            <input type="radio" name="reject_scope_id" id="reject_cause_scope2" value="2">
+                            Generic
+                          </label>
+                          </div>
+                      </div>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label class="col-md-2">
+                        Description
+                      </label>
+                      <div class="col-md-10">
+                        <textarea id="reject_description" name="reject_description" class="form-control" rows="3"></textarea>
+                      </div>
+                    </div>
+                    
+                </form>
+            </div>
+             <div class="modal-footer">
+                 <button class="btn btn-success" id="reject-save-button">Save</button>
+                 <button class="btn btn-danger" id="reject-delete-button">Delete</button>
+                 <button class="btn btn-primary" id="reject-cancel-button">Cancel</button>
+            </div>
+            <span class="dialog-message danger">&nbsp;</span>
+        </div>
+    </div>
+</div>
