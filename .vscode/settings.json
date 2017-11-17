@@ -7,5 +7,6 @@
     "php.validate.executablePath": "C:\\usr\\php-7.1.6\\php.exe",
     "php.validate.run": "onType",
     "php.suggest.basic": false,
-    "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?"
+    "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?",
+    "pgsql.connection": "postgres://clearinghouse_worker:Vua9VagZ@snares.humlab.umu.se/sead_master_9_ceramics"
 }

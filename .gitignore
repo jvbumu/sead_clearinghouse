@@ -2,3 +2,4 @@ archive/
 conf/
 public/upload/
 .svn/
+.vscode/settings.json

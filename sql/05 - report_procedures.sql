@@ -1567,28 +1567,6 @@ Begin
 		
 End $$ Language plpgsql;
 
-
-If (Select Count(*) From clearing_house.tbl_clearinghouse_reports) = 0 Then
-
-		-- Select * From clearing_house.tbl_clearinghouse_reports
-		--Delete From clearing_house.tbl_clearinghouse_reports
-		--Delete From clearing_house.tbl_clearinghouse_reports
-
-        Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
-            Values  ( 1, 'Locations', 'Select * From clearing_house.fn_clearinghouse_report_locations(?)'),
-                    ( 2, 'Bibliography entries', 'Select * From clearing_house.fn_clearinghouse_report_bibliographic_entries(?)'),
-                    ( 3, 'Data sets', 'Select * From clearing_house.fn_clearinghouse_report_datasets(?)'),
-                    ( 4, 'Ecological reference data - Taxonomic order', 'Select * From clearing_house.fn_clearinghouse_report_taxonomic_order(?)'),
-                    ( 5, 'Taxonomic tree (master)', 'Select * From clearing_house.fn_clearinghouse_report_taxa_tree_master(?)'),
-                    ( 6, 'Ecological reference data - Taxonomic tree (other)', 'Select * From clearing_house.fn_clearinghouse_report_taxa_other_lists(?)'),
-                    ( 7, 'Ecological reference data - Taxonomic RGB codes', 'Select * From clearing_house.fn_clearinghouse_report_taxa_rdb(?)'),
-                    ( 8, 'Ecological reference data - Taxonomic eco-codes', 'Select * From clearing_house.fn_clearinghouse_report_taxa_ecocodes(?)'),
-                    ( 9, 'Ecological reference data - Taxonomic seasonanlity', 'Select * From clearing_house.fn_clearinghouse_report_taxa_seasonality(?)'),
-                    --(10, '*Ecological reference data - Taxonomic species description', 'Select * From clearing_house.fn_dummy_data_list_procedure(?)'),
-                    (11, 'Relative ages', 'Select * From clearing_house.fn_clearinghouse_report_relative_ages(?)'),
-                    (13, 'Methods', 'Select * From clearing_house.fn_clearinghouse_report_methods(?)');
-
-End If;
 /*****************************************************************************************************************************
 **	Function	fn_clearinghouse_latest_accepted_sites
 **	Who			Roger Mähler

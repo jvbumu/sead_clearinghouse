@@ -5,11 +5,12 @@
 **	What		Main procedure used in development to create DB schemas
 **	Uses
 **	Used By
-**	Revisions
+**	Revisions   OBSELETE!
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_get_submission_table_column_names(2, 'tbl_abundances')
 Create Or Replace Function clearing_house.fn_clearinghouse_main_development_procedure()
 Returns void As $$
+Declare z RECORD;
 Begin
 
 	/* Create CHDB specific data tables */

@@ -32,92 +32,6 @@ Begin
         create index idx_tbl_clearinghouse_settings_group On clearing_house.tbl_clearinghouse_settings (setting_group);
 
     End If;
-
-    If (Select Count(*) From clearing_house.tbl_clearinghouse_settings) = 0 Then
-
-        
-        Insert Into clearing_house.tbl_clearinghouse_settings (setting_group, setting_key, setting_value, setting_datatype) 
-            Values
-                ('logger', 'folder', '/tmp/', 'string'),
-                ('', 'max_execution_time', '120', 'numeric'),
-                ('mailer', 'smtp-server', 'mail.acc.umu.se', 'string'),
-                ('mailer', 'reply-address', 'noreply@sead.se', 'string'),
-                ('mailer', 'sender-name', 'SEAD Clearing House', 'string'),
-                ('mailer', 'smtp-auth', 'false', 'bool'),
-                ('mailer', 'smtp-username', '', 'string'),
-                ('mailer', 'smtp-password', '', 'string'),
-
-                ('signal-templates', 'reject-subject', 'SEAD Clearing House: submission has been rejected', 'string'),
-                ('signal-templates', 'reject-body',
-'
-Your submission to SEAD Clearing House has been rejected!
-
-Reject causes:
-
-#REJECT-CAUSES#
-
-This is an auto-generated mail from the SEAD Clearing House system
-
-', 'string'),
- 
-                ('signal-templates', 'reject-cause',
-'
-            
-Entity type: #ENTITY-TYPE# 
-Error scope: #ERROR-SCOPE# 
-Entities: #ENTITY-ID-LIST# 
-Note:  #ERROR-DESCRIPTION# 
-
---------------------------------------------------------------------
-
-', 'string'),
-
-                ('signal-templates', 'accept-subject', 'SEAD Clearing House: submission has been accepted', 'string'),
-        
-                ('signal-templates', 'accept-body',
-'
-            
-Your submission to SEAD Clearing House has been accepted!
-
-This is an auto-generated mail from the SEAD Clearing House system
-
-', 'string'),
-
-                ('signal-templates', 'reclaim-subject', 'SEAD Clearing House notfication: Submission #SUBMISSION-ID# has been transfered to pending', 'string'),
-        
-                ('signal-templates', 'reclaim-body', '
-            
-Status of submission #SUBMISSION-ID# has been reset to pending due to inactivity.
-
-A submission is automatically reset to pending status when #DAYS-UNTIL-RECLAIM# days have passed since the submission
-was claimed for review, and if no activity during has been registered during last #DAYS-WITHOUT-ACTIVITY# days.
-
-This is an auto-generated mail from the SEAD Clearing House system.
-
-', 'string'),
- 
-                ('signal-templates', 'reminder-subject', 'SEAD Clearing House reminder: Submission #SUBMISSION-ID#', 'string'),
-        
-                ('signal-templates', 'reminder-body', '
-            
-Status of submission #SUBMISSION-ID# has been reset to pending due to inactivity.
-
-A reminder is automatically send when #DAYS-UNTIL-REMINDER# have passed since the submission
-was claimed for review.
-
-This is an auto-generated mail from the SEAD Clearing House system.
-
-', 'string'),
-    
-                ('reminder', 'days_until_first_reminder', '14', 'numeric'),
-                ('reminder', 'days_since_claimed_until_transfer_back_to_pending', '28', 'numeric'),
-                ('reminder', 'days_without_activity_until_transfer_back_to_pending', '14', 'numeric');
-
-    
-    End If;
-
-
-
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_info_references') Then
 
         -- Drop Table clearing_house.tbl_clearinghouse_info_references
@@ -128,15 +42,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
             href character varying(255),
             Constraint pk_tbl_clearinghouse_info_references Primary Key (info_reference_id)
         );
-
-    End If;
-
-    If (Select Count(*) From clearing_house.tbl_clearinghouse_info_references) = 0 Then
-
-        Insert Into clearing_house.tbl_clearinghouse_info_references (info_reference_type, display_name, href)
-            Values
-                ('link', 'SEAD overview article',  'http://bugscep.com/phil/publications/Buckland2010_jns.pdf'),
-                ('link', 'Popular science description of SEAD aims',  'http://bugscep.com/phil/publications/buckland2011_international_innovation.pdf');
 
     End If;
 
@@ -228,34 +133,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
 		
 	End If;
 
-    If (Select Count(*) From clearing_house.tbl_clearinghouse_use_cases) = 0 Then
-
-        -- Update clearing_house.tbl_clearinghouse_use_cases Set entity_type_id = 1 Where use_case_id In (1,2,20,21) 
-        Insert Into clearing_house.tbl_clearinghouse_use_cases (use_case_id, use_case_name, entity_type_id) 
-            Values (0, 'General', 0),
-				   (1, 'Login', 1),
-				   (2, 'Logout', 1),
-				   (3, 'Upload submission', 2),
-				   (4, 'Accept submission', 2),
-				   (5, 'Reject submission', 2),
-				   (6, 'Open submission', 2),
-				   (7, 'Process submission', 2),
-				   (8, 'Transfer submission', 2),
-				   (9, 'Add reject cause', 2),
-				   (10, 'Delete reject cause', 2),
-				   (11, 'Claim submission', 2),
-				   (12, 'Unclaim submission', 2),
-				   (13, 'Execute report', 2),
-				   (20, 'Add user', 1),
-				   (21, 'Change user', 1),
-                   (22, 'Send reminder', 2),
-                   (23, 'Reclaim submission', 2),
-                   (24, 'Nag', 0)
-
-        ;
-
-    End If;
-
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_activity_log') Then
 
 		-- Drop Table clearing_house.tbl_clearinghouse_activity_log
@@ -279,8 +156,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
 			On clearing_house.tbl_clearinghouse_activity_log (entity_type_id, entity_id);
 
 	End If;
-
-
 	
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_signal_log') Then
     
@@ -311,13 +186,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
 	End If;
 
-    If (Select Count(*) From clearing_house.tbl_clearinghouse_data_provider_grades) = 0 Then
-
-        Insert Into clearing_house.tbl_clearinghouse_data_provider_grades (grade_id, description)
-			Values (0, 'n/a'), (1, 'Normal'), (2, 'Good'), (3, 'Excellent');
-
-    End If;
-
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_user_roles') Then
 
         Create Table clearing_house.tbl_clearinghouse_user_roles (
@@ -328,17 +196,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
     End If;
     
-    If (Select Count(*) From clearing_house.tbl_clearinghouse_user_roles) = 0 Then
-
-        Insert Into clearing_house.tbl_clearinghouse_user_roles (role_id, role_name) 
-            Values (0, 'Undefined'),
-				   (1, 'Reader'),
-				   (2, 'Normal'),
-				   (3, 'Administrator'),
-				   (4, 'Data Provider');
-
-    End If;
-
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_users') Then
 		-- Drop Table clearing_house.tbl_clearinghouse_users
         Create Table clearing_house.tbl_clearinghouse_users (
@@ -362,17 +219,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
         );
 
 		-- Alter table clearing_house.tbl_clearinghouse_users Add column is_data_provider boolean not null default(false)
-    End If;
-
-    If (Select Count(*) From clearing_house.tbl_clearinghouse_users) = 0 Then
-
-		-- update clearing_house.tbl_clearinghouse_users set signal_receiver = true where user_id = 2
-        Insert Into clearing_house.tbl_clearinghouse_users (user_name, password, full_name, role_id, data_provider_grade_id, create_date, email, signal_receiver) 
-            Values ('test_reader', 'secret', 'Test Reader', 1, 0, '2013-10-08', 'roger.mahler@umu.se', false),
-                   ('test_normal', 'secret', 'Test Normal', 2, 0, '2013-10-08', 'roger.mahler@umu.se', false),
-                   ('test_admin', 'secret', 'Test Administrator', 3, 0, '2013-10-08', 'roger.mahler@umu.se', true),
-                   ('test_provider', 'secret', 'Test Provider', 3, 3, '2013-10-08', 'roger.mahler@umu.se', true);
-
     End If;
 
     /*********************************************************************************************************************************
@@ -404,19 +250,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
 		Create Unique Index idx_tbl_clearinghouse_submission_tables_name2
 			On clearing_house.tbl_clearinghouse_submission_tables (table_name_underscored);
 
-
-		Insert Into clearing_house.tbl_clearinghouse_submission_tables (table_name, table_name_underscored)
-			Select replace(initcap(replace(s.table_name, '_', ' ')), ' ', '') , s.table_name
-			From (
-				Select distinct table_name
-				From clearing_house.tbl_clearinghouse_sead_rdb_schema
-				Where table_schema = 'public'
-			) As s
-			Left Join clearing_house.tbl_clearinghouse_submission_tables t
-			  On t.table_name_underscored = s.table_name
-			Where t.table_id is NULL
-			  And s.table_name Like 'tbl_%';
-
 	End If;
 	
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submission_xml_content_tables') Then
@@ -430,13 +263,17 @@ This is an auto-generated mail from the SEAD Clearing House system.
 			Constraint pk_tbl_submission_xml_content_meta_tables_table_id Primary Key (content_table_id),
 			Constraint fk_tbl_clearinghouse_submission_xml_content_tables Foreign Key (table_id)
 			  References clearing_house.tbl_clearinghouse_submission_tables (table_id) Match Simple
-				On Update NO ACTION ON DELETE Cascade
+				On Update NO ACTION ON DELETE Cascade,
+            Constraint fk_tbl_clearinghouse_submission_xml_content_tables_sid Foreign Key (submission_id)
+                References clearing_house.tbl_clearinghouse_submissions (submission_id) Match Simple
+                    On Update NO ACTION ON DELETE Cascade
 		);
 
 
 		Create Unique Index fk_idx_tbl_submission_xml_content_tables_table_name
 			On clearing_house.tbl_clearinghouse_submission_xml_content_tables (submission_id, table_id);
-
+            
+            
 	End If;
 
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submission_xml_content_columns') Then
@@ -524,19 +361,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
     End If;
 
-    If (Select Count(*) From clearing_house.tbl_clearinghouse_submission_states) = 0 Then
-
-        Insert Into clearing_house.tbl_clearinghouse_submission_states (submission_state_id, submission_state_name)
-            Values	(0, 'Undefined'),
-                    (1, 'New'),
-                    (2, 'Pending'),
-                    (3, 'In progress'),
-                    (4, 'Accepted'),
-                    (5, 'Rejected'),
-                    (9, 'Error');
-
-    End If;
-
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submissions') Then
 
 		--Alter Table clearing_house.tbl_clearinghouse_submissions Drop Column upload_date
@@ -570,6 +394,55 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
     End If;
 
+    If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_sead_create_table_log') Then
+
+        CREATE TABLE "clearing_house"."tbl_clearinghouse_sead_create_table_log" (
+            "create_script" text COLLATE "pg_catalog"."default",
+            "drop_script" text COLLATE "pg_catalog"."default"
+        )
+        ;
+
+        ALTER TABLE "clearing_house"."tbl_clearinghouse_sead_create_table_log" OWNER TO "clearinghouse_worker";
+
+        CREATE TABLE "clearing_house"."tbl_clearinghouse_sead_create_view_log" (
+            "create_script" text COLLATE "pg_catalog"."default",
+            "drop_script" text COLLATE "pg_catalog"."default"
+        )
+        ;
+
+        ALTER TABLE "clearing_house"."tbl_clearinghouse_sead_create_view_log" OWNER TO "clearinghouse_worker";
+
+    End If;
+
+    If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submission_tables') Then
+
+        CREATE TABLE clearing_house.tbl_clearinghouse_submission_tables
+        (
+            table_id integer NOT NULL DEFAULT nextval('clearing_house.tbl_clearinghouse_submission_tables_table_id_seq'::regclass),
+            table_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+            table_name_underscored character varying(255) COLLATE pg_catalog."default" NOT NULL,
+            CONSTRAINT pk_tbl_clearinghouse_submission_tables PRIMARY KEY (table_id)
+        );
+
+        ALTER TABLE clearing_house.tbl_clearinghouse_submission_tables OWNER to clearinghouse_worker;
+
+        CREATE UNIQUE INDEX idx_tbl_clearinghouse_submission_tables_name1
+            ON clearing_house.tbl_clearinghouse_submission_tables USING btree
+            (table_name COLLATE pg_catalog."default")
+            TABLESPACE pg_default;
+
+        CREATE UNIQUE INDEX idx_tbl_clearinghouse_submission_tables_name2
+            ON clearing_house.tbl_clearinghouse_submission_tables USING btree
+            (table_name_underscored COLLATE pg_catalog."default")
+            TABLESPACE pg_default;
+
+        GRANT ALL ON TABLE clearing_house.tbl_clearinghouse_submission_tables TO qv;
+        GRANT SELECT, UPDATE ON TABLE clearing_house.tbl_clearinghouse_submission_tables TO readers;
+        GRANT SELECT ON TABLE clearing_house.tbl_clearinghouse_submission_tables TO seadread;
+        GRANT ALL ON TABLE clearing_house.tbl_clearinghouse_submission_tables TO clearinghouse_worker;
+
+    End If;
+
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_accepted_submissions') Then
 
         Create Table clearing_house.tbl_clearinghouse_accepted_submissions
@@ -597,38 +470,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
         );
 
         Create Index fk_clearinghouse_reject_entity_types On clearing_house.tbl_clearinghouse_reject_entity_types (table_id);
-
-    End If;
-
-     If (Select Count(*) From clearing_house.tbl_clearinghouse_reject_entity_types) = 0 Then
-
-		--Delete From clearing_house.tbl_clearinghouse_reject_entity_types
-        Insert Into clearing_house.tbl_clearinghouse_reject_entity_types (entity_type_id, table_id, entity_type)
-
-            Select 0,  0, 'Not specified'
-			Union
-            Select row_number() over (ORDER BY table_name),  table_id, left(substring(table_name,4),Length(table_name)-4) 
-            From clearing_house.tbl_clearinghouse_submission_tables
-            Where table_name Like 'Tbl%s'
-            Order by 1;
-
-        /* Komplettera med nya */
-        Insert Into clearing_house.tbl_clearinghouse_reject_entity_types (entity_type_id, table_id, entity_type)
-
-            Select (Select Max(entity_type_id) From clearing_house.tbl_clearinghouse_reject_entity_types) + row_number() over (ORDER BY table_name),  t.table_id, left(substring(table_name,4),Length(table_name)-3) 
-            From clearing_house.tbl_clearinghouse_submission_tables t
-			Left Join clearing_house.tbl_clearinghouse_reject_entity_types x
-			  On x.table_id = t.table_id
-            Where x.table_id Is Null
-            Order by 1;
-
-
-        /* Fixa beskrivningstext */
-        Update clearing_house.tbl_clearinghouse_reject_entity_types as x
-			set entity_type = replace(trim(replace(regexp_replace(t.table_name, E'([A-Z])', E'\_\\1','g'), '_', ' ')), 'Tbl ', '')
-        From clearing_house.tbl_clearinghouse_submission_tables t
-        Where t.table_id = x.table_id
-          And replace(trim(replace(regexp_replace(t.table_name, E'([A-Z])', E'\_\\1','g'), '_', ' ')), 'Tbl ', '') <> x.entity_type;
 
     End If;
 
@@ -686,14 +527,18 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
     End If;
 
+    If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_sead_unknown_column_log') Then
 
+        Create Table clearing_house.tbl_clearinghouse_sead_unknown_column_log (
+            column_log_id serial not null,
+            submission_id int,
+            table_name text,
+            column_name text,
+            column_type text,
+            alter_sql text,
+            Constraint pk_tbl_clearinghouse_sead_unknown_column_log PRIMARY KEY (column_log_id)
+        );
 
+    End If;
+    
 End $$ Language plpgsql;
-
--- revoke create on schema public from roger;
--- grant usage on schema public to roger;
-
-Alter Table tbl_clearinghouse_submission_xml_content_tables
-    Add Constraint fk_tbl_clearinghouse_submission_xml_content_tables_sid Foreign Key (submission_id)
-        References clearing_house.tbl_clearinghouse_submissions (submission_id) Match Simple
-            On Update NO ACTION ON DELETE Cascade

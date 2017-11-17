@@ -612,25 +612,34 @@ End $$ Language plpgsql;
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_copy_extracted_values_to_entity_tables(2)
-Create Or Replace Function clearing_house.fn_copy_extracted_values_to_entity_tables(int) Returns void As $$
+Create Or Replace Function clearing_house.fn_copy_extracted_values_to_entity_tables(p_submission_id int, p_dry_run = FALSE, p_add_missing_columns boolean = FALSE)
+Returns void As $$
 	Declare x RECORD;
 Begin
 
-	For x In (Select t.*
-			  From clearing_house.tbl_clearinghouse_submission_tables t
-			  Join clearing_house.tbl_clearinghouse_submission_xml_content_tables c
-			    On c.table_id = t.table_id
-			  Where c.submission_id = $1
+	For x In (
+        Select t.*
+        From clearing_house.tbl_clearinghouse_submission_tables t
+        Join clearing_house.tbl_clearinghouse_submission_xml_content_tables c
+        On c.table_id = t.table_id
+        Where c.submission_id = p_submission_id
 	) Loop
 
 		--Raise Notice 'Executing table: %', x.table_name_underscored;
 
-		Perform clearing_house.fn_add_new_public_db_columns($1, x.table_name_underscored);
-		Perform clearing_house.fn_copy_extracted_values_to_entity_table($1, x.table_name_underscored);
+        If (p_add_missing_columns) Then
+		    Perform clearing_house.fn_add_new_public_db_columns(p_submission_id, x.table_name_underscored);
+        End If;
+        
+        If Not (p_dry_run) Then
+            Perform clearing_house.fn_copy_extracted_values_to_entity_table(p_submission_id, x.table_name_underscored);
+        End If;
+        
+        Raise Notice 'clearing_house.fn_copy_extracted_values_to_entity_table(%, ''%'');', p_submission_id, x.table_name_underscored;
 
 	End Loop;	
 	
-	--Raise Notice 'XML entity field values extracted and stored for submission id %', $1;
+	--Raise Notice 'XML entity field values extracted and stored for submission id %', p_submission_id;
 	
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
@@ -649,16 +658,25 @@ End $$ Language plpgsql;
 ******************************************************************************************************************************/
 -- Drop Function explode_submission_xml_to_rdb(int);
 -- Select clearing_house.fn_explode_submission_xml_to_rdb(2)
-Create Or Replace Function clearing_house.fn_explode_submission_xml_to_rdb(int) Returns void As $$
+Create Or Replace Function clearing_house.fn_explode_submission_xml_to_rdb(submission_id int) Returns void As $$
 
 Begin
 
-	Perform clearing_house.fn_extract_and_store_submission_tables($1);
-	Perform clearing_house.fn_extract_and_store_submission_columns($1);
-	Perform clearing_house.fn_extract_and_store_submission_records($1);
-	Perform clearing_house.fn_extract_and_store_submission_values($1);
+	Perform clearing_house.fn_extract_and_store_submission_tables(submission_id);
+	Perform clearing_house.fn_extract_and_store_submission_columns(submission_id);
+	Perform clearing_house.fn_extract_and_store_submission_records(submission_id);
+	Perform clearing_house.fn_extract_and_store_submission_values(submission_id);
 
-	Perform clearing_house.fn_copy_extracted_values_to_entity_tables($1);
+    /* FIX OF WRONG NAMES in EXCEL/XML */
+    update clearing_house.tbl_clearinghouse_submission_xml_content_columns
+        set column_name = 'address_1', column_name_underscored = 'address_1'
+    where column_name = 'address1';
+
+    update clearing_house.tbl_clearinghouse_submission_xml_content_columns
+        set column_name = 'address_2', column_name_underscored = 'address_2'
+    where column_name = 'address2';
+
+	Perform clearing_house.fn_copy_extracted_values_to_entity_tables(submission_id);
 
 End $$ Language plpgsql;
 

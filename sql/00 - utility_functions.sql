@@ -56,42 +56,45 @@ End $$ Language plpgsql;
 **	Revisions
 ******************************************************************************************************************************/
 -- Select fn_pascal_case_to_underscore('RogerMahler')
-CREATE OR REPLACE FUNCTION clearing_house.fn_java_type_to_postgresql(character varying)
-  RETURNS character varying AS
-$BODY$
+CREATE OR REPLACE FUNCTION clearing_house.fn_java_type_to_postgresql(
+	character varying)
+RETURNS character varying
+    LANGUAGE 'plpgsql'
+AS $BODY$
+
 Begin
-	If ($1 in ('java.util.Date', 'java.sql.Date')) Then
+	If (lower($1) in ('java.util.date', 'java.sql.date')) Then
 		return 'date';
 	End If;
 	
-	If ($1 in ('java.math.BigDecimal', 'java.lang.Double')) Then
+	If (lower($1) in ('java.math.bigdecimal', 'java.lang.double')) Then
 		return 'numeric';
 	End If;
 	
-	If ($1 in ('java.lang.Integer', 'java.util.Integer', 'java.long.Short')) Then
+	If (lower($1) in ('java.lang.integer', 'java.util.integer', 'java.long.short')) Then
 		return 'integer';
 	End If;
 
-
-	If ($1 = 'java.lang.Boolean') Then
+	If (lower($1) = 'java.lang.boolean') Then
 		return 'boolean';
 	End If;
 
-	If ($1 in ('java.lang.String', 'java.lang.Character')) Then
+	If (lower($1) in ('java.lang.string', 'java.lang.character')) Then
 		return 'text';
 	End If;
 
-	If ($1 Like 'com.sead.database.%') Then
+	If ($1 Like 'com.sead.database.Tbl%' or $1 Like 'Tbl%') Then
 		return 'integer'; /* FK */
 	End If;
 
 	Raise Exception 'Fatal error: Java type % encountered in XML not expected', $1;
 	
-End $BODY$
-  LANGUAGE plpgsql VOLATILE
-  COST 100;
+End 
+
+$BODY$;
+
 ALTER FUNCTION clearing_house.fn_java_type_to_postgresql(character varying)
-  OWNER TO clearinghouse_worker;
+    OWNER TO clearinghouse_worker;
 
 /*****************************************************************************************************************************
 **	Function	fn_table_exists
@@ -179,5 +182,47 @@ Begin
     Where table_name_underscored = $1;
 
     Return Coalesce(table_entity_type_id,0);	
+End $$ Language plpgsql;
+
+/*****************************************************************************************************************************
+**	Function	xml_transfer_bulk_upload
+**	Who			Roger Mähler
+**	When		2017-10-26
+**	What		
+**	Uses
+**	Used By
+**	Revisions
+******************************************************************************************************************************/
+-- Select * from clearing_house.tbl_clearinghouse_submissions where not xml is null
+-- Select clearing_house.xml_transfer_bulk_upload(1)
+Create Or Replace Function clearing_house.xml_transfer_bulk_upload(p_submission_id int = null, p_xml_id int = null, p_upload_user_id int = 4)
+Returns int As $$
+Begin
+
+	p_xml_id = Coalesce(p_xml_id, (Select Max(ID) from clearing_house.tbl_clearinghouse_xml_temp));
+    
+	If p_submission_id Is Null Then
+    
+        Select Coalesce(Max(submission_id),0) + 1
+        Into p_submission_id
+        From clearing_house.tbl_clearinghouse_submissions;
+    
+        Insert Into clearing_house.tbl_clearinghouse_submissions(submission_id, submission_state_id, data_types, upload_user_id, 
+            upload_date, upload_content, xml, status_text, claim_user_id, claim_date_time)
+
+            Select p_submission_id, 1, 'Undefined other', p_upload_user_id, now(), null, xmldata, 'New', null, null
+            From clearing_house.tbl_clearinghouse_xml_temp
+            Where id = p_xml_id;
+    Else
+
+		Update clearing_house.tbl_clearinghouse_submissions
+        	Set XML = X.xmldata
+        From clearing_house.tbl_clearinghouse_xml_temp X
+        Where clearing_house.tbl_clearinghouse_submissions.submission_id = p_submission_id
+          And X.id = p_xml_id;
+    
+    End If;
+    
+    Return p_submission_id;
 End $$ Language plpgsql;
 
