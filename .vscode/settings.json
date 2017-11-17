@@ -1,6 +1,6 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "phpserver.port": 80,
+    "phpserver.port": 88,
     "phpserver.browser": "chrome",
     "phpserver.relativePath": "public",
     "php.validate.enable": true,

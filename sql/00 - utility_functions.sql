@@ -95,7 +95,41 @@ $BODY$;
 
 ALTER FUNCTION clearing_house.fn_java_type_to_postgresql(character varying)
     OWNER TO clearinghouse_worker;
-
+/*****************************************************************************************************************************
+**	Function	fn_clearinghouse_check_submission_length_exceeded
+**	Who			Roger Mähler
+**	What		Find string field values that exceeds DB varchar max length
+******************************************************************************************************************************/
+Drop Function clearing_house.fn_clearinghouse_check_submission_length_exceeded(p_submission_id int);
+Create Or Replace Function clearing_house.fn_clearinghouse_check_submission_length_exceeded(p_submission_id int)
+Returns Table (
+	submission_id				int,
+	table_name                  character varying,
+	column_name                 character varying,
+	data_type                   character varying,
+	value_length                int,
+	character_maximum_length	int,
+    value                       character varying
+) As $$
+Declare z RECORD;
+Begin
+    Return Query
+        SELECT p_submission_id, s.table_name_underscored, c.column_name_underscored, c.data_type, length(v.value) as value_length, x.character_maximum_length, v.value::character varying
+        FROM clearing_house.tbl_clearinghouse_submission_xml_content_values v
+        JOIN clearing_house.tbl_clearinghouse_submission_xml_content_tables t
+          ON v.table_id = t.table_id
+        JOIN clearing_house.tbl_clearinghouse_submission_xml_content_columns c
+          ON c.column_id = v.column_id
+        JOIN clearing_house.tbl_clearinghouse_submission_tables s
+          ON s.table_id = t.table_id
+        JOIN clearing_house.tbl_clearinghouse_sead_rdb_schema x
+          ON x.table_name = s.table_name_underscored
+         AND x.column_name = c.column_name_underscored
+        WHERE v.submission_id = p_submission_id
+          AND c.data_type Like '%String'
+          AND Not x.character_maximum_length IS NULL
+          AND length(v.value) > x.character_maximum_length;
+End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_table_exists
 **	Who			Roger Mähler
