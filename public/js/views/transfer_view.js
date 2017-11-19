@@ -1,6 +1,7 @@
 window.TransferView = Backbone.View.extend({
     
     initialize: function (options) {
+        this.options = options || {};
         this.users = options.users;
         this.submission = options.submission;
         this.template = TemplateStore.get("template_TransferSubmissionView");

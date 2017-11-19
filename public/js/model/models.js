@@ -233,8 +233,9 @@ window.SubmissionRejectModel = Backbone.Model.extend({
     
     idAttribute: "submission_reject_id",
     
-    initialize: function () {
+    initialize: function (options) {
         
+        this.options = options || (options = {});
         this.validators = {};
 
         this.validators.reject_description = function (value) {
@@ -349,7 +350,7 @@ window.SubmissionRejectCollection = Backbone.Collection.extend({
     
     contains_site_id: function(id)
     {
-        return this.findWhere({ site_id: id }) != null
+        return this.findWhere({ site_id: id }) != null;
     }
 });
 
@@ -390,7 +391,7 @@ window.RejectEntityTypesCollection = Backbone.Collection.extend({
 
 window.UserModel = Backbone.Model.extend({
 
-   idAttribute: "user_id",
+    idAttribute: "user_id",
 
     url: "api/users",
 

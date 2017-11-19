@@ -1,7 +1,9 @@
 
 window.CollectionDropdownView = Backbone.View.extend({
  
-    initialize: function () {
+    initialize: function (options) {
+
+        this.options = options || {};
 
         var option = $.extend({}, {
             collection: null,

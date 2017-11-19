@@ -40,9 +40,9 @@ window.Table_Template_Store = {
 
 window.ReviewTableView = window.ReviewView.extend({
 
-    initialize: function () {
+    initialize: function (options) {
 
-
+        this.options = $.extend(this.options || {}, options || {});;
         this.template = TemplateStore.get("template_ReviewTable");
         this.row_template = TemplateStore.get("template_ReviewTableRow");
         

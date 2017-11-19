@@ -2,8 +2,9 @@ window.UsersView = Backbone.View.extend({
 
     users: null,
     
-    initialize: function () {
+    initialize: function (options) {
         
+        this.options = options || {};
         this.template = TemplateStore.get("template_UsersView");
         
         this.users = this.options.users;
@@ -79,6 +80,7 @@ window.UserListView = Backbone.View.extend({
     table: null,
     
     initialize: function (options) {
+        this.options = options || {};
         this.users = options.users;
         this.role_types = this.options.role_types;
         this.listenTo(this.users, "reset", this.render);
@@ -175,8 +177,9 @@ window.UserListView = Backbone.View.extend({
 
 window.UserView = Backbone.View.extend({
     
-    initialize: function () {
+    initialize: function (options) {
         
+        this.options = options || {};
         this.template = TemplateStore.get("template_UserView");
         
         this.data_provider_grade_types = this.options.data_provider_grade_types;
@@ -200,8 +203,10 @@ window.UserView = Backbone.View.extend({
             data[event.target.name] = event.target.checked;
         else
             data[event.target.name] = event.target.value;
-        this.user.set(data);
-        this.$save_button.prop("disabled", false);
+        if (this.user != null) {
+            this.user.set(data);
+            this.$save_button.prop("disabled", false);
+        }
     },
 
     render: function () {

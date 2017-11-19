@@ -28,6 +28,8 @@ $loader->setup();
     <!--<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">-->
 
     <link href="css/toggle-switch.css" rel="stylesheet" media="screen">
+    
+    <!-- <link href="//cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" media="screen"> -->
     <link href="lib/datatables/css/jquery.dataTables.css" rel="stylesheet" media="screen">
     <link href="lib/datatables/css/dataTables.custom.css" rel="stylesheet" media="screen">
     <link href="lib/datatables/css/TableTools.css" rel="stylesheet" media="screen">
@@ -82,13 +84,17 @@ $loader->setup();
 
 <div id="buzy_inidcator"></div>
 
-<script src="lib/jquery-1.10.2.min.js"></script>
-<!--<script src="lib/underscore.js"></script>
-<script src="lib/backbone.js"></script>
-<script src="lib/bootstrap.js"></script>-->
-<script src="lib/underscore-min.js"></script>
-<script src="lib/backbone-min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.3.3/backbone-min.js"></script>
+
+<!-- <script src="lib/jquery-1.10.2.min.js"></script> -->
+<!-- <script src="lib/underscore-min.js"></script> -->
+<!-- <script src="lib/backbone-min.js"></script> -->
+
 <script src="lib/bootstrap.min.js"></script>
+
+<!-- <script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script> -->
 <script src="lib/datatables/js/jquery.dataTables.min.js"></script>
 <script src="lib/datatables/js/TableTools.min.js"></script>
 <script src="lib/datatables/js/dataTables.bootstrap.js"></script>

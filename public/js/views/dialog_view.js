@@ -4,6 +4,10 @@ window.BaseDialogView = window.Backbone.View.extend({
         'click .dialog-execute-button': 'execute'
     },
 
+    initialize: function (options) {
+        this.options = options || {};
+    },
+    
     open: function()
     {  
         this.$dialog.modal({ backdrop: 'static', keyboard: false, show: true});   
@@ -111,6 +115,7 @@ window.ErrorView = window.BaseDialogView.extend({
 window.LoginView = Backbone.View.extend({
     
     initialize: function (options) {
+        this.options = options || {};
         this.template = TemplateStore.get("template_LoginView");
     },
             
@@ -201,6 +206,7 @@ window.LoginView = Backbone.View.extend({
 window.LogoutView = Backbone.View.extend({
     
     initialize: function (options) {
+        this.options = options || {};
         this.template = TemplateStore.get("template_LogoutView");
     },
             

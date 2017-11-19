@@ -1,6 +1,7 @@
 window.ReportView = Backbone.View.extend({
 
-    initialize: function () {
+    initialize: function (options) {
+        this.options = options || {};
         this.template = TemplateStore.get("template_ReportResultView");
         this.report_id = this.options.report_id;
         this.submission_id = this.options.submission_id;

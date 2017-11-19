@@ -1,6 +1,7 @@
 window.RejectCauseView = Backbone.View.extend({
     
-    initialize: function () {
+    initialize: function (options) {
+        this.options = options || {};
         
         this.rejects = this.options.rejects;
         this.reject_entity_types = this.options.reject_entity_types;
@@ -194,7 +195,9 @@ window.RejectCauseIndicatorView = Backbone.View.extend({
     
     template: null,
 
-    initialize: function () {
+    initialize: function (options) {
+        
+        this.options = options || {};
         
         _.bindAll(this, "clicked");
         

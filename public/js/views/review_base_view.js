@@ -1,5 +1,9 @@
 window.ReviewView = Backbone.View.extend({
-    
+
+    initialize: function (options) {
+        this.options = _.extend(this.options || {}, options || {});
+    },
+
     set_review_value: function ($id, local_value, public_value) {
         $id.text(local_value || "");
         if (public_value !== null) {
@@ -19,6 +23,10 @@ window.ReviewView = Backbone.View.extend({
 
 window.ReviewBaseView = window.ReviewView.extend({
 
+    initialize: function (options) {
+        this.options = _.extend(this.options || {}, options || {});
+    },
+    
     render_tables: function(model, store)
     {
         var table_options = Table_Template_Store.get_table_options(store);
@@ -51,8 +59,9 @@ window.ReviewBaseView = window.ReviewView.extend({
         return this;
     },
     
-    initialize: function () {
+    initialize: function (options) {
 
+        this.options = _.extend(this.options || {}, options || {});
         this.model = this.options.model;
         this.rejects = this.options.rejects;
         

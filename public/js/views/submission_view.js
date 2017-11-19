@@ -1,7 +1,8 @@
 window.SubmissionView = Backbone.View.extend({
 
-    initialize: function () {
+    initialize: function (options) {
         
+        this.options = options || {};
         this.submission = this.options.submission;
         
         if (!this.submission) {

@@ -1,6 +1,8 @@
 window.SubmissionNavigationView = Backbone.View.extend({
 
-    initialize: function () {
+    initialize: function (options) {
+
+        this.options = options || {};
 
         this.template = TemplateStore.get("template_SubmissionNavigationView");
 
@@ -99,7 +101,8 @@ window.SubmissionNavigationView = Backbone.View.extend({
 
 window.SubmissionSitesNavigationView = Backbone.View.extend({
 
-    initialize: function () {
+    initialize: function (options) {
+        this.options = options || {};
 
         this.rootTemplate = TemplateStore.get("template_SiteRootView");
         this.nodeTemplate = TemplateStore.get("template_SiteNodeView");
@@ -161,7 +164,8 @@ window.SubmissionSitesNavigationView = Backbone.View.extend({
 
 window.SubmissionReportsNavigationView = Backbone.View.extend({
 
-    initialize: function () {
+    initialize: function (options) {
+        this.options = options || {};
         this.rootTemplate = TemplateStore.get("template_SubmissionReportsNavigationView");
         this.nodeTemplate = TemplateStore.get("template_SubmissionReportNavigationNode");
         this.reports = this.options.reports;
@@ -185,7 +189,8 @@ window.SubmissionReportsNavigationView = Backbone.View.extend({
 
 window.SubmissionTablesNavigationView = Backbone.View.extend({
 
-    initialize: function () {
+    initialize: function (options) {
+        this.options = options || {};
         this.rootTemplate = TemplateStore.get("template_SubmissionTablesNavigationView");
         this.nodeTemplate = TemplateStore.get("template_SubmissionTablesNavigationNode");
         this.xml_tables_list = this.options.xml_tables_list;

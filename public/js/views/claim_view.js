@@ -1,6 +1,7 @@
 window.XClaimView = Backbone.View.extend({
     
     initialize: function (options) {
+        this.options = options || {};
         this.action = options.action;
         this.submission = options.submission;
         this.template = TemplateStore.get("template_XClaimSubmissionView");

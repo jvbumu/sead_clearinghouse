@@ -1,6 +1,7 @@
 window.HeaderView = Backbone.View.extend({
 
-    initialize: function () {
+    initialize: function (options) {
+        this.options = options || {};
         
         //this.loginView = new LoginView();
         //this.listenTo(this.loginView, "login_completed", this.login_completed);

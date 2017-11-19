@@ -3,7 +3,8 @@ window.HomeView = Backbone.View.extend({
     selected_submission_id: 0,
     submissions: null,
     
-    initialize: function () {
+    initialize: function (options) {
+        this.options = options || {};
         this.submissions = this.options.items;
         this.render();
     },
@@ -132,6 +133,7 @@ window.SubmissionListView = Backbone.View.extend({
     table: null,
     
     initialize: function (options) {
+        this.options = options || {};
         this.submissions = options.submissions;
     },
     
@@ -199,7 +201,7 @@ window.SubmissionListView = Backbone.View.extend({
                 "sRowSelect": "single",
                 "sSelectedClass": "row_selected",
                 "aButtons": []
-        }
+            }
 
         });       
         
@@ -225,7 +227,8 @@ window.SubmissionListView = Backbone.View.extend({
 
 window.InformationBaseView = Backbone.View.extend({
 
-    initialize: function () {
+    initialize: function (options) {
+        this.options = options || {};
         this.render();
     },
     
