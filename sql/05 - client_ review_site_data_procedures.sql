@@ -229,7 +229,7 @@ Begin
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
 			entity_type_id              				As entity_type_id
 		From (
-			Select s.source_id, s.submission_id, sr.site_reference_id, s.site_id, b.biblio_id as local_db_id, b.public_db_id, b.author || ' (' || b.year || ')' as reference, b.date_updated
+			Select s.source_id, s.submission_id, sr.site_reference_id, s.site_id, b.biblio_id as local_db_id, b.public_db_id, b.authors || ' (' || b.year || ')' as reference, b.date_updated
 			From clearing_house.view_sites s
 			Join clearing_house.view_site_references sr
 			  On sr.site_id = s.merged_db_id
@@ -238,7 +238,7 @@ Begin
 			  On b.merged_db_id = sr.biblio_id
 			 And b.submission_id In (0, $1)
 		) As LDB Left Join (
-			Select b.biblio_id, b.author || ' (' || b.year || ')' as reference
+			Select b.biblio_id, b.authors || ' (' || b.year || ')' as reference
 			From public.tbl_biblio b
 		) As RDB
 		  On RDB.biblio_id = LDB.public_db_id

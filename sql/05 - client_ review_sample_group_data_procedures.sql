@@ -8,7 +8,7 @@
 **	Revisions
 ******************************************************************************************************************************/
 -- Drop Function clearing_house.fn_clearinghouse_review_sample_group_client_data(int, int)
--- Select * From clearing_house.fn_clearinghouse_review_sample_group_client_data(2, -40)
+-- Select * From clearing_house.fn_clearinghouse_review_sample_group_client_data(1, -2024)
 Create Or Replace Function clearing_house.fn_clearinghouse_review_sample_group_client_data(int, int)
 Returns Table (
 
@@ -435,7 +435,7 @@ Begin
 					t.type_description									As type_description
 			From clearing_house.view_sample_groups sg
 			Join clearing_house.view_sample_group_descriptions d
-			  On d.sample_group_description_id = sg.merged_db_id
+			  On sg.merged_db_id = d.sample_group_id
 			 And d.submission_id in (0, sg.submission_id)
 			Join clearing_house.view_sample_group_description_types t
 			  On t.merged_db_id = d.sample_group_description_type_id

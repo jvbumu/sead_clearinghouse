@@ -164,7 +164,7 @@ Begin
 		Else
 	
 			create_script := clearing_house.fn_script_public_db_entity_table(x.source_schema, target_schema, x.table_name);
-			drop_script := 'Drop Table If Exists ' || target_schema || '.' ||  x.table_name || ';';
+			drop_script := 'Drop Table If Exists ' || target_schema || '.' ||  x.table_name || ' CASCADE;';
 
 			If (create_script <> '') Then
 

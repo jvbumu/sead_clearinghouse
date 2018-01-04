@@ -49,7 +49,7 @@ ALTER FUNCTION clearing_house.fn_dba_create_and_transfer_sead_public_db_schema()
 **  Used By     Clearing House installation. DBA.
 **  Revisions
 **********************************************************************************************************************************/
- Drop Function If Exists clearing_house.fn_dba_get_sead_public_db_schema();
+-- Drop Function If Exists clearing_house.fn_dba_get_sead_public_db_schema();
 -- Select * From clearing_house.fn_dba_get_sead_public_db_schema();
 CREATE OR REPLACE FUNCTION clearing_house.fn_dba_get_sead_public_db_schema()
 RETURNS TABLE (
@@ -97,6 +97,3 @@ $BODY$;
 
 ALTER FUNCTION clearing_house.fn_dba_get_sead_public_db_schema()
     OWNER TO clearinghouse_worker;
-
-
-

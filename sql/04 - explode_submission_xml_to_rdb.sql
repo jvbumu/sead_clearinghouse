@@ -500,7 +500,7 @@ Begin
 
 	sql := 'Delete From clearing_house.' || $2 || ' Where submission_id = ' || $1::character varying(20) || ';';
 	
-	--Execute sql;
+	Execute sql;
 
 	submission_columns := clearing_house.fn_get_submission_table_column_names($1, $2);
 
@@ -565,7 +565,7 @@ Begin
 
 
 
-		Raise Notice 'Inserted %', sql;
+		-- Raise Notice 'Inserted %', sql;
 		
 		Execute sql;
 	
@@ -612,11 +612,12 @@ End $$ Language plpgsql;
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_copy_extracted_values_to_entity_tables(2)
-Create Or Replace Function clearing_house.fn_copy_extracted_values_to_entity_tables(p_submission_id int, p_dry_run = FALSE, p_add_missing_columns boolean = FALSE)
+Create Or Replace Function clearing_house.fn_copy_extracted_values_to_entity_tables(p_submission_id int, p_dry_run boolean = FALSE, p_add_missing_columns boolean = FALSE)
 Returns void As $$
 	Declare x RECORD;
 Begin
 
+    -- NOTE! FIXME! Must take greater care on how inserts are sorted
 	For x In (
         Select t.*
         From clearing_house.tbl_clearinghouse_submission_tables t
@@ -635,7 +636,7 @@ Begin
             Perform clearing_house.fn_copy_extracted_values_to_entity_table(p_submission_id, x.table_name_underscored);
         End If;
         
-        Raise Notice 'clearing_house.fn_copy_extracted_values_to_entity_table(%, ''%'');', p_submission_id, x.table_name_underscored;
+        Raise Notice 'PERFORM clearing_house.fn_copy_extracted_values_to_entity_table(%, ''%'');', p_submission_id, x.table_name_underscored;
 
 	End Loop;	
 	
@@ -676,6 +677,7 @@ Begin
         set column_name = 'address_2', column_name_underscored = 'address_2'
     where column_name = 'address2';
 
+    -- NOTE! FIXME! Must take greater care on how inserts are sorted
 	Perform clearing_house.fn_copy_extracted_values_to_entity_tables(submission_id);
 
 End $$ Language plpgsql;

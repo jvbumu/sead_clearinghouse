@@ -47,6 +47,13 @@ namespace Repository {
             $data = $this->getAdapter()->query(SubmissionQueryBuilder::getContentReportSql($submission_id))->fetchAll(\PDO::FETCH_ASSOC);
             $datasets = $this->getAdapter()->query(SubmissionQueryBuilder::getSampleGroupDataSetReportSql($submission_id))->fetchAll(\PDO::FETCH_ASSOC);
             
+             //array_values(array_filter($datasets, function ($x) use ($sample_group_id) { return $x["sample_group_id"] == $sample_group_id; }))
+             $sample_group_data_sets = array();
+             foreach ($datasets as $item){
+                $sample_group_data_sets[$item['sample_group_id']][] = $item;
+             }
+             //$chunks = array_values($sample_group_data_sets);
+
             /* Order the data as hiearchical data  */
             $submission = array();
             $submission["submission_id"] = $submission_id;
@@ -72,7 +79,8 @@ namespace Repository {
                         "sample_group_id" => $sample_group_id,
                         "sample_group_name" => $value["sample_group_name"],
                         "samples" => array(),
-                        "datasets" => array_values(array_filter($datasets, function ($x) use ($sample_group_id) { return $x["sample_group_id"] == $sample_group_id; }))
+                        "datasets" => key_exists($sample_group_id, $sample_group_data_sets) ? $sample_group_data_sets[$sample_group_id] : array()
+                        //array_values(array_filter($datasets, function ($x) use ($sample_group_id) { return $x["sample_group_id"] == $sample_group_id; }))
                     );
                 }
                 $sample_group = &$site["sample_groups"][$sample_group_id];

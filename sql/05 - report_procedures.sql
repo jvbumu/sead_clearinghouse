@@ -91,17 +91,19 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_report_bibliographic_entries(int)
 Returns Table (
 
+-- TODO FIXME: New structure 
 	local_db_id int,   
-    reference text,
-    collection character varying,
-    publisher character varying,
-    publisher_place character varying,
-    
+    authors varchar,
+    title text,
+    full_reference varchar,
+    url varchar,
+   
 	public_db_id int,   
-    public_reference text,
-    public_collection character varying,
-    public_publisher character varying,
-    public_publisher_place character varying,
+
+    public_authors varchar,
+    title text,
+    full_reference varchar,
+    url varchar,
 
     date_updated text,				-- display only if update
 
@@ -139,63 +141,22 @@ Begin
 					b.source_id																					as source_id,
 					b.biblio_id																					as local_db_id,
 					b.public_db_id																				as public_db_id,
-					b.author || ' (' || b.year || ')'															as reference, 
-					Coalesce(c.collection_or_journal_abbrev, c.collection_title_or_journal_name, '')			as collection,
-                    
-					Coalesce(pb.publisher_name, '') ||
-					Case When Not pb.publisher_name Is Null
-						And Not pc.publisher_name Is Null Then ', ' Else '' End ||
-					Coalesce(pc.publisher_name, '') 															as publisher,
-					
-					Coalesce(pb.place_of_publishing_house, '') || 
-					Case When Not pb.place_of_publishing_house Is Null
-						And Not pc.place_of_publishing_house Is Null Then ', ' Else '' End ||
-					Coalesce(pc.place_of_publishing_house, '') 													as publisher_place,
+					b.authors || ' (' || b.year || ')'															as reference, 
+					b.title															                            as title, 
+                
 					
 					b.date_updated																				as date_updated
 
 			From clearing_house.view_biblio b
-			
-			Join clearing_house.view_collections_or_journals c
-			  On c.merged_db_id = b.collection_or_journal_id
-			 And c.submission_id In (0, b.submission_id)
-             
-			Left Join clearing_house.view_publishers pb
-			  On pb.submission_id In (0, b.submission_id)
-			 And pb.merged_db_id = b.publisher_id
-			 
-			Left Join clearing_house.view_publishers pc
-			  On pc.submission_id In (0, b.submission_id)
-			 And pc.merged_db_id = c.publisher_id
-			 
+						 
 		) As LDB Left Join (
 		
 			Select	b.biblio_id																				as biblio_id,
-					b.author || ' (' || b.year || ')'														as reference, 
-					Coalesce(c.collection_or_journal_abbrev, c.collection_title_or_journal_name, '')		as collection,
-
-					Coalesce(pb.publisher_name, '') ||
-					Case When Not pb.publisher_name Is Null
-						And Not pc.publisher_name Is Null Then ', ' Else '' End ||
-					Coalesce(pc.publisher_name, '') 															as publisher,
-					
-					Coalesce(pb.place_of_publishing_house, '') || 
-					Case When Not pb.place_of_publishing_house Is Null
-						And Not pc.place_of_publishing_house Is Null Then ', ' Else '' End ||
-					Coalesce(pc.place_of_publishing_house, '') 													as publisher_place,
-
+					b.authors || ' (' || b.year || ')'														as reference, 
+					b.title   														                        as title, 
 					b.date_updated																			as date_updated
-					
+				
 			From public.tbl_biblio b
-			
-			Join public.tbl_collections_or_journals c
-			  On c.collection_or_journal_id = b.collection_or_journal_id
-			  
-			Left Join public.tbl_publishers pb
-			  On pb.publisher_id = b.publisher_id
-			 
-			Left Join public.tbl_publishers pc
-			  On pc.publisher_id = c.publisher_id
 
 		) As RDB
 		  On RDB.biblio_id = LDB.public_db_id

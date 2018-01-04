@@ -20,16 +20,3 @@ with pk_values As (
   WHERE s.is_pk = 'YES'
     --AND s.table_name = 'tbl_ceramics'
     AND m.value is NULL
-
-DO $$
-Begin
-
-    Perform clearing_house.fn_drop_clearinghouse_public_db_model();
-    --ALTER TABLE "public"."tbl_dimensions" ALTER COLUMN "dimension_abbrev" TYPE character varying(16) COLLATE "pg_catalog"."default";
-	--ALTER TABLE "public"."tbl_sample_alt_refs" ALTER COLUMN "alt_ref" TYPE character varying(60) COLLATE "pg_catalog"."default";
-	--ALTER TABLE "public"."tbl_sites" ALTER COLUMN "site_name" TYPE character varying(60) COLLATE "pg_catalog"."default";
-    Perform clearing_house.fn_dba_create_and_transfer_sead_public_db_schema();
-    Perform clearing_house.fn_create_clearinghouse_public_db_model();
-       
-End $$ Language plpgsql;
-

@@ -9,6 +9,7 @@ namespace Application {
         public $registry = null;
         public $logger = null;
         public $locator = null;
+        public $cache = null;
         
         protected $submission_service = null;
         private $magic_password = '**********';
@@ -17,6 +18,7 @@ namespace Application {
             \InfraStructure\SEADException::assertLoaded();
             $this->registry = \Repository\ObjectRepository::getObject('RepositoryRegistry');
             $this->locator = \Repository\ObjectRepository::getObject('Locator');
+            $this->cache = new \Application\JsonCache();
         }       
         
         function isCommandLineInterface()
@@ -188,7 +190,9 @@ namespace Application {
 
         function getSubmissionMetaData($submission_id)
         {
-            echo json_encode((new CH_Open_Command())->execute($submission_id, null));
+            $command = new CH_Open_Command();
+            $json_data = $this->executeCommand($command, $submission_id, null);
+            echo $json_data;
         }
         
         function getSiteModel($submission_id, $site_id)
@@ -226,7 +230,10 @@ namespace Application {
         
         function getSubmissionTables($sid)
         {
-            echo json_encode($this->locator->getReportService()->getSubmissionTables(intval($sid)));
+            $locator = $this->locator;
+            $closure = function() use ($sid, $locator) { return $locator->getReportService()->getSubmissionTables(intval($sid)); };
+            echo json_encode($this->executeService($closure, "submission_tables_{$sid}"));
+            //echo json_encode($this->locator->getReportService()->getSubmissionTables(intval($sid)));
         }
 
         function getSubmissionTableContent($sid, $tableid)
@@ -248,6 +255,29 @@ namespace Application {
             echo json_encode($this->locator->getMailService()->send($this->getSessionUser(), "SEAD TEST SIGNAL", "TEST BODY"));
         }
         
+        function executeCommand($command, $submission_id, $argument)
+        {
+            $name_parts = explode("\\", get_class($command));
+            $cache_id = end($name_parts) . "_{$submission_id}";
+            $json_data = $this->cache->getJson($cache_id);
+            if ($json_data != null) {
+                return $json_data;
+            }
+            $json_data = json_encode($command->execute($submission_id, $argument));
+            $this->cache->putJson($cache_id, $json_data);
+            return $json_data;
+        }
+
+        function executeService($closure, $cache_id)
+        {
+            $json_data = $this->cache->getJson($cache_id);
+            if ($json_data != null) {
+                return $json_data;
+            }
+            $json_data = json_encode($closure());
+            $this->cache->putJson($cache_id, $json_data);
+            return $json_data;
+        }
     }
  
 }
