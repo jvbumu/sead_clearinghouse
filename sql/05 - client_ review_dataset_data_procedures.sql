@@ -949,3 +949,54 @@ Begin
 		  And LDB.local_dataset_id = -$2;
 		  
 End $$ Language plpgsql;
+
+CREATE OR REPLACE FUNCTION clearing_house.fn_clearinghouse_review_dataset_references_client_data(
+    IN integer,
+    IN integer)
+RETURNS TABLE(
+      local_db_id integer,
+      full_reference text,
+      public_db_id integer,
+      public_reference text,
+      date_updated text,
+      entity_type_id integer
+) AS
+$BODY$
+Declare
+    entity_type_id int;
+Begin
+    entity_type_id := clearing_house.fn_get_entity_type_for('tbl_datasets');
+	Return Query
+        Select 
+                LDB.dataset_id                       		As local_db_id,
+                LDB.reference                           	As reference, 
+                LDB.public_db_id                        	As public_db_id,
+                RDB.reference                           	As public_reference, 
+                to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
+                entity_type_id              			As entity_type_id
+            From (
+                Select 
+                    d.source_id				    As source_id, 
+                    d.submission_id				As submission_id, 
+                    d.dataset_id				As dataset_id, 
+                    b.biblio_id 				As local_db_id, 
+                    b.public_db_id				As public_db_id, 			
+                    b.full_reference		 	As reference, 
+                    b.date_updated				As date_updated
+                From clearing_house.view_datasets d
+                Join clearing_house.view_biblio b
+                  On b.merged_db_id = d.biblio_id
+                 And b.submission_id In (0, d.submission_id)
+            ) As LDB Left Join (
+                Select b.biblio_id				As biblio_id,	
+                    b.full_reference			As reference
+                From public.tbl_biblio b
+            ) As RDB
+              On RDB.biblio_id = LDB.public_db_id
+            Where LDB.source_id = 1
+              And LDB.submission_id = 1
+              And LDB.dataset_id = $1;
+
+End $BODY$
+LANGUAGE plpgsql VOLATILE
+;

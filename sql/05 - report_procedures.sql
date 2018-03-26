@@ -86,7 +86,7 @@ End $$ Language plpgsql;
 **	Used By
 **	Revisions
 ******************************************************************************************************************************/
--- Drop Function clearing_house.fn_clearinghouse_report_bibliographic_entries(int)
+--Drop Function clearing_house.fn_clearinghouse_report_bibliographic_entries(int);
 -- Select * From clearing_house.fn_clearinghouse_report_bibliographic_entries(32)
 Create Or Replace Function clearing_house.fn_clearinghouse_report_bibliographic_entries(int)
 Returns Table (
@@ -97,13 +97,15 @@ Returns Table (
     title text,
     full_reference varchar,
     url varchar,
+    doi varchar,
    
 	public_db_id int,   
 
     public_authors varchar,
-    title text,
-    full_reference varchar,
-    url varchar,
+    public_title text,
+    public_full_reference varchar,
+    public_url varchar,
+    public_doi varchar,
 
     date_updated text,				-- display only if update
 
@@ -122,39 +124,43 @@ Begin
 
 		Select 
 			LDB.local_db_id                            	As local_db_id,
-			LDB.reference                               As reference, 
-			LDB.collection                              As collection, 
-			LDB.publisher                               As publisher, 
-			LDB.publisher_place                         As publisher_place, 
-
+			LDB.authors                                 As authors, 
+			LDB.title                                   As title, 
+			LDB.full_reference                          As full_reference, 
+			LDB.url                                     As url, 
+			LDB.doi                                     As doi, 
+            
 			LDB.public_db_id                            As public_db_id,
-			RDB.reference                               As public_reference, 
-			RDB.collection                              As public_collection, 
-			RDB.publisher                               As public_publisher, 
-			RDB.publisher_place                         As public_publisher_place, 
+			RDB.authors                                 As public_authors, 
+			RDB.title                                   As public_title, 
+			RDB.full_reference                          As public_full_reference, 
+			RDB.url                                     As public_url, 
+			RDB.doi                                     As doi, 
 
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
 			entity_type_id              				As entity_type_id
 		From (
 		
-			Select	b.submission_id																				as submission_id,
-					b.source_id																					as source_id,
-					b.biblio_id																					as local_db_id,
-					b.public_db_id																				as public_db_id,
-					b.authors || ' (' || b.year || ')'															as reference, 
-					b.title															                            as title, 
-                
-					
-					b.date_updated																				as date_updated
+			Select	b.submission_id																			As submission_id,
+					b.source_id																				As source_id,
+					b.biblio_id																				As local_db_id,
+					b.public_db_id																			As public_db_id,
+					b.full_reference                    													As full_reference, 
+					b.title															                        As title, 
+					b.url															                        As url, 
+					b.doi															                        As doi, 
+					b.date_updated																			As date_updated
 
 			From clearing_house.view_biblio b
 						 
 		) As LDB Left Join (
 		
-			Select	b.biblio_id																				as biblio_id,
-					b.authors || ' (' || b.year || ')'														as reference, 
-					b.title   														                        as title, 
-					b.date_updated																			as date_updated
+			Select	b.biblio_id																				As biblio_id,
+					b.full_reference                														As full_reference, 
+					b.title   														                        As title, 
+					b.url   														                        As url, 
+					b.doi   														                        As doi, 
+					b.date_updated																			As date_updated
 				
 			From public.tbl_biblio b
 
@@ -1104,7 +1110,7 @@ Join tbl_biblio b
   
 
 ******************************************************************************************************************************/
--- Drop Function clearing_house.fn_clearinghouse_report_relative_ages(int)
+-- Drop Function clearing_house.fn_clearinghouse_report_relative_ages(int);
 -- Select * From clearing_house.fn_clearinghouse_report_relative_ages(2)
 Create Or Replace Function clearing_house.fn_clearinghouse_report_relative_ages(int)
 Returns Table (
@@ -1123,6 +1129,7 @@ Returns Table (
     CAL_age_younger				numeric(20,5),
     relative_age_name			character varying,
     notes						text,
+    date_notes                  text,
     reference					text,
 	
 	public_db_id				int,   
@@ -1138,6 +1145,7 @@ Returns Table (
     public_CAL_age_younger 		numeric(20,5),
     public_relative_age_name	character varying,
     public_notes 				text,
+    public_date_notes           text,
     public_reference 			text,
 	
 	date_updated				text,
@@ -1169,22 +1177,24 @@ Begin
             LDB.CAL_age_younger		                                As CAL_age_younger,
             LDB.relative_age_name		                            As relative_age_name,
             LDB.notes		                                 		As notes,
+            LDB.date_notes	                                 		As date_notes,
             LDB.reference		                                 	As reference,
 		
 			LDB.public_db_id                            			As public_db_id,
 
-            LDB.sample_name		                                 	As public_sample_name,
-            LDB.abbreviation		                                As public_abbreviation,
-            LDB.location_name		                                As public_location_name,
-            LDB.uncertainty		                                 	As public_uncertainty,
-            LDB.method_name		                                 	As public_method_name,
-            LDB.C14_age_older		                                As public_C14_age_older,
-            LDB.C14_age_younger		                                As public_C14_age_younger,
-            LDB.CAL_age_older		                                As public_CAL_age_older,
-            LDB.CAL_age_younger		                                As public_CAL_age_younger,
-            LDB.relative_age_name		                            As public_relative_age_name,
-            LDB.notes		                                 		As public_notes,
-            LDB.reference		                                 	As public_reference,
+            RDB.sample_name		                                 	As public_sample_name,
+            RDB.abbreviation		                                As public_abbreviation,
+            RDB.location_name		                                As public_location_name,
+            RDB.uncertainty		                                 	As public_uncertainty,
+            RDB.method_name		                                 	As public_method_name,
+            RDB.C14_age_older		                                As public_C14_age_older,
+            RDB.C14_age_younger		                                As public_C14_age_younger,
+            RDB.CAL_age_older		                                As public_CAL_age_older,
+            RDB.CAL_age_younger		                                As public_CAL_age_younger,
+            RDB.relative_age_name		                            As public_relative_age_name,
+            RDB.notes		                                 		As public_notes,
+            RDB.date_notes	                                 		As public_date_notes,
+            RDB.reference		                                 	As public_reference,
 
 			to_char(LDB.date_updated,'YYYY-MM-DD')					As date_updated,
             entity_type_id                             				As entity_type_id
@@ -1207,13 +1217,16 @@ Begin
                     ra.CAL_age_younger								As CAL_age_younger,
                     ra.relative_age_name							As relative_age_name,
                     ra.notes										As notes,
-                    b.author || '(' || b.year::varchar || ')'		As reference,
-
-                    ra.date_updated									As date_updated
+                    rd.notes							            As date_notes,
+                    b.full_reference                        		As reference,
+                    rd.date_updated									As date_updated
 
             From clearing_house.view_relative_dates rd
+            Join clearing_house.view_analysis_entities ae
+              On ae.merged_db_id = rd.analysis_entity_id
+             And ae.submission_id In (0, rd.submission_id)
             Join clearing_house.view_physical_samples ps
-              On ps.merged_db_id = rd.physical_sample_id
+              On ps.merged_db_id = ae.physical_sample_id
              And ps.submission_id In (0, rd.submission_id)
             Join clearing_house.view_relative_ages ra
               On ra.merged_db_id = rd.relative_age_id
@@ -1251,7 +1264,8 @@ Begin
                     ra.CAL_age_younger								As CAL_age_younger,
                     ra.relative_age_name							As relative_age_name,
                     ra.notes										As notes,
-                    b.author || '(' || b.year::varchar || ')'		As reference
+                    rd.notes										As date_notes,
+                    b.full_reference                        		As reference
             From tbl_relative_dates rd
             Join tbl_physical_samples ps
               On ps.physical_sample_id  = rd.physical_sample_id

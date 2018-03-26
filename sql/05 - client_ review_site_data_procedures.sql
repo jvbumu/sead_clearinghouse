@@ -8,7 +8,7 @@
 **	Revisions
 ******************************************************************************************************************************/
 -- Select * From clearing_house.tbl_sites
--- Drop Function clearing_house.fn_clearinghouse_review_site_client_data(int, int)
+Drop Function clearing_house.fn_clearinghouse_review_site_client_data(int, int)
 -- Select * From clearing_house.fn_clearinghouse_review_site_client_data(2, 27)
 Create Or Replace Function clearing_house.fn_clearinghouse_review_site_client_data(int, int)
 Returns Table (
@@ -21,6 +21,7 @@ Returns Table (
 	site_name character varying(50),
 	site_description text,
 	preservation_status_or_threat character varying(255),
+    site_location_accuracy character varying,
 
 	public_db_id int,
 	public_latitude_dd numeric(18,10),
@@ -30,6 +31,7 @@ Returns Table (
 	public_site_name character varying(50),
 	public_site_description text,
 	public_preservation_status_or_threat character varying(255),
+    public_site_location_accuracy character varying,
 
 	entity_type_id int
 
@@ -44,7 +46,7 @@ Begin
     site_entity_type_id := clearing_house.fn_get_entity_type_for('tbl_sites');
 
 	Return Query
-		With site_data (submission_id, source_id, site_id, local_db_id, public_db_id, latitude_dd, longitude_dd, altitude, national_site_identifier, site_name, site_description, preservation_status_or_threat) As (
+		With site_data (submission_id, source_id, site_id, local_db_id, public_db_id, latitude_dd, longitude_dd, altitude, national_site_identifier, site_name, site_description, site_location_accuracy, preservation_status_or_threat) As (
 			Select  s.submission_id,
 					s.source_id,
 					s.site_id,
@@ -56,6 +58,7 @@ Begin
 					s.national_site_identifier,
 					s.site_name,
 					s.site_description,
+                    s.site_location_accuracy,
 					t.preservation_status_or_threat
 			From clearing_house.view_sites s
 			Left Join clearing_house.view_site_preservation_status t
@@ -72,6 +75,7 @@ Begin
 				LDB.site_name						As site_name,
 				LDB.site_description				As site_description,
 				LDB.preservation_status_or_threat	As preservation_status_or_threat,
+				LDB.site_location_accuracy	        As site_location_accuracy,
 
 				LDB.public_db_id					As public_db_id,
 				RDB.latitude_dd						As public_latitude_dd, 
@@ -81,6 +85,7 @@ Begin
 				RDB.site_name						As public_site_name, 
 				RDB.site_description				As public_site_description,
 				RDB.preservation_status_or_threat	As public_preservation_status_or_threat,
+				RDB.site_location_accuracy	        As public_site_location_accuracy,
 
                 site_entity_type_id
 
@@ -223,13 +228,20 @@ Begin
 
 		Select 
 			LDB.site_reference_id                       As local_db_id,
-			LDB.reference                               As reference, 
+			LDB.full_reference                          As reference, 
 			LDB.public_db_id                            As public_db_id,
-			RDB.reference                               As public_reference, 
+			RDB.full_reference                          As public_reference, 
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
 			entity_type_id              				As entity_type_id
 		From (
-			Select s.source_id, s.submission_id, sr.site_reference_id, s.site_id, b.biblio_id as local_db_id, b.public_db_id, b.authors || ' (' || b.year || ')' as reference, b.date_updated
+			Select  s.source_id,
+                    s.submission_id,
+                    sr.site_reference_id,
+                    s.site_id,
+                    b.biblio_id as local_db_id,
+                    b.public_db_id,
+                    b.full_reference,
+                    b.date_updated
 			From clearing_house.view_sites s
 			Join clearing_house.view_site_references sr
 			  On sr.site_id = s.merged_db_id
@@ -238,7 +250,8 @@ Begin
 			  On b.merged_db_id = sr.biblio_id
 			 And b.submission_id In (0, $1)
 		) As LDB Left Join (
-			Select b.biblio_id, b.authors || ' (' || b.year || ')' as reference
+			Select  b.biblio_id,
+                    b.full_reference as reference
 			From public.tbl_biblio b
 		) As RDB
 		  On RDB.biblio_id = LDB.public_db_id

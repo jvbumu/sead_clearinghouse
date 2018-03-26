@@ -1,0 +1,3 @@
+\lo_import 'ceramics_20180325-133051_tidy.xml'; 
+insert into clearing_house.tbl_clearinghouse_xml_temp (xmldata) values (clearing_house.xml_import(:LASTOID, true)); 
+Select clearing_house.xml_transfer_bulk_upload(NULL,NULL,4); 

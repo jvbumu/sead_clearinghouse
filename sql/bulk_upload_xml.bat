@@ -1,6 +1,6 @@
 @Echo Off
-SET SOURCE_DIR="C:\Users\roma0050\Google Drive\Project\Projects\VISEAD (Humlab)\SEAD Ceramics & Dendro\Scripts\output"
-SET SOURCE_FILE=ceramics_20180103-112825_tidy.xml
+SET SOURCE_DIR="C:\Users\roma0050\Google Drive\Project\Projects\VISEAD (Humlab)\Shared\SEAD Ceramics & Dendro\output"
+SET SOURCE_FILE=ceramics_20180325-133051_tidy.xml
 
 ::For %%A in (%SOURCE_PATH%) do (
 ::    Set SOURCE_DIR="%%~dpA"

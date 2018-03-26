@@ -4,3 +4,5 @@ public/upload/
 public/api/api-cache/
 .svn/
 .vscode/settings.json
+input/
+output/

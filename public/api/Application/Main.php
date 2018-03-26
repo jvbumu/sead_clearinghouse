@@ -230,10 +230,10 @@ namespace Application {
         
         function getSubmissionTables($sid)
         {
-            $locator = $this->locator;
-            $closure = function() use ($sid, $locator) { return $locator->getReportService()->getSubmissionTables(intval($sid)); };
-            echo json_encode($this->executeService($closure, "submission_tables_{$sid}"));
-            //echo json_encode($this->locator->getReportService()->getSubmissionTables(intval($sid)));
+            //$locator = $this->locator;
+            //$closure = function() use ($sid, $locator) { return $locator->getReportService()->getSubmissionTables(intval($sid)); };
+            //echo json_encode($this->executeService($closure, "submission_tables_{$sid}"));
+            echo json_encode($this->locator->getReportService()->getSubmissionTables(intval($sid)));
         }
 
         function getSubmissionTableContent($sid, $tableid)
@@ -272,11 +272,12 @@ namespace Application {
         {
             $json_data = $this->cache->getJson($cache_id);
             if ($json_data != null) {
-                return $json_data;
+                return json_decode($json_data);
             }
-            $json_data = json_encode($closure());
+            $data = $closure();
+            $json_data = json_encode($data);
             $this->cache->putJson($cache_id, $json_data);
-            return $json_data;
+            return $data;
         }
     }
  
