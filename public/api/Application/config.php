@@ -4,15 +4,15 @@ return array(
 //        'log.writer' => new \Slim\Extras\Log\DateTimeFileWriter(array(
 //            'path' => './logs',
 //            'name_format' => 'Y-m-d',
-//            'message_format' => '%label% - %date% - %message%'   
+//            'message_format' => '%label% - %date% - %message%'
 //        )),
         'debug' => false
     ),
     'logger' => array(
         'folder' => '/tmp/'
     ),
-    //'error_log' => '/tmp/Clearing_House_PHP_ERRORS.log',
-    'error_log' => 'C:\temp\Clearing_House_PHP_ERRORS.log',
+    'error_log' => '/tmp/clearinghouse_php_errors.log',
+    # 'error_log' => 'C:\temp\Clearing_House_PHP_ERRORS.log',
     'max_execution_time' => 120,
     'mailer' => array(
         'smtp-server' => 'mail.acc.umu.se', //'smtp.example.com',
