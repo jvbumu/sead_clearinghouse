@@ -1,12 +1,12 @@
 <?php
 
 namespace InfraStructure {
-    
+
     class ConfigService {
 
         private static $database_config = null;
         private static $config = null;
-        
+
         public static function getConfig()
         {
             if (self::$config == null) {
@@ -14,7 +14,7 @@ namespace InfraStructure {
             }
             return self::$config;
         }
-        
+
         public static function getKeyValue($group, $key, $default)
         {
             try {
@@ -23,7 +23,7 @@ namespace InfraStructure {
                 return $default;
             }
         }
-        
+
         public static function getDatabaseConfig()
         {
             return self::$database_config ?: ($database_config = self::readDatabaseConfig());
@@ -31,21 +31,14 @@ namespace InfraStructure {
 
         public static function readDatabaseConfig()
         {
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                return require_once $_SERVER['DOCUMENT_ROOT'] . '\..\conf\clearing_house_database_conf.php';
-            }
-            return require_once '/www/conf/clearing_house_database_conf.php';
-            // return array(
-            //     "database" => "sead_master_8",
-            //     "hostname" => "dataserver.humlab.umu.se",
-            //     "port" => "5432",
-            //     "username" => "seadread",
-            //     "password" => "Vua9VagZ"
-            // );
+            // if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                return require_once $_SERVER['DOCUMENT_ROOT'] . '/../conf/clearing_house_database_conf.php';
+            // }
+            // return require_once '/www/conf/clearing_house_database_conf.php';
         }
-    } 
-    
-        
+    }
+
+
     class SettingService {
 
         public static function getSettings()
@@ -57,7 +50,7 @@ namespace InfraStructure {
             }
             return $config;
         }
-        
+
         public static function appendSetting(&$config, $setting)
         {
             if ($setting["setting_group"] == "") {
@@ -70,7 +63,7 @@ namespace InfraStructure {
             }
             return $config;
         }
-        
+
         public static function getValue($setting)
         {
             if ($setting["setting_datatype"] == "bool") {
@@ -81,9 +74,9 @@ namespace InfraStructure {
             }
             return $setting["setting_value"];
         }
-        
-    } 
-    
+
+    }
+
 }
 
 ?>
