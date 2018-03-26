@@ -46,7 +46,7 @@ class SchemaMetaRepository:
         return self
 
     def get_schema(self):
-        return pd.read_sql_query(self.sql,con=self.engine)
+        return pd.read_sql_query(self.sql, con=self.engine)
 
     def load_query(self, sql):
         return pd.read_sql_query(sql, con=self.engine)
@@ -55,7 +55,7 @@ class SchemaMetaRepository:
         return pd.read_sql_table(tablename, con=self.engine, schema=schema)
 
     def save_table(self, df, tablename, replace=True):
-        df.to_sql(tablename, self.engine, if_exists = 'replace' if replace else '')
+        df.to_sql(tablename, self.engine, if_exists='replace' if replace else '')
 
 # %%
 repositories = [

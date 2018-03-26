@@ -50,6 +50,8 @@ class MetaData:
         self.logger = logger
         self.Tables = None
         self.Columns = None
+        self.PrimaryKeys = None
+        self.ForeignKeys = None
 
     def load(self, filename):
 
@@ -75,7 +77,7 @@ class MetaData:
                 # 'size': np.int32,
                 'type2': 'str',
                 'Class': 'str'
-        })  # .set_index(['table_name', 'column_name'])
+            })  # .set_index(['table_name', 'column_name'])
 
         self.Tables['table_name'] = self.Tables['Table']
         self.Tables = self.Tables.set_index('Table')
@@ -107,7 +109,8 @@ class MetaData:
 
     def get_tablename_by_classname(self, class_name):
         try:
-            if '.' in class_name: class_name = class_name.split('.')[-1]
+            if '.' in class_name:
+                class_name = class_name.split('.')[-1]
             return self.Tables.loc[(self.Tables.JavaClass == class_name)]['table_name'].iloc[0]
         except:
             return None
@@ -143,8 +146,8 @@ class CeramicData:
     def load(self, source):
         reader = pd.ExcelFile(source) if isinstance(source, str) else source
         self.DataTables = {
-            x['table_name']: self.parse(reader, x['table_name'], x['ExcelSheet'])\
-                for i, x in self.MetaData.Tables.iterrows()
+            x['table_name']: self.parse(reader, x['table_name'], x['ExcelSheet'])
+            for i, x in self.MetaData.Tables.iterrows()
         }
         reader.close()
         return self
@@ -152,14 +155,14 @@ class CeramicData:
     def store(self, filename):
         writer = pd.ExcelWriter(filename)
         for (table_name, df) in self.DataTables:
-            df.to_excel(writer, table_name)  #, index=False)
+            df.to_excel(writer, table_name)  # , index=False)
         writer.save()
         return self
 
     def parse(self, reader, table_name, sheetname):
         try:
-            table = reader.parse(sheetname) #.set_index('system_id')
-            self.logger.info('READ   CeramicData: table_name={0}'.format(table_name, sheetname))
+            table = reader.parse(sheetname)  # .set_index('system_id')
+            self.logger.info('READ   CeramicData: table_name={} sheet={}'.format(table_name, sheetname))
             return table
         except:
             self.logger.info('FAILED CeramicData: table_name={0} {1}'.format(table_name, sheetname if sheetname != table_name else ''))
@@ -194,7 +197,8 @@ class CeramicData:
             metaTable = self.MetaData.get_table(table_name)
             pkName = metaTable['Pk_NAME']
 
-            if pkName == 'ceramics_id': pkName = 'ceramic_id'
+            if pkName == 'ceramics_id':
+                pkName = 'ceramic_id'
             if dataTable is None or pkName not in dataTable.columns:
                 continue
 
@@ -208,8 +212,7 @@ class CeramicData:
         ref_tablenames = self.MetaData.get_tablenames_referencing(table_name)
         sets_of_keys = [
             set(self.DataTables[foreign_name][pk_name].loc[~np.isnan(self.DataTables[foreign_name][pk_name])].tolist())
-                for foreign_name in ref_tablenames
-                    if not self.DataTables[foreign_name] is None
+            for foreign_name in ref_tablenames if not self.DataTables[foreign_name] is None
         ]
         return reduce(flatten_sets, sets_of_keys or [], [])
 
@@ -230,7 +233,7 @@ class DataTableSpecification:
         errors = []
         try:
             # Must exist as data table in metadata
-            if not table_name in ceramicData.tables_with_data():
+            if table_name not in ceramicData.tables_with_data():
                 errors.append("{0} not defined as data table".format(table_name))
 
             # Must have a system identit
@@ -248,7 +251,7 @@ class DataTableSpecification:
             data_column_names = ceramicData.DataTables[table_name].columns.values.tolist() \
                 if ceramicData.has_data(table_name) and metaData.table_exists(table_name) else []
             diff_column_names = list(set(meta_column_names) - set(data_column_names))
-            #diff_columns = set(meta_columns).symmetric_difference(set(data_columns))
+            # diff_columns = set(meta_columns).symmetric_difference(set(data_columns))
             if len(diff_column_names) > 0:
                 errors.append("{0} missing columns: ".format(table_name) + (", ".join(diff_column_names)))
                 errors.append(" {0} found META columns: ".format(table_name) + (", ".join(meta_column_names)))
@@ -257,36 +260,36 @@ class DataTableSpecification:
             # TODO Verify column types...
             dataTable = ceramicData.DataTables[table_name]
 
-            if not dataTable is None:
+            if dataTable is not None:
                 fields = metaData.table_fields(table_name)
                 type_compatibility_matrix = {
-                    ('integer','float64'): True,
-                    ('timestamp with time zone','float64'): False,
-                    ('text','float64'): False,
-                    ('character varying','float64'): False,
-                    ('numeric','float64'): True,
-                    ('timestamp without time zone','float64'): False,
-                    ('boolean','float64'): False,
-                    ('date','float64'): False,
-                    ('smallint','float64'): True,
-                    ('integer','object'): False,
-                    ('timestamp with time zone','object'): True,
-                    ('text','object'): True,
-                    ('character varying','object'): True,
-                    ('numeric','object'): False,
-                    ('timestamp without time zone','object'): True,
-                    ('boolean','object'): False,
-                    ('date','object'): True,
-                    ('smallint','object'): False,
-                    ('integer','int64'): True,
-                    ('timestamp with time zone','int64'): False,
-                    ('text','int64'): False,
-                    ('character varying','int64'): False,
-                    ('numeric','int64'): True,
-                    ('timestamp without time zone','int64'): False,
-                    ('boolean','int64'): False,
-                    ('date','int64'): False,
-                    ('smallint','int64'): True,
+                    ('integer', 'float64'): True,
+                    ('timestamp with time zone', 'float64'): False,
+                    ('text', 'float64'): False,
+                    ('character varying', 'float64'): False,
+                    ('numeric', 'float64'): True,
+                    ('timestamp without time zone', 'float64'): False,
+                    ('boolean', 'float64'): False,
+                    ('date', 'float64'): False,
+                    ('smallint', 'float64'): True,
+                    ('integer', 'object'): False,
+                    ('timestamp with time zone', 'object'): True,
+                    ('text', 'object'): True,
+                    ('character varying', 'object'): True,
+                    ('numeric', 'object'): False,
+                    ('timestamp without time zone', 'object'): True,
+                    ('boolean', 'object'): False,
+                    ('date', 'object'): True,
+                    ('smallint', 'object'): False,
+                    ('integer', 'int64'): True,
+                    ('timestamp with time zone', 'int64'): False,
+                    ('text', 'int64'): False,
+                    ('character varying', 'int64'): False,
+                    ('numeric', 'int64'): True,
+                    ('timestamp without time zone', 'int64'): False,
+                    ('boolean', 'int64'): False,
+                    ('date', 'int64'): False,
+                    ('smallint', 'int64'): True,
                     ('timestamp with time zone', 'datetime64[ns]'): True,
                     ('date', 'datetime64[ns]'): True
                 }
@@ -298,10 +301,10 @@ class DataTableSpecification:
                         if not type_compatibility_matrix[(column['type'], data_column_type)]:
                             errors.append("Type clash: {}.{} {}<=>{}".format(table_name, column['column_name'], column['type'], data_column_type))
 
-               # Verify correctnes of value (DataRecord[MetaField.column_name]) in current field in DataRecord
-               #   Value is of valid size / length
-               #   Value is not null if MetaField.Null == 'NO'
-                   # (Assumes all FK references points to local system ID)
+                #  Verify correctnes of value (DataRecord[MetaField.column_name]) in current field in DataRecord
+                #  Value is of valid size / length
+                #  Value is not null if MetaField.Null == 'NO'
+                # (Assumes all FK references points to local system ID)
 
             # Return failure in case of errors
             if len(errors) > 0:
@@ -354,7 +357,7 @@ class XmlProcessor:
                 if dataTable is None:
                     continue
 
-                self.emit('<{} length="{}">'.format(metaTable['JavaClass'], dataTable.shape[0]), 1) # dataTable.length
+                self.emit('<{} length="{}">'.format(metaTable['JavaClass'], dataTable.shape[0]), 1)  # dataTable.length
 
                 for index, item in dataTable.iterrows():
 
@@ -382,19 +385,21 @@ class XmlProcessor:
                                 class_name = column['Class']
 
                                 if column_name[-3:] == '_id' and not (is_fk or is_pk):
-                                    self.logger.warning('Table {}, FK? column {}: Column ending with _id not marked as PK/FK'.format(table_name,column_name))
+                                    self.logger.warning('Table {}, FK? column {}: Column ending with _id not marked as PK/FK'.format(table_name, column_name))
 
-                                if not column_name in dataRow.keys():
-                                    self.logger.warning('Table {}, FK column {}: META field name not found in DATA'.format(table_name,column_name))
+                                if column_name not in dataRow.keys():
+                                    self.logger.warning('Table {}, FK column {}: META field name not found in DATA'.format(table_name, column_name))
                                     continue
 
                                 camel_case_column_name = self.camel_case_name(column_name)
                                 value = dataRow[column_name]
                                 if not is_fk:
-                                    if is_pk: value = int(clonedId) if not np.isnan(clonedId) else systemId
-                                    elif isinstance(value, numbers.Number) and np.isnan(value): value = 'NULL'
+                                    if is_pk:
+                                        value = int(clonedId) if not np.isnan(clonedId) else systemId
+                                    elif isinstance(value, numbers.Number) and np.isnan(value):
+                                        value = 'NULL'
                                     self.emit('<{0} class="{1}">{2}</{0}>'.format(camel_case_column_name, class_name, value), 3)
-                                else: # value is a fk system_id
+                                else:  # value is a fk system_id
                                     try:
                                         if np.isnan(value):
                                             # CHANGE: Cannot allow id="NULL" as foreign key
@@ -403,15 +408,15 @@ class XmlProcessor:
                                         fkSystemId = int(value)
                                         fkTablename = metaData.get_tablename_by_classname(class_name)
                                         if fkTablename is None:
-                                            self.warning.info('Table {}, FK column {}: unable to resolve FK class {}'.format(table_name,column_name,class_name))
+                                            self.warning.info('Table {}, FK column {}: unable to resolve FK class {}'.format(table_name, column_name, class_name))
                                             continue
                                         fkDataTable = ceramicData.DataTables[fkTablename]
 
                                         if fkDataTable is None:
                                             fkClonedId = fkSystemId
                                         else:
-                                            if not column_name in fkDataTable.columns:
-                                                self.logger.warning('Table {}, FK column {}: FK column not found in {}, id={}'.format(table_name,column_name,fkTablename,fkSystemId))
+                                            if column_name not in fkDataTable.columns:
+                                                self.logger.warning('Table {}, FK column {}: FK column not found in {}, id={}'.format(table_name, column_name, fkTablename, fkSystemId))
                                                 continue
                                             fkDataRow = fkDataTable.loc[(fkDataTable.system_id == fkSystemId)]
                                             if fkDataRow.empty or len(fkDataRow) != 1:

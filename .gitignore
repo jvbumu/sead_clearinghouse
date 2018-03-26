@@ -6,3 +6,4 @@ public/api/api-cache/
 .vscode/settings.json
 input/
 output/
+production/
