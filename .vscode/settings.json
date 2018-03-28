@@ -8,5 +8,5 @@
     "php.validate.run": "onType",
     "php.suggest.basic": false,
     "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?",
-    "pgsql.connection": "postgres://clearinghouse_worker:Vua9VagZ@snares.humlab.umu.se/sead_master_9_ceramics"
+    "pgsql.connection": "postgres://"
 }
