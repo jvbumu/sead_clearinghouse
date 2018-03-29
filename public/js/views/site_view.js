@@ -4,7 +4,7 @@ window.SiteView = window.ReviewBaseView.extend({
     get_store: function() {
         return Site_Column_Store;
     },
-    
+
     render_root: function(model)
     {
         $("#site_id", this.$el).text(model.site.local_db_id);
@@ -15,15 +15,16 @@ window.SiteView = window.ReviewBaseView.extend({
         this.set_review_value($("#latitude_dd", this.$el),  model.site.latitude_dd, model.site.public_latitude_dd);
         this.set_review_value($("#longitude_dd", this.$el),  model.site.longitude_dd, model.site.public_longitude_dd);
         this.set_review_value($("#altitude", this.$el),  model.site.altitude, model.site.public_altitude);
+        this.set_review_value($("#location_accuracy", this.$el),  model.site.site_location_accuracy, model.site.public_site_location_accuracy);
         return this;
     }
-    
+
 });
 
 window.Site_Column_Store = {
-    
+
     data_type: "site",
-    
+
     data_keys: ["locations", "references", "natgridrefs", "images" ],
 
     columns: utils.toArray({
@@ -50,9 +51,9 @@ window.Site_Column_Store = {
 };
 /*
 window.Site_Column_Store = {
-    
+
     data_type: "site",
-    
+
     data_keys: ["locations", "references", "natgridrefs", "images" ],
 
     columns: utils.toArray({

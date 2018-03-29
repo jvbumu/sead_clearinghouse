@@ -10,7 +10,7 @@ $loader->setup();
 }
 
 ?>
-    
+
 <head>
     <meta charset="utf-8">
     <title>SEAD Clearing House</title>
@@ -22,13 +22,13 @@ $loader->setup();
             padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
         }
     </style>
-   
-    
+
+
     <link href="css/bootstrap.css" rel="stylesheet" media="screen">
     <!--<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">-->
 
     <link href="css/toggle-switch.css" rel="stylesheet" media="screen">
-    
+
     <!-- <link href="//cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" media="screen"> -->
     <link href="lib/datatables/css/jquery.dataTables.css" rel="stylesheet" media="screen">
     <link href="lib/datatables/css/dataTables.custom.css" rel="stylesheet" media="screen">
@@ -40,9 +40,9 @@ $loader->setup();
       <script src="lib/html5shiv.js"></script>
       <script src="lib/respond.min.js"></script>
     <![endif]-->
-    
+
     <link href="css/styles.css" rel="stylesheet">
-    
+
     <script language="javascript">
     <?php
         $service = new \Application\BootstrapService();
@@ -67,7 +67,7 @@ $loader->setup();
 
 <div class="header"></div>
 <div id="wrap" class="fill-height">
-    
+
     <div class="sead-fluid-container fill-height">
         <div id="content" class="fill-height">THIS IS MAIN WORKSPACE AREA</div>
     </div>
@@ -87,10 +87,6 @@ $loader->setup();
 <script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.3.3/backbone-min.js"></script>
-
-<!-- <script src="lib/jquery-1.10.2.min.js"></script> -->
-<!-- <script src="lib/underscore-min.js"></script> -->
-<!-- <script src="lib/backbone-min.js"></script> -->
 
 <script src="lib/bootstrap.min.js"></script>
 

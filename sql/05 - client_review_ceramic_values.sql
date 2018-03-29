@@ -1,7 +1,7 @@
 -- Ceramic Values
 
 --To create a function for the review of dataset ceramic values, first a view of the ceramic values have to be created (for both public and clearing house). Using the measured values one as a base,
---the view down below is suggested for ceramic values. The only difference is this one contains ceramic lookup name and ceramic value. There are no prep methods, which is 
+--the view down below is suggested for ceramic values. The only difference is this one contains ceramic lookup name and ceramic value. There are no prep methods, which is
 --why they were left out.
 
 CREATE OR REPLACE VIEW clearing_house.view_clearinghouse_dataset_ceramic_values AS
@@ -37,10 +37,10 @@ select count(*) from clearing_house.view_clearinghouse_dataset_ceramic_values
 
 *fn_clearinghouse_review_ceramics_value(integer)*
 
---The only difference from the measured_values function is that this one uses the ceramic_values view and the addition of the lookup_name field. 
+--The only difference from the measured_values function is that this one uses the ceramic_values view and the addition of the lookup_name field.
 
 -- TODO Join mot ceramics_id: Visa value + lookup name för jämförelse, som PIVOT!
-Select 
+Select
 		LDB.physical_sample_id				            As local_db_id,
 		LDB.sample_name									As sample_name,
 		LDB.method_id									As method_id,
@@ -52,10 +52,10 @@ Select
 		to_char(LDB.date_updated,'YYYY-MM-DD')			As date_updated,
 
 		LDB.physical_sample_id				            As public_db_id,
-		
+
 		RDB.name										As public_lookup_name,
 		RDB.measurement_value							As public_measurement_value,
-			
+
 		entity_type_id									As entity_type_id
 
 From	clearing_house.view_clearinghouse_dataset_ceramic_values LDB
@@ -67,7 +67,7 @@ Left Join (
             cv.measurement_value
     FROM public.tbl_analysis_entities ae ON ae.dataset_id = d.dataset_id
     JOIN public.tbl_ceramics cv ON cv.analysis_entity_id = ae.analysis_entity_id
-    JOIN public.tbl_ceramics_lookup cl ON cl.ceramics_lookup_id = cv.ceramics_lookup_id 
+    JOIN public.tbl_ceramics_lookup cl ON cl.ceramics_lookup_id = cv.ceramics_lookup_id
 
     ) RDB
 On		RDB.dataset_id = LDB.public_dataset_id

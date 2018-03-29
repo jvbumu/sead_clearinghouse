@@ -7,7 +7,7 @@
 **  Used By     Clearing House installation. DBA.
 **  Revisions
 **********************************************************************************************************************************/
-Create Or Replace view clearing_house.view_clearinghouse_sead_rdb_schema_pk_columns as 
+Create Or Replace view clearing_house.view_clearinghouse_sead_rdb_schema_pk_columns as
     Select table_schema, table_name,  column_name
     From clearing_house.tbl_clearinghouse_sead_rdb_schema
     Where is_pk = 'YES'
@@ -30,14 +30,14 @@ Create Or Replace Function clearing_house.fn_create_schema_type_string(
 	Declare type_string text;
 Begin
 	type_string :=  data_type
-		||	Case When data_type = 'character varying' And Coalesce(character_maximum_length, 0) > 0 
+		||	Case When data_type = 'character varying' And Coalesce(character_maximum_length, 0) > 0
                     Then '(' || Coalesce(character_maximum_length::text, '255') || ')'
 				 When data_type = 'numeric' Then
 					Case When numeric_precision Is Null And numeric_scale Is Null Then  ''
 						 When numeric_scale Is Null Then  '(' || numeric_precision::text || ')'
 						 Else '(' || numeric_precision::text || ', ' || numeric_scale::text || ')'
 					End
-				 Else '' End || ' '|| Case When Coalesce(is_nullable,'') = 'YES' Then 'null' Else 'not null' End;					 
+				 Else '' End || ' '|| Case When Coalesce(is_nullable,'') = 'YES' Then 'null' Else 'not null' End;
 	return type_string;
 
 End $$ Language plpgsql;
@@ -52,8 +52,8 @@ End $$ Language plpgsql;
 **					- XML attribute "id" is mapped to CHDB field "local_db_id"
 **					- XML attribute "cloned_id" is mapped to CHDB field "public_db_id"
 **					- PK in new table is submission_id + source_id + "PK:s in Local DB'
-**  Uses        
-**  Used By     
+**  Uses
+**  Used By
 **	Revisions
 **	TODO		Add keys on foreign indexes to improve performance.
 ******************************************************************************************************************************/
@@ -65,14 +65,14 @@ Create Or Replace Function clearing_house.fn_script_public_db_entity_table(sourc
 	Declare column_list text;
 	Declare pk_fields text;
 	Declare x clearing_house.tbl_clearinghouse_sead_rdb_schema%rowtype;
-	
+
 Begin
 
 	sql_template = '	Create Table #TABLE-NAME# (
 
 		submission_id int not null,
 		source_id int not null,
-		
+
 		local_db_id int not null,
 		public_db_id int null,
 
@@ -84,7 +84,7 @@ Begin
 
 	column_list := '';
 	pk_fields := '';
-	
+
 	For x In (
 		Select *
 		From clearing_house.tbl_clearinghouse_sead_rdb_schema s
@@ -96,17 +96,17 @@ Begin
 		column_list := column_list || Case When column_list = '' Then '' Else ',
 		'
 		End;
-		
+
 		column_list := column_list || x.column_name || ' ' || clearing_house.fn_create_schema_type_string(x.data_type, x.character_maximum_length, x.numeric_precision, x.numeric_scale, x.is_nullable) || '';
 
 		If x.is_pk = 'YES' Then
 			pk_fields := pk_fields || Case When pk_fields = '' Then '' Else ', ' End || x.column_name;
 		End If;
-		
+
 	End Loop;
 
 	sql := sql_template;
-	
+
 	sql := replace(sql, '#TABLE-NAME#', target_schema || '.' || table_name);
 	sql := replace(sql, '#COLUMN-LIST#', column_list);
 
@@ -118,7 +118,7 @@ Begin
 
 
 	Return sql;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_create_public_db_entity_tables
@@ -126,18 +126,18 @@ End $$ Language plpgsql;
 **	When		2013-10-14
 **	What		Creates a local copy in schema clearing_house of all public db entity tables
 **  Note
-**  Uses        
-**  Used By     
+**  Uses
+**  Used By
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_create_public_db_entity_tables('clearing_house')
 -- Select * From clearing_house.tbl_clearinghouse_sead_create_table_log
 Create Or Replace Function clearing_house.fn_create_public_db_entity_tables(target_schema character varying(255), only_drop BOOLEAN = FALSE) Returns void As $$
-	
+
 	Declare x RECORD;
 	Declare create_script text;
 	Declare drop_script text;
-	
+
 Begin
 
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_sead_create_table_log') Then
@@ -160,9 +160,9 @@ Begin
 		If clearing_house.fn_table_exists(target_schema || '.' || x.table_name) Then
 
 			Raise Exception 'Skipped: % since table already exists. ', target_schema || '.' || x.table_name;
-			
+
 		Else
-	
+
 			create_script := clearing_house.fn_script_public_db_entity_table(x.source_schema, target_schema, x.table_name);
 			drop_script := 'Drop Table If Exists ' || target_schema || '.' ||  x.table_name || ' CASCADE;';
 
@@ -182,9 +182,9 @@ Begin
 
 
 		End If;
-		
+
 	End Loop;
-	
+
 End $$ Language plpgsql;
 
 
@@ -194,8 +194,8 @@ End $$ Language plpgsql;
 **	When		2013-10-14
 **	What		Adds missing columns found in public db to local entity table
 **  Note
-**  Uses        
-**  Used By     
+**  Uses
+**  Used By
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_add_new_public_db_columns(2, 'tbl_datasets')
@@ -205,7 +205,7 @@ Create Or Replace Function clearing_house.fn_add_new_public_db_columns(int, char
 	Declare schema_columns character varying(255)[];
 	Declare sql text;
 	Declare x RECORD;
-	
+
 Begin
 
 	xml_columns := clearing_house.fn_get_submission_table_column_names($1, $2);
@@ -214,24 +214,24 @@ Begin
 		Raise Exception 'Fatal error. Table % has unknown fields.', $2;
 		Return;
 	End If;
-	
+
 	If Not clearing_house.fn_table_exists($2) Then
-	
+
 		sql := 'Create Table clearing_house.' || $2 || ' (
-		
+
 			submission_id int not null,
 			source_id int not null,
-			
+
 			local_db_id int not null,
 			public_db_id int null,
 
 			Constraint pk_' || $2 || '_' || xml_columns[1] || ' Primary Key (submission_id, ' || xml_columns[1] || ')
-			
+
 		) ';
 
 		Raise Notice '%', sql;
 --		Execute sql;
-		
+
 	End If;
 
 	For x In (
@@ -259,7 +259,7 @@ Begin
         Values ($1, x.table_name_underscored, x.column_name_underscored, clearing_house.fn_java_type_to_PostgreSQL(x.data_type), sql);
 
 	End Loop;
-	
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -267,8 +267,8 @@ End $$ Language plpgsql;
 **	Who			Roger Mähler
 **	When		2013-10-14
 **	What		Creates union views of local and public data
-**  Uses        
-**  Used By     
+**  Uses
+**  Used By
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_script_local_union_public_entity_view('clearing_house', 'clearing_house', 'public', 'tbl_dating_uncertainty')
@@ -278,7 +278,7 @@ Create Or Replace Function clearing_house.fn_script_local_union_public_entity_vi
 	Declare sql_template text;
 	Declare sql text;
 	Declare column_list text;
-	Declare pk_field text;	
+	Declare pk_field text;
 Begin
 
 	sql_template =
@@ -289,17 +289,17 @@ Begin
 **	What		Returns union of local and public versions of #TABLE-NAME#
 **  Uses        clearing_house.tbl_clearinghouse_sead_rdb_schema
 **	Note		Plase re-run fn_create_local_union_public_entity_views whenever public schema is changed
-**  Used By     SEAD Clearing House 
+**  Used By     SEAD Clearing House
 ******************************************************************************************************************************/
 
-Create Or Replace View #TARGET-SCHEMA#.#VIEW-NAME# As 
+Create Or Replace View #TARGET-SCHEMA#.#VIEW-NAME# As
 
 	Select submission_id, source_id, local_db_id as merged_db_id, local_db_id, public_db_id, #COLUMN-LIST#
 	From #LOCAL-SCHEMA#.#TABLE-NAME#
 	Union
 	Select 0 As submission_id, 2 As source_id, #PK-COLUMN# as merged_db_id, 0 As local_db_id, #PK-COLUMN# As public_db_id, #COLUMN-LIST#
 	From #PUBLIC-SCHEMA#.#TABLE-NAME#
-	
+
 ;';
 
 	Select array_to_string(array_agg(s.column_name Order By s.ordinal_position), ',') Into column_list
@@ -316,7 +316,7 @@ Create Or Replace View #TARGET-SCHEMA#.#VIEW-NAME# As
 	Where s.table_schema = public_schema
 	  And s.table_name = table_name
 	  And s.is_pk = 'YES';
-	  
+
 	sql := sql_template;
 	sql := replace(sql, '#DATE#', to_char(now(), 'YYYY-MM-DD HH24:MI:SS'));
 	sql := replace(sql, '#COLUMN-LIST#', column_list);
@@ -328,7 +328,7 @@ Create Or Replace View #TARGET-SCHEMA#.#VIEW-NAME# As
 	sql := replace(sql, '#TABLE-NAME#', table_name);
 
 	Return sql;
-	
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -337,25 +337,25 @@ End $$ Language plpgsql;
 **	When		2013-10-14
 **	What		Creates "union-views" of local and public entity tables
 **  Note
-**  Uses        
-**  Used By     
+**  Uses
+**  Used By
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE)
 -- Select * From clearing_house.tbl_clearinghouse_sead_create_view_log
 Create Or Replace Function clearing_house.fn_create_local_union_public_entity_views(target_schema character varying(255), local_schema character varying(255), only_drop BOOLEAN = FALSE)
 Returns void As $$
-	
+
 	Declare x RECORD;
 	Declare drop_script text;
 	Declare create_script text;
-	
+
 Begin
 
 	Drop Table If Exists clearing_house.tbl_clearinghouse_sead_create_view_log;
-	
+
 	Create Table clearing_house.tbl_clearinghouse_sead_create_view_log (create_script text, drop_script text);
-	
+
 	For x In (
 		Select distinct table_schema As public_schema, table_name, replace(table_name, 'tbl_', 'view_') As view_name
 		From clearing_house.tbl_clearinghouse_sead_rdb_schema
@@ -378,14 +378,14 @@ Begin
             Else
 			    Execute drop_script || ' ' || create_script;
             End If;
-			
+
 		Else
 			Insert Into clearing_house.tbl_clearinghouse_sead_create_view_log (create_script, drop_script) Values ('--Failed: ' || target_schema || '.' || x.table_name, '');
 		End If;
 
-		
+
 	End Loop;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_generate_foreign_key_indexes
@@ -393,8 +393,8 @@ End $$ Language plpgsql;
 **	When		2013-10-14
 **	What		Generates DDL create index statement if column (via name matching) is FK in public DB and lacks index.
 **  Note
-**  Uses        
-**  Used By     
+**  Uses
+**  Used By
 **	Revisions
 ******************************************************************************************************************************/
 
@@ -405,7 +405,7 @@ Begin
 	For x In (
 
         Select 'Create Index idx_' || target_constraint_name || ' On clearing_house.' || target_table || ' (' || target_colname || ');' as create_script,
-               'Drop Index If Exists clearing_house.idx_' || target_constraint_name || ';' as drop_script 
+               'Drop Index If Exists clearing_house.idx_' || target_constraint_name || ';' as drop_script
         From (
             select	(select nspname from pg_namespace where oid=m.relnamespace)																as target_ns,
                     m.relname																												as target_table,
@@ -422,7 +422,7 @@ Begin
             left join pg_class m
               on m.oid = o.conrelid
             where o.contype = 'f'
-              and o.conrelid in (select oid from pg_class c where c.relkind = 'r') 
+              and o.conrelid in (select oid from pg_class c where c.relkind = 'r')
             order by 2
         ) as x
         Left Join pg_indexes i
@@ -448,8 +448,8 @@ End $$ Language plpgsql;
 **	When		2017-11-16
 **	What		Calls functions above to create a CH version of public entity tables and viewes that merges
 **              local and public entity tables
-**  Uses        
-**  Used By     
+**  Uses
+**  Used By
 **	Revisions
 ******************************************************************************************************************************/
 

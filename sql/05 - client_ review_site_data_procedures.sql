@@ -8,13 +8,13 @@
 **	Revisions
 ******************************************************************************************************************************/
 -- Select * From clearing_house.tbl_sites
-Drop Function clearing_house.fn_clearinghouse_review_site_client_data(int, int)
+--Drop Function clearing_house.fn_clearinghouse_review_site_client_data(int, int)
 -- Select * From clearing_house.fn_clearinghouse_review_site_client_data(2, 27)
 Create Or Replace Function clearing_house.fn_clearinghouse_review_site_client_data(int, int)
 Returns Table (
 
 	local_db_id int,
-    latitude_dd numeric(18,10), 
+    latitude_dd numeric(18,10),
     longitude_dd numeric(18,10),
     altitude numeric(18,10),
 	national_site_identifier character varying(255),
@@ -26,7 +26,7 @@ Returns Table (
 	public_db_id int,
 	public_latitude_dd numeric(18,10),
 	public_longitude_dd numeric(18,10),
-	public_altitude  numeric(18,10), 
+	public_altitude  numeric(18,10),
 	public_national_site_identifier character varying(255),
 	public_site_name character varying(50),
 	public_site_description text,
@@ -52,7 +52,7 @@ Begin
 					s.site_id,
 					s.local_db_id,
 					s.public_db_id,
-					s.latitude_dd, 
+					s.latitude_dd,
 					s.longitude_dd,
 					s.altitude,
 					s.national_site_identifier,
@@ -64,11 +64,11 @@ Begin
 			Left Join clearing_house.view_site_preservation_status t
 			  On t.merged_db_id = s.site_preservation_status_id
 		)
-			Select 
+			Select
 
 				LDB.local_db_id						As local_db_id,
-				
-				LDB.latitude_dd						As latitude_dd, 
+
+				LDB.latitude_dd						As latitude_dd,
 				LDB.longitude_dd					As longitude_dd,
 				LDB.altitude						As altitude,
 				LDB.national_site_identifier		As national_site_identifier,
@@ -78,11 +78,11 @@ Begin
 				LDB.site_location_accuracy	        As site_location_accuracy,
 
 				LDB.public_db_id					As public_db_id,
-				RDB.latitude_dd						As public_latitude_dd, 
-				RDB.longitude_dd					As public_longitude_dd, 
-				RDB.altitude						As public_altitude, 
-				RDB.national_site_identifier		As public_national_site_identifier, 
-				RDB.site_name						As public_site_name, 
+				RDB.latitude_dd						As public_latitude_dd,
+				RDB.longitude_dd					As public_longitude_dd,
+				RDB.altitude						As public_altitude,
+				RDB.national_site_identifier		As public_national_site_identifier,
+				RDB.site_name						As public_site_name,
 				RDB.site_description				As public_site_description,
 				RDB.preservation_status_or_threat	As public_preservation_status_or_threat,
 				RDB.site_location_accuracy	        As public_site_location_accuracy,
@@ -97,7 +97,7 @@ Begin
 			Where LDB.source_id = 1
 			  And LDB.submission_id = $1
 			  And LDB.site_id = $2;
-		  
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -115,7 +115,7 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_site_locations_client_data(int, int)
 Returns Table (
 
-	local_db_id int,   
+	local_db_id int,
     location_name character varying(255),
     location_type character varying(40),
 	default_lat_dd numeric(18,10),
@@ -142,18 +142,18 @@ Begin
 
 	Return Query
 
-			Select 
+			Select
 
 				LDB.site_location_id                    As local_db_id,
-				
-				LDB.location_name                       As location_name, 
+
+				LDB.location_name                       As location_name,
 				LDB.location_type                       As location_type,
 				LDB.default_lat_dd                  	As default_lat_dd,
 				LDB.default_long_dd                 	As default_long_dd,
 
 				LDB.public_db_id                        As public_db_id,
 
-				RDB.location_name                   	As public_location_name, 
+				RDB.location_name                   	As public_location_name,
 				RDB.location_type               		As public_location_type,
 				RDB.default_lat_dd              		As public_default_lat_dd,
 				RDB.default_long_dd                     As public_default_long_dd,
@@ -186,7 +186,7 @@ Begin
 			Where LDB.source_id = 1
 			  And LDB.submission_id = $1
 			  And LDB.site_id = $2;
-		  
+
 End $$ Language plpgsql;
 
 
@@ -205,10 +205,10 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_site_references_client_data(int, int)
 Returns Table (
 
-	local_db_id int,   
+	local_db_id int,
     reference text,
-    
-	public_db_id int,   
+
+	public_db_id int,
     public_reference text,
 
     date_updated text,				-- display only if update
@@ -226,11 +226,11 @@ Begin
 
 	Return Query
 
-		Select 
+		Select
 			LDB.site_reference_id                       As local_db_id,
-			LDB.full_reference                          As reference, 
+			LDB.full_reference                          As reference,
 			LDB.public_db_id                            As public_db_id,
-			RDB.full_reference                          As public_reference, 
+			RDB.full_reference                          As public_reference,
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
 			entity_type_id              				As entity_type_id
 		From (
@@ -251,14 +251,14 @@ Begin
 			 And b.submission_id In (0, $1)
 		) As LDB Left Join (
 			Select  b.biblio_id,
-                    b.full_reference as reference
+                    b.full_reference
 			From public.tbl_biblio b
 		) As RDB
 		  On RDB.biblio_id = LDB.public_db_id
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.site_id = $2;
-		  
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -276,11 +276,11 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_site_natgridrefs_client_data(int, int)
 Returns Table (
 
-	local_db_id int,   
+	local_db_id int,
     method_name character varying(50),
     natgridref character varying,
-    
-	public_db_id int,   
+
+	public_db_id int,
     public_method_name character varying(50),
     public_natgridref character varying,				-- display only if update
 
@@ -297,12 +297,12 @@ Begin
 
 	Return Query
 
-		Select 
+		Select
 			LDB.site_natgridref_id			As local_db_id,
-			LDB.method_name					As method_name, 
-			LDB.natgridref					As natgridref, 
+			LDB.method_name					As method_name,
+			LDB.natgridref					As natgridref,
 			LDB.public_db_id				As public_db_id,
-			RDB.method_name					As public_method_name, 
+			RDB.method_name					As public_method_name,
 			RDB.natgridref					As public_natgridref,
 			entity_type_id          		As entity_type_id
 		From (
@@ -326,7 +326,7 @@ Begin
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.site_id = $2;
-		  
+
 End $$ Language plpgsql;
 
 

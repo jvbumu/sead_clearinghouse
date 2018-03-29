@@ -52,17 +52,17 @@ Begin
               On c.merged_db_id = sg.sampling_context_id
              And c.submission_id in (0, sg.submission_id)
 		)
-			Select 
+			Select
 
 				LDB.local_db_id						As local_db_id,
-				
-				LDB.sample_group_name				As sample_group_name, 
+
+				LDB.sample_group_name				As sample_group_name,
 				LDB.sampling_method					As sampling_method,
 				LDB.sampling_context				As sampling_context,
 
 				LDB.public_db_id					As public_db_id,
 
-				RDB.sample_group_name				As public_sample_group_name, 
+				RDB.sample_group_name				As public_sample_group_name,
 				RDB.sampling_method					As public_sampling_method,
 				RDB.sampling_context				As public_sampling_context,
 
@@ -75,7 +75,7 @@ Begin
 			Where LDB.source_id = 1
 			  And LDB.submission_id = $1
 			  And LDB.local_db_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -118,17 +118,17 @@ Begin
 
 	Return Query
 
-			Select 
+			Select
 
 				LDB.local_db_id		                    As local_db_id,
-				
-				LDB.depth_top                      		As depth_top, 
+
+				LDB.depth_top                      		As depth_top,
 				LDB.depth_bottom						As depth_bottom,
 				LDB.description                  		As description,
 				LDB.lower_boundary                 		As lower_boundary,
 
 				LDB.public_db_id                        As public_db_id,
-				RDB.depth_top                      		As public_depth_top, 
+				RDB.depth_top                      		As public_depth_top,
 				RDB.depth_bottom						As public_depth_bottom,
 				RDB.description                  		As public_description,
 				RDB.lower_boundary                 		As public_lower_boundary,
@@ -165,7 +165,7 @@ Begin
 			Where LDB.source_id = 1
 			  And LDB.submission_id = $1
 			  And LDB.sample_group_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 
@@ -183,10 +183,10 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_sample_group_references_client_data(int, int)
 Returns Table (
 
-	local_db_id int,   
+	local_db_id int,
     reference text,
-    
-	public_db_id int,   
+
+	public_db_id int,
     public_reference text,
 
     date_updated text,				-- display only if update
@@ -202,11 +202,11 @@ Begin
 
 	Return Query
 
-		Select 
+		Select
 			LDB.sample_group_reference_id               As local_db_id,
-			LDB.reference                               As reference, 
+			LDB.reference                               As reference,
 			LDB.public_db_id                            As public_db_id,
-			RDB.reference                               As public_reference, 
+			RDB.reference                               As public_reference,
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
 			entity_type_id                      		As entity_type_id
 		From (
@@ -214,10 +214,10 @@ Begin
 					sg.submission_id					As submission_id,
 					sg.local_db_id						As sample_group_id,
 					sr.local_db_id						As sample_group_reference_id,
-					b.local_db_id						As local_db_id, 
-					b.public_db_id						As public_db_id, 
-					b.merged_db_id						As merged_db_id, 
-					b.author || ' (' || b.year || ')'	As reference,
+					b.local_db_id						As local_db_id,
+					b.public_db_id						As public_db_id,
+					b.merged_db_id						As merged_db_id,
+					b.authors || ' (' || b.year || ')'	As reference,
 					sr.date_updated						As date_updated
 			From clearing_house.view_sample_groups sg
 			Join clearing_house.view_sample_group_references sr
@@ -228,14 +228,14 @@ Begin
 			 And b.submission_id In (0, sg.submission_id)
 		) As LDB Left Join (
 			Select	b.biblio_id							As biblio_id,
-					b.author || ' (' || b.year || ')'	As reference
+					b.authors || ' (' || b.year || ')'	As reference
 			From public.tbl_biblio b
 		) As RDB
 		  On RDB.biblio_id = LDB.public_db_id
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.sample_group_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -252,9 +252,9 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_sample_group_notes_client_data(int, int)
 Returns Table (
 
-	local_db_id			int,   
+	local_db_id			int,
     note				character varying(255),
-    
+
 	public_db_id		int,
     public_note			character varying(255),
 
@@ -270,20 +270,20 @@ Begin
 
 	Return Query
 
-		Select 
+		Select
 			LDB.local_db_id					            As local_db_id,
-			LDB.note                              		As note, 
+			LDB.note                              		As note,
 			LDB.public_db_id                            As public_db_id,
-			RDB.note                               		As public_note, 
+			RDB.note                               		As public_note,
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
 			entity_type_id                  			As entity_type_id
 		From (
 			Select	sg.source_id						As source_id,
 					sg.submission_id					As submission_id,
 					sg.local_db_id						As sample_group_id,
-					n.local_db_id						As local_db_id, 
-					n.public_db_id						As public_db_id, 
-					n.merged_db_id						As merged_db_id, 
+					n.local_db_id						As local_db_id,
+					n.public_db_id						As public_db_id,
+					n.merged_db_id						As merged_db_id,
 					n.note								As note,
 					n.date_updated						As date_updated
 			From clearing_house.view_sample_groups sg
@@ -291,7 +291,7 @@ Begin
 			  On n.sample_group_id = sg.merged_db_id
 			 And n.submission_id in (0, sg.submission_id)
 		) As LDB Left Join (
-			Select	n.sample_group_note_id				As sample_group_note_id, 
+			Select	n.sample_group_note_id				As sample_group_note_id,
 					n.note								As note
 			From public.tbl_sample_group_notes n
 		) As RDB
@@ -299,7 +299,7 @@ Begin
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.sample_group_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -316,11 +316,11 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_sample_group_dimensions_client_data(int, int)
 Returns Table (
 
-	local_db_id						int,   
+	local_db_id						int,
     dimension_value					numeric(20,5),
     dimension_name					character varying(50),
-    
-	public_db_id					int,   
+
+	public_db_id					int,
     public_dimension_value			numeric(20,5),
     public_dimension_name			character varying(50),
 
@@ -336,13 +336,13 @@ Begin
 
 	Return Query
 
-		Select 
+		Select
 			LDB.local_db_id				               					As local_db_id,
-			LDB.dimension_value                         				As dimension_value, 
-			LDB.dimension_name                         					As dimension_name, 
+			LDB.dimension_value                         				As dimension_value,
+			LDB.dimension_name                         					As dimension_name,
 			LDB.public_db_id				            				As public_db_id,
-			RDB.dimension_value                         				As public_dimension_value, 
-			RDB.dimension_name                         					As public_dimension_name, 
+			RDB.dimension_value                         				As public_dimension_value,
+			RDB.dimension_name                         					As public_dimension_name,
 			to_char(LDB.date_updated,'YYYY-MM-DD')						As date_updated,
 			entity_type_id												As entity_type_id
 		From (
@@ -374,7 +374,7 @@ Begin
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.sample_group_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 
@@ -392,12 +392,12 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_sample_group_descriptions_client_data(int, int)
 Returns Table (
 
-	local_db_id					int,   
+	local_db_id					int,
     group_description			character varying(255),
     type_name					character varying(255),
     type_description			character varying(255),
-    
-	public_db_id 				int,   
+
+	public_db_id 				int,
     public_group_description	character varying(255),
     public_type_name			character varying(255),
     public_type_description		character varying(255),
@@ -413,15 +413,15 @@ Begin
 
 	Return Query
 
-		Select 
+		Select
 			LDB.local_db_id				               					As local_db_id,
-			LDB.group_description                       				As group_description, 
-			LDB.type_name                         						As type_name, 
-			LDB.type_description                       					As type_description, 
+			LDB.group_description                       				As group_description,
+			LDB.type_name                         						As type_name,
+			LDB.type_description                       					As type_description,
 			LDB.public_db_id				            				As public_db_id,
-			RDB.group_description                      					As public_group_description, 
-			RDB.type_name                         						As public_type_name, 
-			RDB.type_description                       					As public_type_description, 
+			RDB.group_description                      					As public_group_description,
+			RDB.type_name                         						As public_type_name,
+			RDB.type_description                       					As public_type_description,
 			entity_type_id												As entity_type_id
 		From (
 			Select	sg.source_id										As source_id,
@@ -455,7 +455,7 @@ Begin
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.sample_group_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 
@@ -473,13 +473,13 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_sample_group_positions_client_data(int, int)
 Returns Table (
 
-	local_db_id						int,   
+	local_db_id						int,
     sample_group_position			numeric(20,10),
     position_accuracy				character varying(128),
     method_name						character varying(50),
     dimension_name					character varying(50),
-    
-	public_db_id 					int,   
+
+	public_db_id 					int,
     public_sample_group_position	numeric(20,10),
     public_position_accuracy		character varying(128),
     public_method_name				character varying(50),
@@ -496,17 +496,17 @@ Begin
 
 	Return Query
 
-		Select 
+		Select
 			LDB.local_db_id				               	As local_db_id,
-			LDB.sample_group_position                   As sample_group_position, 
-			LDB.position_accuracy                       As position_accuracy, 
-			LDB.method_name                       		As method_name, 
-			LDB.dimension_name                       	As dimension_name, 
+			LDB.sample_group_position                   As sample_group_position,
+			LDB.position_accuracy                       As position_accuracy,
+			LDB.method_name                       		As method_name,
+			LDB.dimension_name                       	As dimension_name,
 			LDB.public_db_id				            As public_db_id,
-			RDB.sample_group_position                   As public_sample_group_position, 
-			RDB.position_accuracy                       As public_position_accuracy, 
-			RDB.method_name                       		As public_method_name, 
-			RDB.dimension_name                       	As public_dimension_name, 
+			RDB.sample_group_position                   As public_sample_group_position,
+			RDB.position_accuracy                       As public_position_accuracy,
+			RDB.method_name                       		As public_method_name,
+			RDB.dimension_name                       	As public_dimension_name,
 			entity_type_id								As entity_type_id
 		From (
 			Select	sg.source_id						As source_id,
@@ -551,5 +551,5 @@ Begin
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.sample_group_id = -$2;
-		  
+
 End $$ Language plpgsql;

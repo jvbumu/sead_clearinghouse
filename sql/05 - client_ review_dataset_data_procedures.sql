@@ -13,7 +13,7 @@ Create Or Replace Function clearing_house.fn_clearinghouse_review_dataset_client
 Returns Table (
 
 	local_db_id                     int,
-	dataset_name                    character varying, 
+	dataset_name                    character varying,
 	data_type_name                  character varying,
 	master_name                     character varying,
 	previous_dataset_name           character varying,
@@ -22,7 +22,7 @@ Returns Table (
 	record_type_id                  int,
 
 	public_db_id                    int,
-	public_dataset_name             character varying, 
+	public_dataset_name             character varying,
 	public_data_type_name           character varying,
 	public_master_name              character varying,
 	public_previous_dataset_name    character varying,
@@ -52,7 +52,7 @@ Begin
                     d.dataset_name                                          As dataset_name,
                     dt.data_type_name                                       As data_type_name,
                     dm.master_name                                          As master_name,
-                    ud.dataset_name                                         As previous_dataset_name, 
+                    ud.dataset_name                                         As previous_dataset_name,
                     m.method_name                                           As method_name,
                     p.project_name || pt.project_type_name || ps.stage_name As project_stage_name,
                     m.record_type_id                                        As record_type_id
@@ -80,9 +80,9 @@ Begin
               On ps.merged_db_id = p.project_stage_id
              And ps.submission_id In (0, d.submission_id)
 		)
-			Select 
+			Select
 				LDB.local_db_id						As local_db_id,
-				LDB.dataset_name                    As dataset_name, 
+				LDB.dataset_name                    As dataset_name,
 				LDB.data_type_name                  As data_type_name,
 				LDB.master_name                     As master_name,
 				LDB.previous_dataset_name           As previous_dataset_name,
@@ -91,7 +91,7 @@ Begin
 				LDB.record_type_id                  As record_type_id,
 
 				LDB.public_db_id					As public_db_id,
-				RDB.dataset_name                    As public_dataset_name, 
+				RDB.dataset_name                    As public_dataset_name,
 				RDB.data_type_name                  As public_data_type_name,
 				RDB.master_name                     As public_master_name,
 				RDB.previous_dataset_name           As public_previous_dataset_name,
@@ -109,7 +109,7 @@ Begin
 			  And LDB.submission_id = $1
 			  And LDB.local_db_id = -$2
 			  ;
-		  
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -126,13 +126,13 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_dataset_contacts_client_data(int, int)
 Returns Table (
 
-	local_db_id					int,   
+	local_db_id					int,
 
     first_name					character varying,
     last_name					character varying,
     contact_type_name			character varying,
-    
-	public_db_id 				int,   
+
+	public_db_id 				int,
 
     public_first_name			character varying,
     public_last_name			character varying,
@@ -150,7 +150,7 @@ Begin
 
 	Return Query
 
-		Select 
+		Select
 			LDB.local_db_id				               					As local_db_id,
 
 			LDB.first_name												As first_name,
@@ -170,7 +170,7 @@ Begin
 			Select	d.source_id                                         As source_id,
 					d.submission_id                                     As submission_id,
 					d.local_db_id										As dataset_id,
-					
+
 					dc.local_db_id										As local_db_id,
 					dc.public_db_id										As public_db_id,
 					dc.merged_db_id										As merged_db_id,
@@ -190,17 +190,17 @@ Begin
 			Join clearing_house.view_contact_types t
 			  On t.merged_db_id = dc.contact_type_id
 			 And t.submission_id In (0, d.submission_id)
- 
+
 		) As LDB Left Join (
-		
+
 			Select	d.dataset_id										As dataset_id,
-					
+
 					dc.contact_id										As contact_id,
 
 					c.first_name										As first_name,
 					c.last_name											As last_name,
 					t.contact_type_name									As contact_type_name
-					
+
 			From public.tbl_datasets d
 			Join public.tbl_dataset_contacts dc
 			  On dc.dataset_id = d.dataset_id
@@ -208,7 +208,7 @@ Begin
 			  On c.contact_id = dc.contact_id
 			Join public.tbl_contact_types t
 			  On t.contact_type_id = dc.contact_type_id
-			 
+
 		  ) As RDB
 		  On
 		  RDB.contact_id = LDB.public_db_id
@@ -216,7 +216,7 @@ Begin
 		  And LDB.submission_id = $1
 		  And LDB.dataset_id = -$2
 		;
-		  
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -233,14 +233,14 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_dataset_submissions_client_data(int, int)
 Returns Table (
 
-	local_db_id					int,   
+	local_db_id					int,
 
     first_name					character varying,
     last_name					character varying,
     submission_type				character varying,
     notes						text,
-    
-	public_db_id 				int,   
+
+	public_db_id 				int,
 
     public_first_name			character varying,
     public_last_name			character varying,
@@ -259,8 +259,8 @@ Begin
 
 	Return Query
 
-		Select 
-		
+		Select
+
 			LDB.local_db_id				               					As local_db_id,
 
 			LDB.first_name												As first_name,
@@ -276,16 +276,16 @@ Begin
 			RDB.notes													As public_notes,
 
 			to_char(LDB.date_updated,'YYYY-MM-DD')						As date_updated,
-			
+
 			entity_type_id												As entity_type_id
 
 		From (
-		
+
 			Select	d.source_id                                         As source_id,
 					d.submission_id                                     As submission_id,
 					d.local_db_id										As dataset_id,
 					d.public_db_id										As public_dataset_id,
-					
+
 					ds.local_db_id										As local_db_id,
 					ds.public_db_id										As public_db_id,
 					ds.merged_db_id										As merged_db_id,
@@ -296,7 +296,7 @@ Begin
 					ds.notes											As notes,
 
 					ds.date_updated
-					
+
 			From clearing_house.view_datasets d
 			Join clearing_house.view_dataset_submissions ds
 			  On ds.dataset_id = d.merged_db_id
@@ -307,11 +307,11 @@ Begin
 			Join clearing_house.view_dataset_submission_types dst
 			  On dst.merged_db_id = ds.submission_type_id
 			 And dst.submission_id In (0, d.submission_id)
- 
+
 		) As LDB Left Join (
-		
+
 			Select	d.dataset_id										As dataset_id,
-					
+
 					ds.dataset_submission_id							As dataset_submission_id,
 
 					c.first_name										As first_name,
@@ -320,7 +320,7 @@ Begin
 					ds.notes											As notes,
 
 					ds.date_updated
-					
+
 			From public.tbl_datasets d
 			Join public.tbl_dataset_submissions ds
 			  On ds.dataset_id = d.dataset_id
@@ -328,20 +328,20 @@ Begin
 			  On c.contact_id = ds.contact_id
 			Join public.tbl_dataset_submission_types dst
 			  On dst.submission_type_id = ds.submission_type_id
- 
+
 		  ) As RDB
 		  On RDB.dataset_submission_id = LDB.public_db_id
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.dataset_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
 **  View        view_clearinghouse_dataset_measured_values
 **	Who			Roger Mähler
 **	When		2013-11-14
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -397,7 +397,7 @@ Create Or Replace View clearing_house.view_clearinghouse_dataset_measured_values
 **  View        view_dataset_measured_values
 **	Who			Roger Mähler
 **	When		2013-11-14
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -448,16 +448,16 @@ Create Or Replace View clearing_house.view_dataset_measured_values As
 Create Or Replace Function clearing_house.fn_clearinghouse_review_dataset_measured_values_client_data(int, int)
 Returns Table (
 
-	local_db_id					int,   
-	public_db_id 				int,   
+	local_db_id					int,
+	public_db_id 				int,
 
     sample_name					character varying,
-    
+
     method_id					int,
     method_name					character varying,
     prep_method_id				int,
     prep_method_name			character varying,
-    
+
     measured_value				numeric(20,10),
     public_measured_value		numeric(20,10),
 
@@ -467,18 +467,18 @@ Returns Table (
 Declare
     entity_type_id int;
     public_ds_id int;
-    
+
 Begin
 
     entity_type_id := clearing_house.fn_get_entity_type_for('tbl_physical_samples');
-    
+
 	Select x.public_db_id Into public_ds_id
 	From clearing_house.view_datasets x
 	Where x.local_db_id = -$2;
-	
+
 	Return Query
 
-		Select 
+		Select
 
 			LDB.physical_sample_id				               			As local_db_id,
 			RDB.physical_sample_id				               			As public_db_id,
@@ -493,7 +493,7 @@ Begin
 			LDB.measured_value											As measured_value,
 
 			RDB.measured_value											As public_measured_value,
-			
+
 			entity_type_id												As entity_type_id
 
 		From clearing_house.view_clearinghouse_dataset_measured_values LDB
@@ -505,13 +505,13 @@ Begin
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.local_dataset_id = -$2;
-		  
+
 End $$ Language plpgsql;
  /*****************************************************************************************************************************
 **  View        view_dataset_abundance_modification_types
 **	Who			Roger Mähler
 **	When		2013-12-09
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -523,18 +523,18 @@ Create Or Replace View clearing_house.view_dataset_abundance_modification_types 
      select	am.abundance_id														as abundance_id,
 			array_to_string(array_agg(mt.modification_type_description), ',')	as modification_type_description,
 			array_to_string(array_agg(mt.modification_type_name), ',')			as modification_type_name
-	from tbl_abundance_modifications am
-	left join tbl_modification_types mt
+	from public.tbl_abundance_modifications am
+	left join public.tbl_modification_types mt
 	  on mt.modification_type_id = am.modification_type_id
 	group by am.abundance_id
-	
+
 	;
-	
+
 /*****************************************************************************************************************************
 **  View        view_dataset_abundance_ident_levels
 **	Who			Roger Mähler
 **	When		2013-12-09
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -546,18 +546,18 @@ Create Or Replace View clearing_house.view_dataset_abundance_ident_levels As
      select	al.abundance_id														as abundance_id,
 			array_to_string(array_agg(l.identification_level_abbrev), ',')		as identification_level_abbrev,
 			array_to_string(array_agg(l.identification_level_name), ',')		as identification_level_name
-	from tbl_abundance_ident_levels al
-	left join tbl_identification_levels l
+	from public.tbl_abundance_ident_levels al
+	left join public.tbl_identification_levels l
 	  on l.identification_level_id = al.identification_level_id
 	group by al.abundance_id
-	
+
 	;
 
 /*****************************************************************************************************************************
 **  View        view_dataset_abundance_element_names
 **	Who			Roger Mähler
 **	When		2013-12-09
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -568,18 +568,18 @@ Create Or Replace View clearing_house.view_dataset_abundance_element_names As
 
     select	a.abundance_id										as abundance_id,
 			array_to_string(array_agg(ael.element_name), ',')	as element_name
-	from tbl_abundances a
-	join tbl_abundance_elements ael
+	from public.tbl_abundances a
+	join public.tbl_abundance_elements ael
 	  on ael.abundance_element_id = a.abundance_element_id
 	group by a.abundance_id
-	
+
 	;
-	
+
 /*****************************************************************************************************************************
 **  View        view_dataset_abundances
 **	Who			Roger Mähler
 **	When		2013-12-09
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -597,23 +597,23 @@ Create Or Replace View clearing_house.view_dataset_abundances As
 			ps.physical_sample_id						as physical_sample_id,
 			ps.sample_name              				as sample_name,
 
-            a.abundance_id                              as abundance_id, 
+            a.abundance_id                              as abundance_id,
 			a.abundance									as abundance,
 
 			Coalesce(ael.element_name, '')				as element_name,
 			Coalesce(mt.modification_type_name, '')		as modification_type_name,
 			Coalesce(il.identification_level_name, '')	as identification_level_name
-			
-	from tbl_datasets d
-	left join tbl_analysis_entities ae
+
+	from public.tbl_datasets d
+	left join public.tbl_analysis_entities ae
 	  on d.dataset_id= ae.dataset_id
-	left join tbl_physical_samples ps
+	left join public.tbl_physical_samples ps
 	  on  ae.physical_sample_id = ps.physical_sample_id
-	left join tbl_abundances a
+	left join public.tbl_abundances a
 	  on a.analysis_entity_id = ae.analysis_entity_id
-	left join tbl_taxa_tree_master ttm
+	left join public.tbl_taxa_tree_master ttm
 	  on ttm.taxon_id = a.taxon_id
-	left join tbl_taxa_tree_genera ttg
+	left join public.tbl_taxa_tree_genera ttg
 	  on ttg.genus_id =  ttm.genus_id
 	left join clearing_house.view_dataset_abundance_modification_types mt
 	  on mt.abundance_id = a.abundance_id
@@ -629,7 +629,7 @@ Create Or Replace View clearing_house.view_dataset_abundances As
 **  View        view_clearinghouse_dataset_abundance_modification_types
 **	Who			Roger Mähler
 **	When		2013-12-09
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -650,14 +650,14 @@ Create Or Replace View clearing_house.view_clearinghouse_dataset_abundance_modif
 	  on mt.merged_db_id = am.modification_type_id
 	 and mt.submission_id In (0, am.submission_id)
 	group by am.submission_id, am.abundance_id, am.merged_db_id, am.public_db_id, am.local_db_id
-	
+
 	;
-	
+
 /*****************************************************************************************************************************
 **  View        view_clearinghouse_dataset_abundance_ident_levels
 **	Who			Roger Mähler
 **	When		2013-12-09
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -677,14 +677,14 @@ Create Or Replace View clearing_house.view_clearinghouse_dataset_abundance_ident
 	left join clearing_house.view_identification_levels l
 	  on l.identification_level_id = al.identification_level_id
 	group by al.submission_id, al.abundance_id, al.merged_db_id, al.public_db_id, al.local_db_id
-	
+
 	;
 
 /*****************************************************************************************************************************
 **  View        view_clearinghouse_dataset_abundance_element_names
 **	Who			Roger Mähler
 **	When		2013-12-09
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -703,14 +703,14 @@ Create Or Replace View clearing_house.view_clearinghouse_dataset_abundance_eleme
 	join clearing_house.view_abundance_elements ael
 	  on ael.abundance_element_id = a.abundance_element_id
 	group by a.submission_id, a.abundance_id, a.merged_db_id, a.public_db_id, a.local_db_id
-	
+
 ;
 
 /*****************************************************************************************************************************
 **  View        view_clearinghouse_dataset_abundances
 **	Who			Roger Mähler
 **	When		2013-12-09
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -723,7 +723,7 @@ Create Or Replace View clearing_house.view_clearinghouse_dataset_abundances As
 			d.source_id 								as source_id,
 			d.local_db_id								as local_dataset_id,
 			d.public_db_id								as public_dataset_id,
-			
+
 			a.abundance_id								as abundance_id,
 			a.local_db_id								as local_db_id,
 			a.public_db_id								as public_db_id,
@@ -788,13 +788,13 @@ Create Or Replace View clearing_house.view_clearinghouse_dataset_abundances As
 Create Or Replace Function clearing_house.fn_clearinghouse_review_dataset_abundance_values_client_data(int, int)
 Returns Table (
 
-	local_db_id					int,   
-	public_db_id 				int,   
+	local_db_id					int,
+	public_db_id 				int,
 
-	abundance_id 				int,   
-	physical_sample_id 			int,   
-	taxon_id 					int,   
-    
+	abundance_id 				int,
+	physical_sample_id 			int,
+	taxon_id 					int,
+
     genus_name					character varying,
     species						character varying,
     sample_name					character varying,
@@ -803,7 +803,7 @@ Returns Table (
     element_name				text,
     modification_type_name		text,
     identification_level_name	text,
-    
+
     abundance					int,
     public_abundance			int,
 
@@ -813,22 +813,22 @@ Returns Table (
 Declare
     entity_type_id int;
     public_ds_id int;
-    
+
 Begin
-			
+
     entity_type_id := clearing_house.fn_get_entity_type_for('tbl_abundances');
-    
+
 	Select x.public_db_id Into public_ds_id
 	From clearing_house.view_datasets x
 	Where x.local_db_id = -$2;
-	
+
 	Return Query
 
-		Select 
+		Select
 
 			LDB.local_db_id						               			As local_db_id,
 			LDB.public_db_id						               		As public_db_id,
-			
+
 			LDB.abundance_id					               			As abundance_id,
 			LDB.physical_sample_id				               			As physical_sample_id,
 			LDB.taxon_id						               			As taxon_id,
@@ -840,11 +840,11 @@ Begin
 			LDB.element_name											As element_name,
 			LDB.modification_type_name									As modification_type_name,
 			LDB.identification_level_name								As identification_level_name,
-			
+
 			LDB.abundance												As abundance,
 
 			RDB.abundance												As public_abundance,
-			
+
 			entity_type_id												As entity_type_id
 		-- Select LDB.*
 		From clearing_house.view_clearinghouse_dataset_abundances LDB
@@ -858,7 +858,7 @@ Begin
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.local_dataset_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 
@@ -877,13 +877,13 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_clearinghouse_review_dataset_ceramic_values_client_data(int, int)
 Returns Table (
 
-	local_db_id					int,   
-	public_db_id 				int,   
+	local_db_id					int,
+	public_db_id 				int,
 
-	abundance_id 				int,   
-	physical_sample_id 			int,   
-	taxon_id 					int,   
-    
+	abundance_id 				int,
+	physical_sample_id 			int,
+	taxon_id 					int,
+
     genus_name					character varying,
     species						character varying,
     sample_name					character varying,
@@ -892,7 +892,7 @@ Returns Table (
     element_name				text,
     modification_type_name		text,
     identification_level_name	text,
-    
+
     abundance					int,
     public_abundance			int,
 
@@ -902,22 +902,22 @@ Returns Table (
 Declare
     entity_type_id int;
     public_ds_id int;
-    
+
 Begin
-			
+
     entity_type_id := clearing_house.fn_get_entity_type_for('tbl_abundances');
-    
+
 	Select x.public_db_id Into public_ds_id
 	From clearing_house.view_datasets x
 	Where x.local_db_id = -$2;
-	
+
 	Return Query
 
-		Select 
+		Select
 
 			LDB.local_db_id						               			As local_db_id,
 			LDB.public_db_id						               		As public_db_id,
-			
+
 			LDB.abundance_id					               			As abundance_id,
 			LDB.physical_sample_id				               			As physical_sample_id,
 			LDB.taxon_id						               			As taxon_id,
@@ -929,11 +929,11 @@ Begin
 			LDB.element_name											As element_name,
 			LDB.modification_type_name									As modification_type_name,
 			LDB.identification_level_name								As identification_level_name,
-			
+
 			LDB.abundance												As abundance,
 
 			RDB.abundance												As public_abundance,
-			
+
 			entity_type_id												As entity_type_id
 		-- Select LDB.*
 		From clearing_house.view_clearinghouse_dataset_abundances LDB
@@ -947,7 +947,7 @@ Begin
 		Where LDB.source_id = 1
 		  And LDB.submission_id = $1
 		  And LDB.local_dataset_id = -$2;
-		  
+
 End $$ Language plpgsql;
 
 CREATE OR REPLACE FUNCTION clearing_house.fn_clearinghouse_review_dataset_references_client_data(
@@ -967,28 +967,28 @@ Declare
 Begin
     entity_type_id := clearing_house.fn_get_entity_type_for('tbl_datasets');
 	Return Query
-        Select 
+        Select
                 LDB.dataset_id                       		As local_db_id,
-                LDB.reference                           	As reference, 
+                LDB.reference                           	As reference,
                 LDB.public_db_id                        	As public_db_id,
-                RDB.reference                           	As public_reference, 
+                RDB.reference                           	As public_reference,
                 to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
                 entity_type_id              			As entity_type_id
             From (
-                Select 
-                    d.source_id				    As source_id, 
-                    d.submission_id				As submission_id, 
-                    d.dataset_id				As dataset_id, 
-                    b.biblio_id 				As local_db_id, 
-                    b.public_db_id				As public_db_id, 			
-                    b.full_reference		 	As reference, 
+                Select
+                    d.source_id				    As source_id,
+                    d.submission_id				As submission_id,
+                    d.dataset_id				As dataset_id,
+                    b.biblio_id 				As local_db_id,
+                    b.public_db_id				As public_db_id,
+                    b.full_reference		 	As reference,
                     b.date_updated				As date_updated
                 From clearing_house.view_datasets d
                 Join clearing_house.view_biblio b
                   On b.merged_db_id = d.biblio_id
                  And b.submission_id In (0, d.submission_id)
             ) As LDB Left Join (
-                Select b.biblio_id				As biblio_id,	
+                Select b.biblio_id				As biblio_id,
                     b.full_reference			As reference
                 From public.tbl_biblio b
             ) As RDB
