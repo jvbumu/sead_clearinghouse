@@ -208,7 +208,7 @@ End $$ Language plpgsql;
 **	Function	fn_clearinghouse_report_sample_dimensions
 **	Who			Roger Mähler
 **	When		2018-03-29
-**	What		Displays sample group dimensions
+**	What		Displays sample dimensions
 **	Uses
 **	Used By
 **	Revisions
@@ -318,6 +318,236 @@ Begin
 
 End $$ Language plpgsql;
 
+/*****************************************************************************************************************************
+**	Function	fn_clearinghouse_report_sample_descriptions
+**	Who			Roger Mähler
+**	When		2018-03-29
+**	What		Displays sample descriptions
+**	Uses
+**	Used By
+**	Revisions
+******************************************************************************************************************************/
+-- Drop Function clearing_house.fn_clearinghouse_report_sample_descriptions(int);
+-- Select * From clearing_house.fn_clearinghouse_report_sample_descriptions(1)
+Create Or Replace Function clearing_house.fn_clearinghouse_report_sample_descriptions(int)
+Returns Table (
+	local_db_id                         int,
+	physical_sample_id                  int,
+    sample_name                         character varying,
+    type_name                           character varying,
+    description                         character varying,
 
+	public_db_id                        int,
+	public_physical_sample_id           int,
+    public_sample_name                  character varying,
+    public_type_name                    character varying,
+    public_description                  character varying,
+
+	date_updated                        text,
+	entity_type_id                      int
+) As $$
+Declare
+    entity_type_id int;
+Begin
+
+    entity_type_id := clearing_house.fn_get_entity_type_for('tbl_sample_descriptions');
+
+	Return Query
+
+        Select
+            LDB.local_db_id						            As local_db_id,
+            LDB.physical_sample_id					        As physical_sample_id,
+            LDB.sample_name							        As sample_name,
+            LDB.type_name								    As type_name,
+            LDB.description								    As description,
+
+            LDB.public_db_id						        As public_db_id,
+            RDB.physical_sample_id						    As public_physical_sample_id,
+            RDB.sample_name							        As public_sample_name,
+            RDB.type_name								    As public_type_name,
+            RDB.description								    As public_description,
+
+            to_char(LDB.date_updated,'YYYY-MM-DD')			As date_updated,
+            entity_type_id						            As entity_type_id
+
+        From (
+
+            Select	sd.submission_id				        As submission_id,
+                    sd.source_id					        As source_id,
+                    sd.local_db_id				            As local_db_id,
+                    sd.public_db_id				            As public_db_id,
+
+                    ps.physical_sample_id                   As physical_sample_id,
+                    ps.sample_name			                As sample_name,
+                    sdt.type_name				            As type_name,
+                    sd.description			                As description,
+
+                    sd.date_updated				            As date_updated
+
+            From clearing_house.view_sample_descriptions sd
+            Join clearing_house.view_sample_description_types sdt
+              On sdt.merged_db_id = sd.sample_description_type_id
+             And sdt.submission_id In (0, sd.submission_id)
+            Join clearing_house.view_physical_samples ps
+              On ps.merged_db_id = sd.physical_sample_id
+             And ps.submission_id In (0, sd.submission_id)
+
+        ) As LDB
+
+        Left Join (
+
+            Select sd.sample_description_id                 As sample_description_id,
+                   ps.physical_sample_id				    As physical_sample_id,
+                   ps.sample_name				            As sample_name,
+                   sdt.type_name					        As type_name,
+                   sd.description				            As description
+            From public.tbl_sample_descriptions sd
+            Join public.tbl_sample_description_types sdt
+              On sdt.sample_description_type_id = sd.sample_description_type_id
+            Join public.tbl_physical_samples ps
+              On ps.physical_sample_id = sd.physical_sample_id
+
+        ) as RDB
+          On RDB.sample_description_id = LDB.public_db_id
+
+        Where LDB.source_id = 1
+          And LDB.submission_id = $1
+
+        Order by LDB.physical_sample_id;
+
+End $$ Language plpgsql;
+
+Do $$
+Declare v_next_id int;
+Begin
+   If (Select Count(*) From clearing_house.tbl_clearinghouse_reports Where report_procedure like '%fn_clearinghouse_report_sample_descriptions%') = 0 Then
+
+        Select Max(report_id) + 1 Into v_next_id From clearing_house.tbl_clearinghouse_reports;
+
+        Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
+            Values  (v_next_id, 'Sample descriptions', 'Select * From clearing_house.fn_clearinghouse_report_sample_descriptions(?)');
+
+        Raise Notice 'Report added with ID: %', v_next_id;
+
+    End If;
+
+End $$ Language plpgsql;
+
+
+/*****************************************************************************************************************************
+**	Function	fn_clearinghouse_report_sample_group_descriptions
+**	Who			Roger Mähler
+**	When		2018-03-29
+**	What		Displays sample group descriptions
+**	Uses
+**	Used By
+**	Revisions
+******************************************************************************************************************************/
+-- Drop Function clearing_house.fn_clearinghouse_report_sample_group_descriptions(int);
+-- Select * From clearing_house.fn_clearinghouse_report_sample_group_descriptions(1)
+Create Or Replace Function clearing_house.fn_clearinghouse_report_sample_group_descriptions(int)
+Returns Table (
+	local_db_id                         int,
+	physical_sample_id                  int,
+    sample_name                         character varying,
+    type_name                           character varying,
+    description                         character varying,
+
+	public_db_id                        int,
+	public_physical_sample_id           int,
+    public_sample_name                  character varying,
+    public_type_name                    character varying,
+    public_description                  character varying,
+
+	date_updated                        text,
+	entity_type_id                      int
+) As $$
+Declare
+    entity_type_id int;
+Begin
+
+    entity_type_id := clearing_house.fn_get_entity_type_for('tbl_sample_group_descriptions');
+
+	Return Query
+
+        Select
+            LDB.local_db_id						            As local_db_id,
+            LDB.sample_group_id					            As sample_group_id,
+            LDB.sample_group_name							As sample_group_name,
+            LDB.type_name								    As type_name,
+            LDB.group_description						    As group_description,
+
+            LDB.public_db_id						        As public_db_id,
+            RDB.sample_group_id						        As public_sample_group_id,
+            RDB.sample_group_name							As public_sample_group_name,
+            RDB.type_name								    As public_type_name,
+            RDB.group_description							As public_group_description,
+
+            to_char(LDB.date_updated,'YYYY-MM-DD')			As date_updated,
+            entity_type_id						            As entity_type_id
+
+        From (
+
+            Select	sd.submission_id				        As submission_id,
+                    sd.source_id					        As source_id,
+                    sd.local_db_id				            As local_db_id,
+                    sd.public_db_id				            As public_db_id,
+
+                    sg.sample_group_id                      As sample_group_id,
+                    sg.sample_group_name			        As sample_group_name,
+                    sdt.type_name				            As type_name,
+                    sd.group_description			        As group_description,
+
+                    sd.date_updated				            As date_updated
+
+            From clearing_house.view_sample_group_descriptions sd
+            Join clearing_house.view_sample_group_description_types sdt
+              On sdt.merged_db_id = sd.sample_group_description_type_id
+             And sdt.submission_id In (0, sd.submission_id)
+            Join clearing_house.view_sample_groups sg
+              On sg.merged_db_id = sd.sample_group_id
+             And sg.submission_id In (0, sd.submission_id)
+
+        ) As LDB
+
+        Left Join (
+
+       		Select  sgd.sample_group_description_id     As sample_group_description_id,
+                    sg.sample_group_id					As sample_group_id,
+					sg.sample_group_name 				As sample_group_name,
+					sgdt.type_name						As type_name,
+					sgd.group_description				As group_description
+
+			From public.tbl_sample_groups sg
+			Join public.tbl_sample_group_descriptions sgd
+              On sgd.sample_group_id = sg.sample_group_id
+            Join public.tbl_sample_group_description_types sgdt
+              On sgdt.sample_group_description_type_id = sgd.sample_group_description_type_id
+
+        ) As RDB
+		  On RDB.sample_group_description_id = LDB.public_db_id
+
+        Where LDB.source_id = 1
+          And LDB.submission_id = $1
+
+        Order by LDB.sample_group_id;
+
+End $$ Language plpgsql;
+
+Do $$
+Declare v_next_id int;
+Begin
+   If (Select Count(*) From clearing_house.tbl_clearinghouse_reports Where report_procedure like '%fn_clearinghouse_report_sample_group_descriptions%') = 0 Then
+
+        Select Max(report_id) + 1 Into v_next_id From clearing_house.tbl_clearinghouse_reports;
+
+        Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
+            Values  (v_next_id, 'Sample group descriptions', 'Select * From clearing_house.fn_clearinghouse_report_sample_group_descriptions(?)');
+
+        Raise Notice 'Report added with ID: %', v_next_id;
+
+    End If;
+
+End $$ Language plpgsql;
 
 
