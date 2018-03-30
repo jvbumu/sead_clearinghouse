@@ -1,4 +1,5 @@
 <?php
+// THIS FILE IS DEPRECATED! USE SETTINGS TABLE!!
 return array(
     'slim' => array(
 //        'log.writer' => new \Slim\Extras\Log\DateTimeFileWriter(array(

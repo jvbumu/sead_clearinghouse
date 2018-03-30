@@ -10,8 +10,8 @@ var AppRouter = Backbone.Router.extend({
             sample_id: parseInt(sample_id)
         };
     },
-    
-    routes: {        
+
+    routes: {
         ""                                                                                              : "home",
         "submission/:id/open"                                                                           : "openSubmission",
         "signon"                                                                                        : "login",
@@ -28,15 +28,15 @@ var AppRouter = Backbone.Router.extend({
     },
 
     initialize: function () {
-        
+
         this.headerView = new HeaderView();
         $('.header').html(this.headerView.el);
-        
+
         this.footerView = new FooterView();
         $('.footer').html(this.footerView.el);
-        
+
         var genericErrorCallback = this.displayError;
-        
+
         $(document).ajaxError(function(e, jqxhr, settings, exception) {
             if (jqxhr.status == 500) {
                 genericErrorCallback(jqxhr.responseText);
@@ -67,7 +67,7 @@ var AppRouter = Backbone.Router.extend({
            zIndex: 2e9, // The z-index (defaults to 2000000000)
            top: 'auto', // Top position relative to parent in px
            left: 'auto' // Left position relative to parent in px
-        };        
+        };
         var spinner = new Spinner({ }, $("#" + spinnerId));
 
         $(document).ajaxStart(function() {
@@ -89,9 +89,9 @@ var AppRouter = Backbone.Router.extend({
             SEAD.Router.navigate("signon", {trigger: true});
             return;
         }
-        
+
         var submissions = this.submissions;
-        
+
         this.submissions.fetch({
             success: function() { $("#content").html(new HomeView({ items: submissions }).el); }
        });
@@ -104,9 +104,9 @@ var AppRouter = Backbone.Router.extend({
         this.setPath(0,0,0,0);
 
         var loginView = new LoginView();
-        
+
         $("#modal_view_container").html(loginView.render().el);
-        
+
         var self = this;
         this.listenTo(loginView, "login-success",
             function (e, u) {
@@ -130,32 +130,32 @@ var AppRouter = Backbone.Router.extend({
         );
         logoutView.open();
     },
-    
+
     about: function () {
-        
+
         if (!this.aboutView) {
             this.aboutView = new AboutView();
         }
-        
+
         $('#content').html(this.aboutView.el);
         this.headerView.selectMenuItem('about-menu');
     },
-            
+
     openSubmission: function(id) {
 
         var submission_id = parseInt(id);
-        
+
         this.setPath(submission_id,0,0,0);
-        
+
         this.current_path = { submission_id: submission_id };
 
         this.submission_metadata_model = new SubmissionMetaDataModel({ submission_id: submission_id });
         this.rejects = new SubmissionRejectCollection([], { submission_id: submission_id });
         this.reject_entity_types = new RejectEntityTypesCollection();
-        
+
         this.reports = new ReportCollection();
         this.xml_tables_list = new XmlTableCollection([], { submission_id: submission_id });
-        
+
         $("#content").html(new SubmissionView({
             submission: this.submissions.findWhere({ submission_id: submission_id }),
             submission_metadata_model: this.submission_metadata_model,
@@ -164,11 +164,11 @@ var AppRouter = Backbone.Router.extend({
             reports: this.reports,
             xml_tables_list: this.xml_tables_list
         }).el);
-        
+
         this.submission_metadata_model.fetch({ reset: true });
         this.rejects.fetch({ reset: true });
         this.xml_tables_list.fetch({ reset: true });
-        
+
         this.reject_entity_types.reset(SEAD.BootstrapData.Lookup.RejectTypes);
         this.reports.reset(SEAD.BootstrapData.Reports);
 
@@ -186,7 +186,7 @@ var AppRouter = Backbone.Router.extend({
             report_data: this.report_data,
             rejects: this.rejects
         }).render().el);
-        
+
         this.report_data.fetch({
                 reset: true,
                 complete: function(xhr, textStatus) {
@@ -195,43 +195,43 @@ var AppRouter = Backbone.Router.extend({
         });
 
     },
- 
+
     openTable: function(submission_id, table_id) {
-        
+
         this.setPath(submission_id,0,0,0);
-        
+
         this.table_data = new XmlTableRowCollection([], { table_id: parseInt(table_id), submission_id: parseInt(submission_id) });
-        
+
         $("#data_container").html(new ReportView({
             report_id: parseInt(table_id),
             submission_id: parseInt(submission_id),
             report_data: this.table_data,
             rejects: null
         }).render().el);
-        
+
         this.table_data.fetch({ reset: true });
 
     },
-    
+
     openSite: function(submission_id, site_id) {
-        
+
         this.setPath(submission_id, site_id, 0, 0);
-        
+
         var self = this;
-        
+
         this.site_data = new SiteDataModel({
             submission_id: parseInt(submission_id),
             site_id: parseInt(site_id)
         });
 
-        var view = new SiteView({ 
+        var view = new SiteView({
             model: this.site_data,
             rejects: this.rejects,
             target: "#data_container"
         });
-        
+
         $("#data_container").html(view.render().el);
-        
+
         $.ajax({
             url: "api/submission/" + submission_id + "/site/" + site_id,
             dataType: "json"
@@ -242,7 +242,7 @@ var AppRouter = Backbone.Router.extend({
         );
 
     },
-    
+
     openSampleGroup: function(submission_id, site_id, sample_group_id) {
 
         this.setPath(submission_id, site_id, sample_group_id, 0);
@@ -253,7 +253,7 @@ var AppRouter = Backbone.Router.extend({
             sample_group_id: parseInt(sample_group_id)
         });
 
-        var view = new SampleGroupView({ 
+        var view = new SampleGroupView({
             model: this.sample_group_data,
             rejects: this.rejects,
             target: "#data_container"
@@ -278,7 +278,7 @@ var AppRouter = Backbone.Router.extend({
             }
         );
     },
-    
+
     openSample: function(submission_id, site_id, sample_group_id, sample_id) {
 
         this.setPath(submission_id, site_id, sample_group_id, sample_id);
@@ -290,16 +290,16 @@ var AppRouter = Backbone.Router.extend({
             sample_id: parseInt(sample_id)
         });
 
-        var view = new SampleView({ 
+        var view = new SampleView({
             model: this.sample_data,
             rejects: this.rejects,
             target: "#data_container"
         });
-        
+
         $("#data_container").html(view.render().el);
-               
+
         //this.sample_data.fetch({ reset: true });
-        
+
         var model = this.sample_data;
 
         $.ajax({
@@ -319,9 +319,9 @@ var AppRouter = Backbone.Router.extend({
         );
 
     },
- 
+
     openDataSet: function(submission_id, site_id, sample_group_id, dataset_id) {
-        
+
         this.setPath(submission_id, site_id, sample_group_id, 0);
 
         this.dataset_data = new DataSetDataModel({
@@ -331,12 +331,12 @@ var AppRouter = Backbone.Router.extend({
             dataset_id: parseInt(dataset_id)
         });
 
-        $("#data_container").html(new DataSetView({ 
+        $("#data_container").html(new DataSetView({
             model: this.dataset_data,
             rejects: this.rejects,
             target: "#data_container"
         }).render().el);
-        
+
         var model = this.dataset_data;
 
         $.ajax({
@@ -356,31 +356,31 @@ var AppRouter = Backbone.Router.extend({
         );
 
     },
-    
+
     editUsers: function()
     {
-        
+
         this.setPath(0, 0, 0, 0);
 
         var users = new UserCollection();
-        
+
         var role_types = new RoleTypeCollection();
         var data_provider_grade_types = new DataProviderGradeTypeCollection();
-        
+
         role_types.reset(SEAD.BootstrapData.Lookup.RoleTypes);
         data_provider_grade_types.reset(SEAD.BootstrapData.Lookup.DataProviderGradeTypes);
-        
+
         var usersView = new UsersView({
             users: users,
             role_types: role_types,
             data_provider_grade_types: data_provider_grade_types
         });
-        
+
         $('#content').html(usersView.render().el);
-        
+
         users.fetch({reset: true});
     },
-    
+
     displayError: function(text)
     {
         var view = new ErrorView({ dialog_id: "error-dialog", error_message: text });
@@ -399,7 +399,7 @@ var SEAD = {
 };
 
 $(function() {
-    
+
     TemplateStore.preload([
             { name: 'HeaderView', type: "view" },
             { name: 'FooterView', type: "view" },
@@ -416,6 +416,6 @@ $(function() {
         SEAD.Router = new AppRouter();
         Backbone.history.start();
     });
-    
-    
+
+
 });

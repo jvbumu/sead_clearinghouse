@@ -1,9 +1,9 @@
 window.DataSetView = window.ReviewBaseView.extend({
- 
+
     get_store: function() {
         return DataSet_Column_Store;
     },
-    
+
     render_root: function(model)
     {
         $("#dataset_id", this.$el).text(model.dataset.local_db_id);
@@ -18,10 +18,10 @@ window.DataSetView = window.ReviewBaseView.extend({
 });
 
 window.DataSet_Column_Store = {
-                
+
     data_type: "dataset",
 
-    data_keys: [ "contacts", "submissions", "measured_values", "abundance_values" ],
+    data_keys: [ "contacts", "submissions", "measured_values", "abundance_values", "ceramic_values" ],
 
     columns: utils.toArray({
 
@@ -32,7 +32,7 @@ window.DataSet_Column_Store = {
             { column_name: "Contact type", column_field: "contact_type_name", public_column_field: "public_contact_type_name" },
             { column_name: "Updated", column_field: "date_updated" }
         ],
-        
+
         submissions: [
             { column_name: "Id", column_field: "local_db_id" },
             { column_name: "First name", column_field: "first_name", public_column_field: "public_first_name" },
@@ -41,12 +41,22 @@ window.DataSet_Column_Store = {
             { column_name: "Notes", column_field: "notes", public_column_field: "public_notes" },
             { column_name: "Updated", column_field: "date_updated" }
         ],
-        
-        measured_values: null,
-        
-        abundance_values: null
-        
 
+        measured_values: [
+            { column_name: "Id", column_field: "local_db_id" }
+            // TODO: Add rest of columns
+        ],
+        abundance_values: [
+            { column_name: "Id", column_field: "local_db_id" }
+            // TODO: Add rest of columns
+        ],
+        ceramic_values: [
+            { column_name: "Id", column_field: "local_db_id" },
+            { column_name: "Sample name", column_field: "sample_name", public_column_field: "public_sample_name" },
+            { column_name: "Method name", column_field: "method_name", public_column_field: "public_method_name" },
+            { column_name: "Lookup name", column_field: "lookup_name", public_column_field: "public_lookup_name" },
+            { column_name: "Value", column_field: "measurement_value", public_column_field: "public_measurement_value" }
+        ]
     })
 };
 

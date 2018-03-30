@@ -18,7 +18,7 @@ window.ReviewView = Backbone.View.extend({
             $id.addClass("sead-new-value");
         }
     }
-    
+
 });
 
 window.ReviewBaseView = window.ReviewView.extend({
@@ -26,29 +26,29 @@ window.ReviewBaseView = window.ReviewView.extend({
     initialize: function (options) {
         this.options = _.extend(this.options || {}, options || {});
     },
-    
+
     render_tables: function(model, store)
     {
         var table_options = Table_Template_Store.get_table_options(store);
-        this.table_views = new Array();
+        this.table_views = [];
         for (var key in table_options) {
             var data = model[table_options[key].data_key];
-            
+
             if (!data /*|| data.length == 0*/) {
                 $(table_options[key].container, this.$el).hide();
                 continue;
             }
-           
+
             var $panel = Bootstrap_Panel_Table_Container_Builder.build(store.data_type, table_options[key].data_key, table_options[key].data_key.pascalCase().pascalCaseToWords(), (data.data || data).length);
-            
+
             $("#" + store.data_type + "_accordion", this.$el).append($panel);
-            
+
             var view = new ReviewTableView($.extend(table_options[key].options, { rejects: this.rejects, data: data }));
-            
+
             $(table_options[key].target, this.$el).html(view.render().el);
-            
+
             this.table_views.push(view);
-            
+
             var indicator_options = $.extend(table_options[key].indicator_option, {
                 rejects: this.rejects,
                 entity_type_id: utils.getEntityTypeOf(data)
@@ -58,26 +58,26 @@ window.ReviewBaseView = window.ReviewView.extend({
         }
         return this;
     },
-    
+
     initialize: function (options) {
 
         this.options = _.extend(this.options || {}, options || {});
         this.model = this.options.model;
         this.rejects = this.options.rejects;
-        
+
         this.listenTo(this.model, 'change', this.render_model);
-        
+
         RejectCauseIndicatorView_Store.clear();
-        
+
     },
-            
+
     render: function () {
-        
+
         this.$el.html(this.template());
 
         return this;
     },
-    
+
     render_model: function()
     {
         try {
@@ -86,27 +86,27 @@ window.ReviewBaseView = window.ReviewView.extend({
             this.render_root(model);
             this.render_tables(model, this.get_store());
             this.render_indicator(model);
-            
+
             $(".sead-tooltip").popover({
                 trigger: "click",
                 placement: "auto left",
                 title: "Value in public SEAD database"
             });
-            
+
         } catch (ex) {
             console.log(ex.message || ex);
         }
 
     },
-    
+
     render_indicator: function(model)
     {
         if (!this.rejects) {
             return;
         }
-        
+
         var $container = $("#" + this.get_store().data_type + "_indicator_container", this.$el);
-        
+
         if ($container.length == 0) {
             return;
         }
@@ -120,13 +120,13 @@ window.ReviewBaseView = window.ReviewView.extend({
         );
 
     }
-    
+
 });
 
 window.Bootstrap_Panel_Table_Container_Builder = {
 
     default_collapse_state: "", /* use "in" for default open state */
-    
+
     build: function(data_type, data_key, title, count)
     {
         var collapse_id = data_type + "_" + data_key + "_collapse";
@@ -145,16 +145,16 @@ window.Bootstrap_Panel_Table_Container_Builder = {
                                style: "margin-right: 10px;"
                            }))
                 );
-      
+
         var $body = $("<div/>", { id: collapse_id, class: "panel-collapse collapse " + this.default_collapse_state })
             .append($("<div/>", { class: "panel-body" })
                 .append($("<div/>", { id: table_container_id }))
           );
-      
+
         return $("<div/>", { id: container_id,class: "panel panel-default" })
             .append($heading)
             .append($body);
-   
+
     }
 };
 

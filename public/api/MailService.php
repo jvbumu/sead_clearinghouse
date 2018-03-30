@@ -1,16 +1,16 @@
 <?php
 
-require_once(__DIR__ . '/../Vendor/PHPMailer/PHPMailerAutoload.php');
-
 namespace Services {
     
+    require_once(__DIR__ . '/../Vendor/PHPMailer/PHPMailerAutoload.php');
+
     class MailService extends ServiceBase {
 
         function __construct() {
             global $application;
             $this->config = $application->config['mailer'];
         }
-        
+
         public function Send($subject, $body, $recipient)
         {
             $mail->addReplyTo('list@example.com', 'List manager');
@@ -23,7 +23,7 @@ namespace Services {
                 throw new \Exception($mail->ErrorInfo);
             }
         }
-        
+
         function createMailer()
         {
             $mail = new PHPMailer();
@@ -38,9 +38,9 @@ namespace Services {
             }
             return $mail;
         }
-        
+
     }
-    
+
 }
 
 ?>

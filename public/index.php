@@ -55,6 +55,7 @@ $loader->setup();
             DataProviderGradeTypes: <?= $service->getDataProviderGradeTypes() ?>,
             LatestSites: <?= $service->getLatestUpdatedSites() ?>,
             References: <?= $service->getInfoReferences() ?>,
+            DataSetListKeys: <?= $service->getDataSetListKeys() ?>,
             Dummy: "dummy"
         },
         Reports: <?= $service->getReports() ?>,
