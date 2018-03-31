@@ -1,16 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<?php
-try {
-require_once __DIR__ . '/api/class_loader.php';
-$loader = new ClassLoaderService();
-$loader->setup();
-} catch(Exception $ex){
- echo $ex->getMessage();
-}
-
-?>
-
 <head>
     <meta charset="utf-8">
     <title>SEAD Clearing House</title>
@@ -22,7 +11,6 @@ $loader->setup();
             padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
         }
     </style>
-
 
     <link href="css/bootstrap.css" rel="stylesheet" media="screen">
     <!--<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">-->
@@ -43,25 +31,6 @@ $loader->setup();
 
     <link href="css/styles.css" rel="stylesheet">
 
-    <script language="javascript">
-    <?php
-        $service = new \Application\BootstrapService();
-     ?>
-    var BootstrapData = {
-        Users: <?= $service->getUsersModel() ?>,
-        Lookup: {
-            RoleTypes: <?= $service->getUserRoleTypes() ?>,
-            RejectTypes: <?= $service->getRejectTypes() ?>,
-            DataProviderGradeTypes: <?= $service->getDataProviderGradeTypes() ?>,
-            LatestSites: <?= $service->getLatestUpdatedSites() ?>,
-            References: <?= $service->getInfoReferences() ?>,
-            DataSetListKeys: <?= $service->getDataSetListKeys() ?>,
-            Dummy: "dummy"
-        },
-        Reports: <?= $service->getReports() ?>,
-        Dummy: "dummy"
-    }
-    </script>
 </head>
 
 <body data-spy="scroll" data-target=".subnav" data-offset="50">
@@ -131,6 +100,5 @@ To use the app with a persistent RESTful back-end (provided in the GitHub repo),
 <script src="js/model/security.js"></script>
 <script src="js/backbone-extend.js"></script>
 <script src="js/main.js"></script>
-
 </body>
 </html>

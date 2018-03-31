@@ -1,3 +1,5 @@
+
+
 var AppRouter = Backbone.Router.extend({
 
     path: {},
@@ -392,13 +394,19 @@ var AppRouter = Backbone.Router.extend({
 
 var SEAD = {
     Router: null,
-    BootstrapData: BootstrapData,
+    BootstrapData: null,
     User: null,
     Session: null,
     Security: SecurityFunctions
 };
 
 $(function() {
+
+    fetch('/api/bootstrap')
+    .then(function(response) { return response.json(); })
+    .then(function(json) {
+        SEAD.BootstrapData = json;
+    });
 
     TemplateStore.preload([
             { name: 'HeaderView', type: "view" },

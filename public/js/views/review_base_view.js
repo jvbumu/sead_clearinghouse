@@ -23,8 +23,20 @@ window.ReviewView = Backbone.View.extend({
 
 window.ReviewBaseView = window.ReviewView.extend({
 
+    //initialize: function (options) {
+    //    this.options = _.extend(this.options || {}, options || {});
+    //},
+
     initialize: function (options) {
+
         this.options = _.extend(this.options || {}, options || {});
+        this.model = this.options.model;
+        this.rejects = this.options.rejects;
+
+        this.listenTo(this.model, 'change', this.render_model);
+
+        RejectCauseIndicatorView_Store.clear();
+
     },
 
     render_tables: function(model, store)
@@ -33,8 +45,8 @@ window.ReviewBaseView = window.ReviewView.extend({
         this.table_views = [];
         for (var key in table_options) {
             var data = model[table_options[key].data_key];
-
-            if (!data /*|| data.length == 0*/) {
+            var items = data ? (data.data || data) : [];
+            if (items.length == 0) {
                 $(table_options[key].container, this.$el).hide();
                 continue;
             }
@@ -57,18 +69,6 @@ window.ReviewBaseView = window.ReviewView.extend({
 
         }
         return this;
-    },
-
-    initialize: function (options) {
-
-        this.options = _.extend(this.options || {}, options || {});
-        this.model = this.options.model;
-        this.rejects = this.options.rejects;
-
-        this.listenTo(this.model, 'change', this.render_model);
-
-        RejectCauseIndicatorView_Store.clear();
-
     },
 
     render: function () {

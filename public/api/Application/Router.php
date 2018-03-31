@@ -1,7 +1,7 @@
 <?php
 
 namespace Application {
-    
+
     class Router {
 
         public $application = null;
@@ -20,7 +20,7 @@ namespace Application {
 //                'log.writer' => new \Slim\Extras\Log\DateTimeFileWriter(array(
 //                    'path' => './logs',
 //                    'name_format' => 'Y-m-d',
-//                    'message_format' => '%label% - %date% - %message%'   
+//                    'message_format' => '%label% - %date% - %message%'
 //                )),
                 'debug' => true
             );
@@ -34,7 +34,7 @@ namespace Application {
                 return null;
             }
         }
-        
+
         public function run()
         {
             $this->router = $this->setup();
@@ -49,19 +49,20 @@ namespace Application {
             $router = new \Slim\Slim($this->config);
 
             $router->contentType('application/json');
-            
+
             $router->get('/helloworld', function() { $this->application->getHelloWorld(); });
+            $router->get('/bootstrap', function() { $this->application->getBootstrapData(); });
 
             $router->get('/login', function() { $this->application->login(); });
-            
+
             $router->get('/logout', function() { $this->application->logout(); });
-            
+
             $router->get('/users', function() { $this->application->getUsers(); });
             $router->get('/users/:id', function($id) { $this->application->getUser($id); });
             $router->post('/users', function() { $this->application->saveUser(); });
             $router->put('/users', function() { $this->application->saveUser(); });
             $router->delete('/users/:id', function($id) { $this->application->deleteUserById($id); });
-            
+
             $router->get('/sites', function() { $this->application->getSites(); });
 
             $router->get('/submissions_report', function() { $this->application->getSubmissionsReport(); });
@@ -80,7 +81,7 @@ namespace Application {
             $router->delete('/submissions/:sid/rejects/:rid', function($sid, $rid) { $this->application->deleteSubmissionReject($sid, $rid); });
 
             $router->get("/submission/:submission_id/metadata", function($submission_id) { $this->application->getSubmissionMetaData($submission_id); });
-            
+
             $router->get("/submission/:submission_id/site/:site_id", function($submission_id, $site_id) { $this->application->getSiteModel($submission_id, $site_id); });
             $router->get("/submission/:submission_id/site/:site_id/sample_group/:sample_group_id", function($submission_id, $site_id, $sample_group_id) { $this->application->getSampleGroupModel($submission_id, $site_id, $sample_group_id); });
             $router->get("/submission/:submission_id/site/:site_id/sample_group/:sample_group_id/sample/:sample_id", function($submission_id, $site_id, $sample_group_id, $sample_id) { $this->application->getSampleModel($submission_id, $site_id, $sample_group_id, $sample_id); });

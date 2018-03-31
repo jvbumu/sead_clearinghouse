@@ -1,13 +1,13 @@
 window.Table_Template_Store = {
 
     template: function(data_type, data_key, columns) {
-        
+
         return {
-            
+
             data_key: data_key,
             target: "#" + data_type + "_" + data_key + "_table_container",
             container: "#" + data_type + "-" + data_key + "-container", /* surrounding tab i.e. panel */
-            
+
             options: {
                 table_id: "" + data_type + "_" + data_key + "_table",
                 row_id_prefix: "" + data_type + "_" + data_key + "_table_row_id_",
@@ -18,7 +18,7 @@ window.Table_Template_Store = {
                 data: null,
                 rejects: null
             },
-            
+
             indicator_option: {
                 target: "#" + data_type + "_" + data_key + "_generic_indicator_container",
                 local_db_id: 0,
@@ -27,25 +27,30 @@ window.Table_Template_Store = {
             }
         };
     },
-    
+
     get_table_options: function(store) {
-        var _options = new Array();
+        var _options = [];
         for (var data_key in store.columns) {
             _options.push(this.template(store.data_type, data_key, store.columns[data_key]));
         }
         return _options;
     }
-    
+
+};
+
+String.prototype.toProperCase = function () {
+    var tmp = this.split('_').join(' ');
+    return tmp.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 };
 
 window.ReviewTableView = window.ReviewView.extend({
 
     initialize: function (options) {
 
-        this.options = $.extend(this.options || {}, options || {});;
+        this.options = $.extend(this.options || {}, options || {});
         this.template = TemplateStore.get("template_ReviewTable");
         this.row_template = TemplateStore.get("template_ReviewTableRow");
-        
+
         this.options = $.extend({}, {
             data: [],
             columns: [],
@@ -54,7 +59,7 @@ window.ReviewTableView = window.ReviewView.extend({
             indicator_id_prefix: this.options.indicator_id_prefix || (this.options.row_id_prefix + "_indicator_"),
             row_class: ""
         }, this.options);
-        
+
     },
 
     render: function () {
@@ -64,12 +69,12 @@ window.ReviewTableView = window.ReviewView.extend({
             //columns: this.options.columns,
             classname: "display table table-condensed sead-smaller-font-size"
         }));
-        
+
         this.render_data();
 
         return this;
     },
-    
+
     render_columns: function(columns)
     {
         var $table = $("#" + this.options.table_id, this.$el);
@@ -77,7 +82,7 @@ window.ReviewTableView = window.ReviewView.extend({
         var $tr = $("<tr/>");
         $tr.append("<th/>");
         _.each(columns, function(column) {
-            $tr.append($("<th/>", 
+            $tr.append($("<th/>",
                 $.extend({
                     text: column.column_name
                 }, column.column_tooltip ? {
@@ -89,32 +94,51 @@ window.ReviewTableView = window.ReviewView.extend({
         });
         $header.append($tr);
     },
-    
+
+    generateColumns: function(item)
+    {
+        var keys = Object.keys(item);
+        if (!keys.includes('local_db_id'))
+            return null;
+        var columns = [
+          { column_name: "Id", column_field: "local_db_id" }
+        ];
+        var dataKeys = keys.filter(key => !key.startsWith('public_') && keys.includes('public_' + key));
+        for (var key of dataKeys) {
+            columns.push({column_name: key.toProperCase(), column_field: key, public_column_field: "public_" + key})
+        }
+        return columns;
+    },
+
     render_data: function()
     {
         var data = this.options.data.data ?  this.options.data.data :  this.options.data;
         var columns = this.options.data.columns ? this.options.data.columns : this.options.columns;
-        
+
+        if (!columns && ((data || []).length > 0)) {
+            columns = this.generateColumns(data[0]);
+        }
+
         var $table = $("#" + this.options.table_id, this.$el);
-        
+
         if (columns) {
             this.render_columns(columns);
         }
-        
+
         var $body = $("tbody", $table);
-        
+
         var options = this.options;
         var placeholder = $("<tbody/>");
         var template = this.row_template;
         var entity_type_id = this.getEntityTypeId();
         var rejects = this.options.rejects;
-        
+
         _.each(
-                
+
             data,
-    
+
             function (row) {
-                
+
                 var $row_text = $(template( {
                     options : options,
                     columns: columns,

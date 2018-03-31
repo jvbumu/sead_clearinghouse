@@ -50,13 +50,13 @@ window.DataSet_Column_Store = {
             { column_name: "Id", column_field: "local_db_id" }
             // TODO: Add rest of columns
         ],
-        ceramic_values: [
+        ceramic_values: null /*[
             { column_name: "Id", column_field: "local_db_id" },
             { column_name: "Sample name", column_field: "sample_name", public_column_field: "public_sample_name" },
             { column_name: "Method name", column_field: "method_name", public_column_field: "public_method_name" },
             { column_name: "Lookup name", column_field: "lookup_name", public_column_field: "public_lookup_name" },
             { column_name: "Value", column_field: "measurement_value", public_column_field: "public_measurement_value" }
-        ]
+        ]*/
     })
 };
 

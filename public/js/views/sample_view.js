@@ -1,9 +1,9 @@
 window.SampleView = window.ReviewBaseView.extend({
- 
+
     get_store: function() {
         return Sample_Column_Store;
     },
-    
+
     render_root: function(model)
     {
         $("#sample_id", this.$el).text(model.sample.local_db_id);
@@ -13,12 +13,12 @@ window.SampleView = window.ReviewBaseView.extend({
         utils.set_review_value($("#type_name", this.$el), model.sample.type_name, model.sample.public_type_name);
         return this;
     }
-    
+
 });
 
 // TODO: Generated data server-side...?
 window.Sample_Column_Store = {
-                
+
     data_type: "sample",
 
     data_keys: ["locations", "alternative_names", "features", "notes", "dimensions", "descriptions", "horizons", "colours", "images" ],
@@ -78,7 +78,7 @@ window.Sample_Column_Store = {
             { column_name: "Type", column_field: "image_type", public_column_field: "public_image_type" },
             { column_name: "Updated", column_field: "date_updated" }
         ],
-         locations: [
+        locations: [
             { column_name: "Id", column_field: "local_db_id" },
             { column_name: "Location", column_field: "location", public_column_field: "public_location" },
             { column_name: "Type", column_field: "location_type", public_column_field: "public_location_type" },

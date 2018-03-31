@@ -1,4 +1,6 @@
 archive/
+/node_modules
+*.log
 conf/
 public/upload/
 public/api/api-cache/
