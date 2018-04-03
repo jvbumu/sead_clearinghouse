@@ -36,18 +36,28 @@ module.exports = {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
             },
+            // {
+            //     test : /\.(png|gif|jpg|jpeg)$/,
+            //     loader: "file-loader"
+            // },
             {
-                test : /\.(png|gif|jpg|jpeg)$/,
-                loader: "file-loader"
+                test: /\.(png|gif|jp(e*)g|svg)$/,
+                use: [{
+                    loader: 'url-loader',
+                    options: { limit: 100000, name: 'images/[hash]-[name].[ext]' }
+                }]
             },
             {
-                test: /templates\/*\.html$/,
-                use: 'raw-loader'
+                test: /\.html$/,
+                use: [{
+                    loader: 'html-loader',
+                    options: {
+                        ignoreCustomFragments: [/\{\{.*?}}/],
+                        root: path.resolve(__dirname, 'images'),
+                        attrs: ['img:src' ]
+                    }
+                }]
             }
-            // {
-            //     test: /datatables\.net.*/,
-            //     loader: 'imports?define=>false'
-            // }
         ]
     },
     plugins: [
@@ -66,13 +76,14 @@ module.exports = {
         })
     ],
     resolve: {
-        extensions: ['.json', '.js', '.jsx', '.css'],
+        extensions: [ '.json', '.js', '.jsx', '.css' ],
         modules: [
             path.resolve('./node_modules'),
         ],
         alias: {
+            ImageFiles: path.resolve(__dirname, 'public/images/'),
             CssFiles: path.resolve(__dirname, 'public/css/'),
-            TemplateFiles: path.resolve(__dirname, 'templates/')
+            TemplateFiles: path.resolve(__dirname, 'public/templates/')
         }
     },
     devtool: 'source-map',

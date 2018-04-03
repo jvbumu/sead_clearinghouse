@@ -12,3 +12,6 @@ output/
 production/
 /dist
 package-lock.json
+bundle.js
+bundle.js.map
+index.html

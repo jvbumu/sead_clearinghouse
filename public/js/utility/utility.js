@@ -3,15 +3,41 @@ var TemplateStore = window.TemplateStore = {
 
     template_cache: { },
 
+    process_template: function(file, data) {
+
+        var cache = this.template_cache;
+
+        if (file.type === "view") {
+
+            var compiled_template = _.template(data);
+            window[file.name].prototype.template = compiled_template;
+            cache[file.name] = compiled_template;
+
+        } else if (file.type === "templates") {
+
+            $(data).find("div.template_item").each(
+                function (index) {
+                    cache[$(this).attr("id")] = _.template($(this).html().replace(/&lt;%/gi, '<%').replace(/%&gt;/gi, '%>'));
+            });
+
+            $(data).find("script").each(
+                function (index) {
+                    cache[$(this).attr("id")] = _.template($(this).html());
+            });
+
+        }
+    },
+
     // Asynchronously load view templates located in separate .html files
     preload: function(files, callback) {
 
         var deferreds = [];
         var cache = this.template_cache;
+        var self = this;
 
         $.each(files, function(index, file) {
 
-            deferreds.push($.get('templates/' + file.name + '.html', function(data) {
+            deferreds.push($.get('templates/' + file.name + '.html', function(data) { self.process_template(file, data); } /*function(data) {
 
                 if (file.type === "view") {
 
@@ -32,7 +58,7 @@ var TemplateStore = window.TemplateStore = {
                     });
 
                 }
-            }));
+            }*/));
 
         });
 

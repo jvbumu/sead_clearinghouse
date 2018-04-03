@@ -481,28 +481,31 @@ window.SEAD = {
     Security: SecurityFunctions
 };
 
+$.each([
+    { name: 'HeaderView', type: "view" },
+    { name: 'FooterView', type: "view" },
+    { name: 'HomeView', type: "view" },
+    { name: 'SubmissionView', type: "view" },
+    { name: 'AboutView', type: "view" },
+    { name: 'SiteView', type: "view" },
+    { name: 'SampleView', type: "view" },
+    { name: 'DataSetView', type: "view" },
+    { name: 'SampleGroupView', type: "view" },
+    { name: 'RejectCauseView', type: "view" },
+    { name: 'Templates', type: "templates" }
+], function(index, file) {
+    var content = require('TemplateFiles/' + file.name + '.html');
+    TemplateStore.process_template(file, content);
+});
+
 $(function() {
 
     fetch('/api/bootstrap')
     .then(function(response) { return response.json(); })
     .then(function(json) {
         window.SEAD.BootstrapData = json;
-        TemplateStore.preload([
-            { name: 'HeaderView', type: "view" },
-            { name: 'FooterView', type: "view" },
-            { name: 'HomeView', type: "view" },
-            { name: 'SubmissionView', type: "view" },
-            { name: 'AboutView', type: "view" },
-            { name: 'SiteView', type: "view" },
-            { name: 'SampleView', type: "view" },
-            { name: 'DataSetView', type: "view" },
-            { name: 'SampleGroupView', type: "view" },
-            { name: 'RejectCauseView', type: "view" },
-            { name: 'Templates', type: "templates" }
-        ], function() {
-            window.SEAD.Router = new AppRouter();
-            Backbone.history.start();
-        });
+        window.SEAD.Router = new AppRouter();
+        Backbone.history.start();
     });
 
 });
