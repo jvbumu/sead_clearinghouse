@@ -1,4 +1,4 @@
-window.FooterView = Backbone.View.extend({
+var FooterView = window.FooterView = Backbone.View.extend({
 
     initialize: function (options) {
         this.options = options || {};
@@ -11,3 +11,5 @@ window.FooterView = Backbone.View.extend({
     }
 
 });
+
+export default FooterView;

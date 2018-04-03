@@ -1,12 +1,14 @@
-window.UsersView = Backbone.View.extend({
+import { default as CollectionDropdownView } from './utility_views.js';
+
+export var UsersView = window.UsersView = Backbone.View.extend({
 
     users: null,
-    
+
     initialize: function (options) {
-        
+
         this.options = options || {};
         this.template = TemplateStore.get("template_UsersView");
-        
+
         this.users = this.options.users;
         this.role_types = this.options.role_types;
         this.data_provider_grade_types = this.options.data_provider_grade_types;
@@ -17,7 +19,7 @@ window.UsersView = Backbone.View.extend({
         });
 
         this.listenTo(this.userView, "user-saved", this.userSaved );
-        
+
         this.tableView = new UserListView({
             users: this.users,
             role_types: this.role_types
@@ -31,14 +33,14 @@ window.UsersView = Backbone.View.extend({
     events: {
         'click #button-new-user': 'addUser',
     },
-    
+
     render: function () {
 
         $(this.el).html(this.template());
-        
+
         $('#user_list_container', this.$el).html(this.tableView.render().el);
         $("#modal_view_container").html(this.userView.render().el);
-        
+
         return this;
     },
 
@@ -46,7 +48,7 @@ window.UsersView = Backbone.View.extend({
     {
         this.openUser(id);
     },
-    
+
     pagingOccurred: function()
     {
     },
@@ -56,7 +58,7 @@ window.UsersView = Backbone.View.extend({
         var user = this.users.create_new_user();
         this.userView.open(user);
     },
-    
+
     openUser: function (user_id)
     {
         var user = this.users.findWhere({ user_id: user_id });
@@ -71,14 +73,14 @@ window.UsersView = Backbone.View.extend({
             this.userView.refresh(user);
         console.log("user is saved");
     },
-    
+
 });
 
-window.UserListView = Backbone.View.extend({
+export var UserListView = window.UserListView = Backbone.View.extend({
 
     users : null,
     table: null,
-    
+
     initialize: function (options) {
         this.options = options || {};
         this.users = options.users;
@@ -86,37 +88,38 @@ window.UserListView = Backbone.View.extend({
         this.listenTo(this.users, "reset", this.render);
         //this.listenTo(this.users, "change", this.render);
     },
-    
+
     render: function () {
 
         /*if (!SEAD.User.is_administrator) {
             return this;
         }*/
-        
+
         var data = this.users.toJSON();
-        
+
         var placeholder = $("<table>", {
-            class: "display table table-condensed sead-smaller-font-size",
+            class: "display table table-sm sead-smaller-font-size",
             id: "users-list",
             cellpadding: "0",
             cellspacing: "0",
             border: "0"
         });
-        
+
         this.$el.html(placeholder);
-  
+
         this.table = this.create_table(data);
-                              
+
         return this;
     },
-    
+
     create_table: function(data)
     {
         var self = this;
 
-        $("#users-list", this.$el)
+        var table =
+            $("#users-list", this.$el)
                 .bind('page',   function () { self.trigger("paging-occurred"); })
-                .dataTable(
+                .DataTable(
         {
             "sDom": "T<'clear'><'toolbar'>frtip<'row-fluid'<'span6'l><'span6'f>r>",
             "aaData": data,
@@ -138,29 +141,25 @@ window.UserListView = Backbone.View.extend({
                 $(row).attr("rowindex", index.toString());
             },
             "aoColumnDefs": [ { "aTargets": [ 3 ], "mRender": this._get_role_name(self) } ],
-            "oTableTools": {
-                "fnRowSelected": function ( nodes ) {
-                    var id = parseInt($($('td:first-child', nodes[0])[0]).text());
-                    var index = parseInt($(nodes[0]).attr("rowindex"));
-                    self.trigger("user-selected", id, index);
-                },
-                "sRowSelect": "single",
-                "sSelectedClass": "row_selected",
-                "aButtons": []
-            }
+            select: true
 
-        });       
-        
+        }).on('select', function ( e, dt, type, indexes ) {
+            if ( type === 'row' && indexes.length > 0) {
+                var rowData = table.rows( indexes ).data().toArray();
+                self.trigger("user-selected", rowData[0].user_id, indexes[0]);
+            }
+        } );
+
         $(this.el).find("div.toolbar").html(TemplateStore.get("template_user_list_toolbar")());
     },
-    
+
     _get_role_name: function(self)
     {
         return function (role_id, t, f) {
             return self.role_types.get_role_name(role_id);
         };
     },
-    
+
     refresh: function(user)
     {
         try {
@@ -175,19 +174,19 @@ window.UserListView = Backbone.View.extend({
 
 });
 
-window.UserView = Backbone.View.extend({
-    
+export var UserView = window.UserView = Backbone.View.extend({
+
     initialize: function (options) {
-        
+
         this.options = options || {};
         this.template = TemplateStore.get("template_UserView");
-        
+
         this.data_provider_grade_types = this.options.data_provider_grade_types;
-        
+
         this.user = null;
-                
+
     },
-            
+
     events: {
         'change textarea': 'update',
         'change input': 'update',
@@ -196,7 +195,7 @@ window.UserView = Backbone.View.extend({
         'click #edit-user-save-button': 'save',
         'click #edit-user-cancel-button': 'cancel'
     },
-    
+
     update:  function (event) {
         var data = {};
         if (event.target.type === "checkbox")
@@ -210,11 +209,11 @@ window.UserView = Backbone.View.extend({
     },
 
     render: function () {
-        
+
         $(this.el).html(this.template());
-        
+
         this.renderGradeTypes();
-        
+
         this.$dialog = $("#edit-user-dialog", this.$el);
         this.$save_button = $("#edit-user-save-button", this.$el);
         this.$cancel_button = $("#edit-user-cancel-button", this.$el);
@@ -233,21 +232,21 @@ window.UserView = Backbone.View.extend({
             item_value_field: "grade_id",
             item_text_field: "description"
         });
-        
+
         $("#data_provider_grade_select_container", this.$el).html(view.el);
-        
+
         return this;
-        
+
     },
-    
+
     renderModel: function()
     {
         if (!this.user) {
             return;
         }
-        
+
         var user = this.user.toJSON();
-        
+
         $("#user_id", this.$el).val((user.user_id || "(new)").toString());
         $("#user_name", this.$el).val((user.user_name || "").toString());
         $("#password", this.$el).val((user.password || "").toString());
@@ -264,14 +263,14 @@ window.UserView = Backbone.View.extend({
         $("#data_provider_grade_id", this.$el).val((user.data_provider_grade_id || 0).toString());
 
         this.$save_button.prop("disabled", true);
-        
+
         return this;
     },
-    
+
     open: function(user)
     {
         this.user = user;
-        
+
         if (this.user == null) {
             this.user = this.users.create_new_user();
         }
@@ -280,11 +279,11 @@ window.UserView = Backbone.View.extend({
             this.user.save_revert_point();
         }
         this.renderModel();
-        
+
         this.$dialog.modal({ backdrop: 'static', keyboard: true, show: true});
-        
+
     },
-    
+
     cancel: function()
     {
         if (this.user.user_id != 0) {
@@ -302,7 +301,7 @@ window.UserView = Backbone.View.extend({
 
         this.user.save(null, {
             success: function(model, response, options) {
-                
+
                 self.trigger("user-saved", model);
                 self.$dialog.modal('hide');
 
@@ -315,6 +314,6 @@ window.UserView = Backbone.View.extend({
 
     }
 
-
-    
 });
+
+// export {  UserView as UserView, UserListView as UserListView, UsersView as UsersView };

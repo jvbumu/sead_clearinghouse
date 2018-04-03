@@ -1,5 +1,5 @@
 
-window.SiteView = window.ReviewBaseView.extend({
+var SiteView = window.SiteView = window.ReviewBaseView.extend({
 
     get_store: function() {
         return Site_Column_Store;
@@ -21,7 +21,7 @@ window.SiteView = window.ReviewBaseView.extend({
 
 });
 
-window.Site_Column_Store = {
+var Site_Column_Store = window.Site_Column_Store = {
 
     data_type: "site",
 
@@ -79,3 +79,4 @@ window.Site_Column_Store = {
     })
 };
 */
+export { SiteView, Site_Column_Store };

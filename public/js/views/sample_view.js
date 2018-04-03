@@ -1,4 +1,6 @@
-window.SampleView = window.ReviewBaseView.extend({
+
+
+var SampleView = window.SampleView = window.ReviewBaseView.extend({
 
     get_store: function() {
         return Sample_Column_Store;
@@ -7,17 +9,16 @@ window.SampleView = window.ReviewBaseView.extend({
     render_root: function(model)
     {
         $("#sample_id", this.$el).text(model.sample.local_db_id);
-        utils.set_review_value($("#sample_name", this.$el), model.sample.sample_name, model.sample.public_sample_name);
-        utils.set_review_value($("#sample_name_type", this.$el), model.sample.sample_name_type, model.sample.public_sample_name_type);
-        utils.set_review_value($("#date_sampled", this.$el), model.sample.date_sampled, model.sample.public_date_sampled);
-        utils.set_review_value($("#type_name", this.$el), model.sample.type_name, model.sample.public_type_name);
+        this.set_review_value($("#sample_name", this.$el), model.sample.sample_name, model.sample.public_sample_name);
+        this.set_review_value($("#sample_name_type", this.$el), model.sample.sample_name_type, model.sample.public_sample_name_type);
+        this.set_review_value($("#date_sampled", this.$el), model.sample.date_sampled, model.sample.public_date_sampled);
+        this.set_review_value($("#type_name", this.$el), model.sample.type_name, model.sample.public_type_name);
         return this;
     }
 
 });
 
-// TODO: Generated data server-side...?
-window.Sample_Column_Store = {
+var Sample_Column_Store = window.Sample_Column_Store = {
 
     data_type: "sample",
 
@@ -86,6 +87,6 @@ window.Sample_Column_Store = {
             { column_name: "Updated", column_field: "date_updated" }
         ]
     })
-}
+};
 
-
+export { SampleView, Sample_Column_Store };

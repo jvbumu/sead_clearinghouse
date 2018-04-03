@@ -1,6 +1,6 @@
 
-window.CollectionDropdownView = Backbone.View.extend({
- 
+var CollectionDropdownView = window.CollectionDropdownView = Backbone.View.extend({
+
     initialize: function (options) {
 
         this.options = options || {};
@@ -28,20 +28,20 @@ window.CollectionDropdownView = Backbone.View.extend({
         this.render();
 
     },
-    
+
     render: function() {
-        
+
         var self = this;
-        
+
         this.el = $("<select/>", {
             id: this.element_id,
             class: this.select_class,
             name: this.element_id,
             style: this.select_style
         });
-        
+
         this.$select = $(this.el);
-        
+
         this.$select.change(
             function () {
                 self.trigger("select:change", $(this).val());
@@ -54,32 +54,32 @@ window.CollectionDropdownView = Backbone.View.extend({
                 this.listenTo(this.collection, 'add remove sync change', this.renderOptions);
             }
             this.renderOptions();
-        }        
+        }
 
-        return this;  
+        return this;
     },
-    
+
     renderOptions: function(e)
     {
         var target = this.$select;
-        
+
         var value = null;
-        
+
         if (!target) {
             return;
         }
-        
+
         value = target.val();
-        
+
         target.empty();
-        
+
         if (this.extra && this.extra.value && this.extra.text) {
             target.append($("<option>", { value: this.extra.value }).text(this.extra.text));
         }
-        
+
         var item_value_field = this.item_value_field;
         var item_text_field = this.item_text_field;
-        
+
         this.collection.each(
             function(item) {
                 //console.log(item);
@@ -100,3 +100,5 @@ window.CollectionDropdownView = Backbone.View.extend({
     }
 
 });
+
+export default CollectionDropdownView;

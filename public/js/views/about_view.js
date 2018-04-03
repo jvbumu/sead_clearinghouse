@@ -1,4 +1,4 @@
-window.AboutView = Backbone.View.extend({
+var AboutView = window.AboutView = Backbone.View.extend({
 
     initialize:function (options) {
         this.options = options || {};
@@ -11,3 +11,5 @@ window.AboutView = Backbone.View.extend({
     }
 
 });
+
+export default AboutView;

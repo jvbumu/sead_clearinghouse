@@ -1,5 +1,5 @@
-window.XClaimView = Backbone.View.extend({
-    
+var XClaimView = window.XClaimView = Backbone.View.extend({
+
     initialize: function (options) {
         this.options = options || {};
         this.action = options.action;
@@ -7,15 +7,15 @@ window.XClaimView = Backbone.View.extend({
         this.template = TemplateStore.get("template_XClaimSubmissionView");
         this.render();
     },
-            
+
     events: {
         'click #xclaim-submission-button': 'xclaim'
     },
-    
+
     render: function () {
-        
+
         $(this.el).html(this.template({ claim: this.action }));
-        
+
         this.$dialog = $("#xclaim-submission-dialog", this.$el);
         this.$xclaim_button = $("#xclaim-submission-button", this.$el);
         this.$xclaim_message = $("#xclaim-message", this.$el);
@@ -24,31 +24,31 @@ window.XClaimView = Backbone.View.extend({
 
         return this;
     },
- 
+
     open: function()
-    {  
-        this.$dialog.modal({ backdrop: 'static', keyboard: true, show: true});   
+    {
+        this.$dialog.modal({ backdrop: 'static', keyboard: true, show: true});
     },
 
     xclaimed: function(data)
-    {  
+    {
         this.$xclaim_message.text("Claimed!");
         this.$dialog.modal('hide');
         this.$dialog.data('modal', null);
         this.trigger("submission-xclaimed", data, this.action);
     },
-    
+
     xclaim: function (e) {
 
         this.$xclaim_button.prop("disabled", true);
-        
+
         e.preventDefault();
-        
+
         var url = "api/submission/" + this.submission.get("submission_id").toString() + "/" + this.action;
         var self = this;
-        
+
         this.$xclaim_message.text("Executing...");
-        
+
         $.ajax({
             type: "GET",
             url: url,
@@ -68,5 +68,7 @@ window.XClaimView = Backbone.View.extend({
         );
 
     }
-    
+
 });
+
+export default XClaimView;

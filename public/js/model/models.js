@@ -1,10 +1,10 @@
-window.Submission = Backbone.Model.extend({
+export var Submission = window.Submission = Backbone.Model.extend({
 
     initialize: function () {
         this.validators = {};
-//        this.validators.name = function (value) {
-//            return value.length > 0 ? {isValid: true} : {isValid: false, message: "You must enter a name"};
-//        };
+        //        this.validators.name = function (value) {
+        //            return value.length > 0 ? {isValid: true} : {isValid: false, message: "You must enter a name"};
+        //        };
     },
 
     defaults: {
@@ -15,51 +15,39 @@ window.Submission = Backbone.Model.extend({
         data_provider_grade: "",
         submission_date: null
     }
-    
+
 });
 
-window.SubmissionCollection = Backbone.Collection.extend(
-{
-
+export var SubmissionCollection = window.SubmissionCollection = Backbone.Collection.extend({
     model: Submission,
-
     url: "api/submissions_report"
-
 });
 
-
-window.Site = Backbone.Model.extend({
-
+export var Site = window.Site = Backbone.Model.extend({
     initialize: function () {
         this.validators = {};
-//        this.validators.submission_id = function (value) {
-//            return submissionId != 0 ? {isValid: true} : {isValid: false, message: "Submission ID cannot be null"};
-//        };
+        //        this.validators.submission_id = function (value) {
+        //            return submissionId != 0 ? {isValid: true} : {isValid: false, message: "Submission ID cannot be null"};
+        //        };
     },
-            
+
     defaults: {
         id: null,
         submissionId: 0,
         name: "",
     }
-    
 });
 
-window.SiteCollection = Backbone.Collection.extend(
+export var SiteCollection = window.SiteCollection = Backbone.Collection.extend(
 {
-
     model: Site,
-
     url: "api/sites"
-    
     //url: function () { return "api/sites/" + this.submissionId + "/" + sites; }
-
 });
 
-window.SubmissionSiteCollection = Backbone.Collection.extend(
+export var SubmissionSiteCollection = window.SubmissionSiteCollection = Backbone.Collection.extend(
 {
     model: Site,
-
     initialize: function(models, options) {
         options = $.extend({}, options);
         this.submission_id = (options.submission_id || 0);
@@ -68,24 +56,22 @@ window.SubmissionSiteCollection = Backbone.Collection.extend(
     url: function () {
         return "api/submissions/" + this.submission_id.toString() + "/sites";
     }
-
 });
 
-window.Report = Backbone.Model.extend({
-
+export var Report = window.Report = Backbone.Model.extend({
 });
 
-window.ReportCollection = Backbone.Collection.extend(
+export var ReportCollection = window.ReportCollection = Backbone.Collection.extend(
 {
     model: Report,
     url: "api/reports/toc"
 });
 
-window.ReportResultRow = Backbone.Model.extend({
-    
+export var ReportResultRow = window.ReportResultRow = Backbone.Model.extend({
+
 });
 
-window.ReportResultCollection = Backbone.Collection.extend(
+export var ReportResultCollection = window.ReportResultCollection = Backbone.Collection.extend(
 {
     model: ReportResultRow,
 
@@ -94,49 +80,44 @@ window.ReportResultCollection = Backbone.Collection.extend(
         this.report_id = (options.report_id || 0);
         this.submission_id = (options.submission_id || 0);
     },
-    
+
     url: function () {
         return "api/reports/execute/" + this.report_id.toString() + "/" + this.submission_id.toString();
     }
-
 });
 
-window.XmlTableCollection = Backbone.Collection.extend(
-{
+export var XmlTableCollection = window.XmlTableCollection = Backbone.Collection.extend({
     initialize: function(models, options) {
         this.options = $.extend({ submission_id: 0}, options);
     },
-    
+
     url: function () {
         return "api/submission/" + this.options.submission_id.toString()+ "/tables";
     }
+});
+
+export var XmlTableRow = window.XmlTableRow = Backbone.Model.extend({
 
 });
 
-window.XmlTableRow = Backbone.Model.extend({
-    
-});
-
-window.XmlTableRowCollection = Backbone.Collection.extend(
-{
+export var XmlTableRowCollection = window.XmlTableRowCollection = Backbone.Collection.extend({
     model: XmlTableRow,
 
     initialize: function(models, options) {
         this.options = $.extend({ table_id: 0, submission_id: 0}, options);
     },
-    
+
     url: function () {
         return "api/submission/" + this.options.submission_id.toString()+ "/table/" + this.options.table_id.toString();
     }
-
 });
 
-window.SiteDataModel = Backbone.Model.extend({
+export var SiteDataModel = window.SiteDataModel = Backbone.Model.extend({
 
     initialize: function (options) {
         this.options = options || (options = {});
     },
-            
+
     defaults: {
     },
 
@@ -144,15 +125,14 @@ window.SiteDataModel = Backbone.Model.extend({
         return "api/submission/" + this.options.submission_id.toString() +
                         "/site/" + this.options.site_id.toString();
     }
-    
 });
 
-window.SampleGroupDataModel = Backbone.Model.extend({
+export var SampleGroupDataModel = window.SampleGroupDataModel = Backbone.Model.extend({
 
     initialize: function (options) {
         this.options = options || (options = {});
     },
-            
+
     defaults: {
     },
 
@@ -161,15 +141,15 @@ window.SampleGroupDataModel = Backbone.Model.extend({
                         "/site/" + this.options.site_id.toString() +
                  "/sample_group/" + this.options.sample_group_id.toString();
     }
-    
+
 });
 
-window.SampleDataModel = Backbone.Model.extend({
+export var SampleDataModel = window.SampleDataModel = Backbone.Model.extend({
 
     initialize: function (options) {
         this.options = options || (options = {});
     },
-            
+
     defaults: {
     },
 
@@ -182,12 +162,12 @@ window.SampleDataModel = Backbone.Model.extend({
 
 });
 
-window.DataSetDataModel = Backbone.Model.extend({
+export var DataSetDataModel = window.DataSetDataModel = Backbone.Model.extend({
 
     initialize: function (options) {
         this.options = options || (options = {});
     },
-            
+
     defaults: {
     },
 
@@ -200,19 +180,19 @@ window.DataSetDataModel = Backbone.Model.extend({
 
 });
 
-window.SubmissionMetaDataModel = Backbone.Model.extend({
+export var SubmissionMetaDataModel = window.SubmissionMetaDataModel = Backbone.Model.extend({
 
     initialize: function (options) {
         this.options = options || (options = {});
     },
-            
+
     defaults: {
     },
 
     url: function () {
         return "api/submission/" + this.options.submission_id.toString() + "/metadata"
     },
-    
+
     getSiteName: function(id)
     {
         try {
@@ -229,12 +209,12 @@ window.SubmissionMetaDataModel = Backbone.Model.extend({
 
 });
 
-window.SubmissionRejectModel = Backbone.Model.extend({
-    
+export var SubmissionRejectModel = window.SubmissionRejectModel = Backbone.Model.extend({
+
     idAttribute: "submission_reject_id",
-    
+
     initialize: function (options) {
-        
+
         this.options = options || (options = {});
         this.validators = {};
 
@@ -268,19 +248,19 @@ window.SubmissionRejectModel = Backbone.Model.extend({
     {
         this._saved_attributes  = _.clone(this.attributes);
     },
-    
+
     revert_to_save_point: function()
     {
         if (this._saved_attributes) {
            this.set(this._saved_attributes, { silent : true });
         }
     },
-    
+
     get_reject_entity_ids: function()
     {
         return _.pluck(this.get("reject_entities"), "local_db_id");
     },
-    
+
     add_reject_entity_id: function(local_db_id)
     {
         this.get("reject_entities").push({
@@ -289,17 +269,17 @@ window.SubmissionRejectModel = Backbone.Model.extend({
             "local_db_id": local_db_id
           });
     },
-    
+
     contains_entity_id: function(entity_type_id, local_db_id)
     {
         // TODO Remove abs - Sort out sign of ID's - seems as if they sometimes are stored as negative values...?
         return this.get("entity_type_id") == entity_type_id &&
             _.some(this.get("reject_entities"), function(x) { return Math.abs(x.local_db_id) == Math.abs(local_db_id)});
     }
-    
+
 });
 
-window.SubmissionRejectCollection = Backbone.Collection.extend({
+export var SubmissionRejectCollection = window.SubmissionRejectCollection = Backbone.Collection.extend({
 
     model: SubmissionRejectModel,
 
@@ -307,7 +287,7 @@ window.SubmissionRejectCollection = Backbone.Collection.extend({
         options = $.extend({}, { submission_id: 0 }, options);
         this.submission_id = options.submission_id;
     },
-    
+
     url: function () {
         return "api/submissions/" + this.submission_id.toString() + "/rejects";
     },
@@ -322,7 +302,7 @@ window.SubmissionRejectCollection = Backbone.Collection.extend({
         }
         return null;
     },
-    
+
     addReject: function(options)
     {
         var model = new SubmissionRejectModel(_.extend({}, { submission_id: this.submission_id }, options));
@@ -342,19 +322,19 @@ window.SubmissionRejectCollection = Backbone.Collection.extend({
                     )
                );
     },
-    
+
     contains_entity_id: function(entity_type_id, local_db_id)
     {
         return this.some(function (x) { return x.contains_entity_id(entity_type_id, local_db_id); });
     },
-    
+
     contains_site_id: function(id)
     {
         return this.findWhere({ site_id: id }) != null;
     }
 });
 
-window.SubmissionRejectEntityModel = Backbone.Model.extend({
+export var SubmissionRejectEntityModel = window.SubmissionRejectEntityModel = Backbone.Model.extend({
     defaults: {
         "reject_entity_id":  0,
         "submission_reject_id": 0,
@@ -362,22 +342,22 @@ window.SubmissionRejectEntityModel = Backbone.Model.extend({
       }
 });
 
-window.RejectEntityEntityCollection = Backbone.Collection.extend({
+export var RejectEntityEntityCollection = window.RejectEntityEntityCollection = Backbone.Collection.extend({
 
     model: SubmissionRejectEntityModel
-    
-});
-    
-window.RejectEntityTypeModel = Backbone.Model.extend({
-    
+
 });
 
-window.RejectEntityTypesCollection = Backbone.Collection.extend({
+export var RejectEntityTypeModel = window.RejectEntityTypeModel = Backbone.Model.extend({
+
+});
+
+export var RejectEntityTypesCollection = window.RejectEntityTypesCollection = Backbone.Collection.extend({
 
     model: RejectEntityTypeModel,
 
     url: "api/reject_entity_types",
-    
+
     lookup_name: function(entity_type_id)
     {
         try {
@@ -386,10 +366,10 @@ window.RejectEntityTypesCollection = Backbone.Collection.extend({
             return "Entity type " + entity_type_id.toString();
         }
     }
-    
+
 });
 
-window.UserModel = Backbone.Model.extend({
+export var UserModel = window.UserModel = Backbone.Model.extend({
 
     idAttribute: "user_id",
 
@@ -404,17 +384,17 @@ window.UserModel = Backbone.Model.extend({
         this._saved_attributes  = _.clone(this.attributes);
     },
     // TODO: Use previousAttributes instead!
-    
+
     revert_to_save_point: function()
     {
         if (this._saved_attributes) {
            this.set(this._saved_attributes, { silent : true });
         }
     }
-    
+
 });
 
-window.UserCollection = Backbone.Collection.extend({
+export var UserCollection = window.UserCollection = Backbone.Collection.extend({
 
     model: UserModel,
     url: "api/users",
@@ -423,18 +403,18 @@ window.UserCollection = Backbone.Collection.extend({
         options = $.extend({}, { submission_id: 0 }, options);
         this.submission_id = options.submission_id;
     },
-    
+
     create_new_user: function()
     {
         return new UserModel(_.extend({}, this.default_attributes()));
     },
-    
+
     add_user: function(model)
     {
         this.add(model);
         return model;
     },
-    
+
     default_attributes: function() {
         return {
             user_id: 0,
@@ -449,16 +429,16 @@ window.UserCollection = Backbone.Collection.extend({
             full_name: ""
         };
     }
-    
-});
-
-window.RoleTypeModel = Backbone.Model.extend({
 
 });
 
-window.RoleTypeCollection = Backbone.Collection.extend({
+export var RoleTypeModel = window.RoleTypeModel = Backbone.Model.extend({
+
+});
+
+export var RoleTypeCollection = window.RoleTypeCollection = Backbone.Collection.extend({
     model: RoleTypeModel,
-    
+
     get_role_name: function(role_id)
     {
         try {
@@ -469,11 +449,11 @@ window.RoleTypeCollection = Backbone.Collection.extend({
     }
 });
 
-window.DataProviderGradeTypeModel = Backbone.Model.extend({
+export var DataProviderGradeTypeModel = window.DataProviderGradeTypeModel = Backbone.Model.extend({
 
 });
 
-window.DataProviderGradeTypeCollection = Backbone.Collection.extend({
+export var DataProviderGradeTypeCollection = window.DataProviderGradeTypeCollection = Backbone.Collection.extend({
     model: DataProviderGradeTypeModel
 });
 

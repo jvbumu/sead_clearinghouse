@@ -1,5 +1,7 @@
-window.TransferView = Backbone.View.extend({
-    
+import { default as CollectionDropdownView } from './utility_views.js';
+
+var TransferView = window.TransferView = Backbone.View.extend({
+
     initialize: function (options) {
         this.options = options || {};
         this.users = options.users;
@@ -8,16 +10,16 @@ window.TransferView = Backbone.View.extend({
         this.listenTo(this.users, "reset", this.renderUsers);
         //this.render();
     },
-            
+
     events: {
         'click #transfer-submission-button': 'transfer',
         'change #transfer_user_id': 'update'
     },
-    
+
     render: function () {
-        
+
         $(this.el).html(this.template());
-        
+
         this.$dialog = $("#transfer-submission-dialog", this.$el);
         this.$transfer_button = $("#transfer-submission-button", this.$el);
         this.$message = $("#transfer-message", this.$el);
@@ -27,7 +29,7 @@ window.TransferView = Backbone.View.extend({
         //this.renderUsers();
 
         utils.set_disabled_state(this.$transfer_button, true);
-                
+
         return this;
     },
 
@@ -42,49 +44,49 @@ window.TransferView = Backbone.View.extend({
             auto_update: true,
             extra: { text: "(select user)", value: 0 }
         });
-        
+
         $("#transfer_user_id_select_container", this.$el).html(view.el);
-        
+
         return this;
-        
+
     },
-    
+
     update: function()
     {
         utils.set_disabled_state(this.$transfer_button, event.target.value == 0);
     },
-    
+
     open: function()
-    {  
-        this.$dialog.modal({ keyboard: true, show: true});   
+    {
+        this.$dialog.modal({ keyboard: true, show: true});
     },
 
     transfered: function(data)
-    {  
+    {
         this.$message.text("Transfered!");
         this.$dialog.modal('hide');
         this.$dialog.data('modal', null);
         this.trigger("submission-transfered", data);
     },
-    
+
     transfer: function (e) {
 
         utils.set_disabled_state(this.$transfer_button, true);
-        
+
         e.preventDefault();
-        
+
         var url = "api/submission/" + this.submission.get("submission_id").toString() + "/transfer";
         var self = this;
-        
+
         var transfer_user_id = $("#transfer_user_id", this.$el).val();
-        
+
         if (transfer_user_id != 0) {
             this.$message.text("Please select user...");
             return;
         }
-        
+
         this.$message.text("Executing...");
-        
+
         $.ajax({
             type: "GET",
             url: url,
@@ -105,3 +107,5 @@ window.TransferView = Backbone.View.extend({
 
     }
 });
+
+export default TransferView;

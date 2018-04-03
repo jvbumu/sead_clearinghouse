@@ -1,22 +1,22 @@
-window.SampleGroupView = window.ReviewBaseView.extend({
- 
+var SampleGroupView = window.SampleGroupView = window.ReviewBaseView.extend({
+
     get_store: function() {
         return Sample_Group_Column_Store;
     },
-    
+
     render_root: function(model)
     {
         $("#sample_group_id", this.$el).text(model.sample_group.local_db_id);
-        utils.set_review_value($("#sample_group_name", this.$el), model.sample_group.sample_group_name, model.sample_group.public_sample_group_name);
-        utils.set_review_value($("#sampling_context", this.$el),  model.sample_group.sampling_context, model.sample_group.public_sampling_context);
-        utils.set_review_value($("#sampling_method", this.$el),  model.sample_group.sampling_method, model.sample_group.public_sampling_method);
+        this.set_review_value($("#sample_group_name", this.$el), model.sample_group.sample_group_name, model.sample_group.public_sample_group_name);
+        this.set_review_value($("#sampling_context", this.$el),  model.sample_group.sampling_context, model.sample_group.public_sampling_context);
+        this.set_review_value($("#sampling_method", this.$el),  model.sample_group.sampling_method, model.sample_group.public_sampling_method);
         return this;
     }
-    
+
 });
 
-window.Sample_Group_Column_Store = {
-    
+var Sample_Group_Column_Store = window.Sample_Group_Column_Store = {
+
     data_type: "sample_group",
 
     data_keys: ["lithology", "references", "notes", "dimensions", "descriptions", "positions" /*, "images" */],
@@ -61,6 +61,6 @@ window.Sample_Group_Column_Store = {
             { column_name: "Updated", column_field: "date_updated" }
         ]
     })
-}
+};
 
-
+export { SampleGroupView, Sample_Group_Column_Store };

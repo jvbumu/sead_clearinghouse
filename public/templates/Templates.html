@@ -1,45 +1,45 @@
 
 <div class="template_collection">
-    
-    
+
+
     <script type="text/html" id="template_submission_list_toolbar">
-        
+
        <div class="submission_list_toolbar text-left">
             <div id="button-open-submission" class="btn btn-primary btn-sm">Open</div>
             <div id="button-claim-submission" class="btn btn-primary btn-sm">Claim</div>
             <div id="button-unclaim-submission" class="btn btn-primary btn-sm">Unclaim</div>
             <div id="button-transfer-submission" class="btn btn-primary btn-sm">Transfer</div>
        </div>
-        
+
     </script>
-    
+
 
     <!-- Navigation Tree Sites -->
     <script type="text/html"  id="template_SiteRootView">
-        <span><i class="glyphicon glyphicon-folder-open sead-smaller-font-size"></i>&nbsp;&nbsp;&nbsp;Sites&nbsp;<span class="badge"><%=site_count%></span></span>
+        <span><i class="fa fa-folder-open sead-smaller-font-size"></i>&nbsp;&nbsp;&nbsp;Sites&nbsp;<span class="badge.badge-pill"><%=site_count%></span></span>
         <ul id="template_site_list_placeholder"></ul>
     </script>
-    
+
     <script type="text/html" id="template_SiteNodeView">
         <li>
-            <span site_id="<%=site.site_id%>"><i class="glyphicon glyphicon-plus-sign"></i></span>&nbsp;&nbsp;<a class="tree-link" href="#submission/<%=site.submission_id%>/site/<%=site.site_id%>"><%=site.site_name%></a>
+            <span site_id="<%=site.site_id%>"><i class="fa fa-plus-sign"></i></span>&nbsp;&nbsp;<a class="tree-link" href="#submission/<%=site.submission_id%>/site/<%=site.site_id%>"><%=site.site_name%></a>
             <ul id="site_<%=site.site_id%>_sample_groups_placeholder">
             </ul>
         </li>
     </script>
-    
+
     <script type="text/html" id="template_SampleGroupNodeView">
         <li style="display: none;">
-            <span><i class="glyphicon glyphicon-plus-sign"></i></span>&nbsp;&nbsp;<a class="tree-link" href="#submission/<%=sample_group.submission_id%>/site/<%=sample_group.site_id%>/sample_group/<%=sample_group.sample_group_id%>"><%=sample_group.sample_group_name%></a>
+            <span><i class="fa fa-plus-sign"></i></span>&nbsp;&nbsp;<a class="tree-link" href="#submission/<%=sample_group.submission_id%>/site/<%=sample_group.site_id%>/sample_group/<%=sample_group.sample_group_id%>"><%=sample_group.sample_group_name%></a>
             <ul id="sample_group_<%=sample_group.sample_group_id%>_placeholder">
                 <li style="display: none;">
-                    <span><i class="glyphicon glyphicon-plus-sign"></i> Data sets</span> 
+                    <span><i class="fa fa-plus-sign"></i> Data sets</span>
                     <ul id="sample_group_<%=sample_group.sample_group_id%>_datasets_placeholder">
                     </ul>
                 </li>
             </ul>
         </li>
-    </script>   
+    </script>
 
     <script type="text/html" id="template_SampleNodeView">
         <li style="display: none;">
@@ -54,417 +54,324 @@
     </script>
 
     <script type="text/html" id="template_SubmissionReportsNavigationView">
-        <span><i class="glyphicon glyphicon-folder-open"></i>&nbsp;&nbsp;&nbsp;Data Lists&nbsp;<span class="badge"><%=report_count%></span></span>
+        <span><i class="fa fa-folder-open"></i>&nbsp;&nbsp;&nbsp;Data Lists&nbsp;<span class="badge.badge-pill"><%=report_count%></span></span>
         <ul id="report_list_placeholder">
         </ul>
     </script>
 
     <script type="text/html" id="template_SubmissionReportNavigationNode">
         <li style="display: none;">
-            <span><i class="glyphicon glyphicon-leaf"></i></span>&nbsp;&nbsp;<a class="tree-link" href="#reports/execute/<%=report.report_id%>/<%=submission_id%>"><%=report.report_name%></a>
+            <span><i class="fa fa-leaf"></i></span>&nbsp;&nbsp;<a class="tree-link" href="#reports/execute/<%=report.report_id%>/<%=submission_id%>"><%=report.report_name%></a>
         </li>
     </script>
- 
+
     <script type="text/html" id="template_SubmissionTablesNavigationView">
-        <span><i class="glyphicon glyphicon-folder-open"></i>&nbsp;&nbsp;&nbsp;XML Tables&nbsp;<span id="xml_table_count" class="badge"></span></span>
+        <span><i class="fa fa-folder-open"></i>&nbsp;&nbsp;&nbsp;XML Tables&nbsp;<span id="xml_table_count" class="badge.badge-pill"></span></span>
         <ul id="tables_list_placeholder">
         </ul>
     </script>
 
     <script type="text/html" id="template_SubmissionTablesNavigationNode">
         <li style="display: none;">
-            <span><i class="glyphicon glyphicon-leaf"></i></span>&nbsp;&nbsp;<a class="tree-link" href="#submission/<%=submission_id%>/table/<%=item.table_id%>"><%=item.table_name%></a>
+            <span><i class="fa fa-leaf"></i></span>&nbsp;&nbsp;<a class="tree-link" href="#submission/<%=submission_id%>/table/<%=item.table_id%>"><%=item.table_name%></a>
         </li>
     </script>
-    
+
     <script type="text/html" id="template_ReportResultView">
-        <table id="report_result_container" class="display table table-condensed sead-smaller-font-size"></table>
+        <table id="report_result_container" class="display table table-sm sead-smaller-font-size"></table>
     </script>
-    
+
     <script type="text/html" id="template_SubmissionNavigationView">
 
-        <div id="navigation-tree"  class="tree well navigation-tree-height">
-        <ul>
-            <li class="parent_li" id="container_SubmissionSitesNavigationView">
-            </li>
-            <li class="parent_li" id="container_SubmissionReportsNavigationView">
-            </li>
-            <li class="parent_li" id="container_SubmissionTablesNavigationView">
-            </li>
-        </ul>
+        <div id="navigation-tree" class="tree card.card-body navigation-tree-height">
+            <ul>
+                <li class="parent_li" id="container_SubmissionSitesNavigationView"></li>
+                <li class="parent_li" id="container_SubmissionReportsNavigationView"></li>
+                <li class="parent_li" id="container_SubmissionTablesNavigationView"></li>
+            </ul>
         </div>
-        
+
     </script>
 
     <script type="text/html" id="template_LoginView">
-        
-        <div id="login-dialog" class="modal fade" role="dialog" >
+
+        <div id="login-dialog" class="modal fade" role="dialog">
             <div class="modal-dialog">
-                
                 <div class="modal-content">
-
                     <div class="modal-header">
-                          <h3>Please enter credentials to SEAD Clearing House</h3>
+                         <h3>Please enter credentials to SEAD Clearing House</h3>
                     </div>
-
                     <div class="modal-body">
-
                         <div class="row">
-                            <div class="col-md-8">
-                                <form id="LoginView" class="form-horizontal" role="form">
+                            <div class="col-lg-8">
+                                <form id="LoginView" class="" role="form">
                                     <fieldset>
                                         <div class="form-group">
-                                            <label class="col-md-6 control-label" for="user_username">
-                                                User Name
-                                            </label>
-                                            <div class="col-md-6">
-                                              <input class="form-control input-md" value="" type="text" id="user_username" name="user_username">
+                                            <label class="col-lg-6 form-control-label" for="user_username">User Name</label>
+                                            <div class="col-lg-6">
+                                                <input class="form-control form-control-sm" value="" type="text" id="user_username"
+                                                name="user_username">
                                             </div>
                                         </div>
-
                                         <div class="form-group">
-                                            <label class="col-md-6 control-label" for="user_password">
-                                                Password
-                                            </label>
-                                            <div class="col-md-6">
-                                                <input class="form-control input-md"  value="" type="password" id="user_password" name="user_password">
+                                            <label class="col-lg-6 form-control-label" for="user_password">Password</label>
+                                            <div class="col-lg-6">
+                                                <input class="form-control form-control-sm" value="" type="password" id="user_password"
+                                                name="user_password">
                                             </div>
-                                        </div>
-                                        <span class="text-danger bold" id="login-message">&nbsp;</span>   
+                                        </div> <span class="text-danger bold" id="login-message">&#xA0;</span>
                                     </fieldset>
-                                    </form>
-                                </div>
-                            <div class="col-md-4">
-                                <img src="images/logo_sead_nodash_x134.gif" alt=""/>
+                                </form>
+                            </div>
+                            <div class="col-lg-4">
+                                <img src="images/logo_sead_nodash_x134.gif" alt="">
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                         <button class="btn btn-primary" id="login-button">Sign In</button>
+                        <button class="btn btn-primary" id="login-button">Sign In</button>
                     </div>
-
                 </div>
-                
             </div>
-            
         </div>
-    </script>  
+    </script>
 
     <script type="text/html" id="template_LogoutView">
-        
-        <div id="logout-dialog" class="modal fade" role="dialog" >
+
+        <div id="logout-dialog" class="modal fade" role="dialog">
             <div class="modal-dialog">
-                
                 <div class="modal-content">
-
-                    <div class="modal-header">
-                          <a class="close" data-dismiss="modal" aria-hidden="true">×</a>
-                          <h3>Please confirm sign off from SEAD Clearing House</h3>
+                    <div class="modal-header"> <a class="close" data-dismiss="modal" aria-hidden="true">&#xD7;</a>
+                         <h3>Please confirm sign off</h3>
                     </div>
-
                     <div class="modal-body">
-
-                        <form id="LogoutView" class="form-horizontal" role="form">
-                            <fieldset>
-                                
-                                <span class="danger" id="logout-message">&nbsp;</span>   
-                                
+                        <form id="LogoutView" class="" role="form">
+                            <fieldset> <span class="danger" id="logout-message">&#xA0;</span>
                             </fieldset>
                         </form>
                     </div>
                     <div class="modal-footer">
-                         <button class="btn btn-primary" id="logout-button">Sign Off</button>
+                        <button class="btn btn-primary" id="logout-button">Sign Off</button>
                     </div>
-
                 </div>
-                
             </div>
-            
         </div>
-    </script>  
+
+    </script>
 
     <script type="text/html" id="template_AcceptView">
-        
-        <div id="accept-dialog" class="modal fade" role="dialog" >
+
+        <div id="accept-dialog" class="modal fade" role="dialog">
             <div class="modal-dialog">
-                
                 <div class="modal-content">
-
-                    <div class="modal-header">
-                          <a class="close" data-dismiss="modal" aria-hidden="true">×</a>
-                          <h3>Please confirm that the data is accepted!</h3>
-                          Submission will be marked as accepted and the data is sent SEAD.
-                    </div>
-
-                    <div class="modal-body">
-                        <form class="form-horizontal" role="form">
-                            <fieldset>
-                                <span class="dialog-message danger">&nbsp;</span>   
+                    <div class="modal-header"> <a class="close" data-dismiss="modal" aria-hidden="true">&#xD7;</a>
+                         <h3>Please confirm that the data is accepted!</h3>
+        Submission will be marked as ACCEPTED and the data will be sent to SEAD.</div>
+                    <div
+                    class="modal-body">
+                        <form class="" role="form">
+                            <fieldset> <span class="dialog-message danger">&#xA0;</span>
                             </fieldset>
                         </form>
-                    </div>
-            
-                    <div class="modal-footer">
-                         <button class="btn btn-danger dialog-execute-button">Accept</button>
-                         <a href="#" class="btn" data-dismiss="modal">Cancel</a>  
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger dialog-execute-button">Accept</button> <a href="#" class="btn" data-dismiss="modal">Cancel</a>
                 </div>
             </div>
         </div>
-    </script>  
+        </div>
+
+    </script>
 
     <script type="text/html" id="template_RejectView">
-        
-        <div id="reject-dialog" class="modal fade" role="dialog" >
+
+        <div id="reject-dialog" class="modal fade" role="dialog">
             <div class="modal-dialog">
-                
                 <div class="modal-content">
-
-                    <div class="modal-header">
-                          <a class="close" data-dismiss="modal" aria-hidden="true">×</a>
-                          <h3>Please confirm reject of data!</h3>
-                          Submission will be marked as REJECTED and will NOT be sent to SEAD.
-                    </div>
-
-                    <div class="modal-body">
-                        <form class="form-horizontal" role="form">
-                            <fieldset>
-                                <span class="danger form-control-static dialog-message">&nbsp;</span>   
+                    <div class="modal-header"> <a class="close" data-dismiss="modal" aria-hidden="true">&#xD7;</a>
+                         <h3>Please confirm reject of data!</h3>
+        Submission will be marked as REJECTED and will NOT be sent to SEAD.</div>
+                    <div
+                    class="modal-body">
+                        <form class="" role="form">
+                            <fieldset> <span class="danger form-control-static dialog-message">&#xA0;</span>
                             </fieldset>
                         </form>
-                    </div>
-            
-                    <div class="modal-footer">
-                         <button class="btn btn-danger dialog-execute-button">Reject</button>
-                         <a href="#" class="btn" data-dismiss="modal">Cancel</a>  
-                    </div>
-
                 </div>
-                
+                <div class="modal-footer">
+                    <button class="btn btn-danger dialog-execute-button">Reject</button> <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+                </div>
             </div>
         </div>
-    </script>  
-    
+        </div>
+
+    </script>
+
     <script type="text/html" id="template_XClaimSubmissionView">
 
-        <div id="xclaim-submission-dialog" class="modal fade" role="dialog" >
-
+        <div id="xclaim-submission-dialog" class="modal fade" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
-
-                    <div class="modal-header">
-                          <a class="close" data-dismiss="modal" aria-hidden="true">×</a>
-                          <h3>Please confirm <%=claim%> as submission reviewer.</h3>
+                    <div class="modal-header"> <a class="close" data-dismiss="modal" aria-hidden="true">&#xD7;</a>
+                         <h3>Please confirm!</h3>
                     </div>
-
-                    <div class="modal-body">
-                     <span class="danger" id="xclaim-message"></span>
+                    <div class="modal-body"> <span class="danger" id="xclaim-message"></span>
+                        Please confirm that you want to <%=claim%> this submission.
                     </div>
-                     <div class="modal-footer">
-                        <button class="btn btn-success" id="xclaim-submission-button"><%=claim%></button>
-                         <a href="#" class="btn" data-dismiss="modal">Cancel</a>  
-                     </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-success" id="xclaim-submission-button">
+                            <%=claim%>
+                        </button> <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+                    </div>
                 </div>
             </div>
         </div>
+
     </script>
 
-  
+
     <script type="text/html" id="template_TransferSubmissionView">
 
-        <div id="transfer-submission-dialog" class="modal fade" role="dialog" >
-
+        <div id="transfer-submission-dialog" class="modal fade" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
-
-                    <div class="modal-header">
-                          <a class="close" data-dismiss="modal" aria-hidden="true">×</a>
-                          <h3>Please select new reviewer of submissed data.</h3>
+                    <div class="modal-header"> <a class="close" data-dismiss="modal" aria-hidden="true">&#xD7;</a>
+                         <h3>Please select new reviewer of submissed data.</h3>
                     </div>
-
                     <div class="modal-body">
-
-                            <div class="form-group">
-                                <label class="col-md-3 control-label" for="transfer_user_id_select_container">
-                                    New reviewer:
-                                </label>
-                                <label id="transfer_user_id_select_container" class="col-md-4 controls">
-                                </label>
-                            </div>
-                    
-                    <span class="danger" id="transfer-message"></span>
+                        <div class="form-group">
+                            <label class="col-lg-3 form-control-label" for="transfer_user_id_select_container">New reviewer:</label>
+                            <label id="transfer_user_id_select_container" class="col-lg-4 controls"></label>
+                        </div> <span class="danger" id="transfer-message"></span>
                     </div>
-                     <div class="modal-footer">
-                        <button class="btn btn-success" id="transfer-submission-button">Transfer</button>
-                         <a href="#" class="btn" data-dismiss="modal">Cancel</a>  
-                     </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-success" id="transfer-submission-button">Transfer</button> <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+                    </div>
                 </div>
             </div>
         </div>
+
     </script>
-    
+
     <script type="text/html" id="template_ErrorView">
-        
-        <div id="error-dialog" class="modal fade " role="dialog" >
+
+        <div id="error-dialog" class="modal fade " role="dialog">
             <div class="modal-dialog">
-                
                 <div class="modal-content">
-
-                    <div class="modal-header">
-                          <a class="close" data-dismiss="modal" aria-hidden="true">×</a>
-                          <h3>An unexpected application error has ocurred!</h3>
+                    <div class="modal-header"> <a class="close" data-dismiss="modal" aria-hidden="true">&#xD7;</a>
+                         <h3>An unexpected application error has ocurred!</h3>
                     </div>
-
                     <div class="modal-body">
-                        <form class="form-horizontal" role="form">
-                            <fieldset>
-                                <span class="dialog-message danger">&nbsp;</span>
+                        <form class="" role="form">
+                            <fieldset> <span class="dialog-message danger">&#xA0;</span>
                             </fieldset>
                         </form>
                     </div>
-            
                     <div class="modal-footer">
-                         <button class="btn btn-danger dialog-execute-button">Close</button>
+                        <button class="btn btn-danger dialog-execute-button">Close</button>
                     </div>
                 </div>
             </div>
         </div>
-    </script> 
-    
+
+    </script>
+
     <script type="text/html" id="template_UsersView">
         <div id="user_list_container" class="sead-smaller-font-size">
         </div>
-    </script>  
+    </script>
 
     <script type="text/html" id="template_user_list_toolbar">
-        
-       <div class="submission_list_toolbar text-left">
+
+        <div class="submission_list_toolbar text-left">
             <div id="button-new-user" class="btn btn-primary btn-sm">New</div>
-       </div>
-        
+        </div>
+
     </script>
 
     <script type="text/html" id="template_UserView">
-
-        <div id="edit-user-dialog" class="modal fade" role="dialog" >
-
+        <div id="edit-user-dialog" class="modal fade" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
-
-                    <div class="modal-header">
-                          <a class="close" data-dismiss="modal" aria-hidden="true">×</a>
-                          <h3>Edit user</h3>
+                    <div class="modal-header"> <a class="close" data-dismiss="modal" aria-hidden="true">&#xD7;</a>
+                         <h3>Edit user</h3>
                     </div>
-
                     <div class="modal-body">
-
-                        <form class="form-horizontal" role="form">
+                        <form class="" role="form">
                             <fieldset>
-                                
-                            <div class="form-group">
-                                
-                                <label class="col-md-4 control-label" for="user_id">
-                                    User ID
-                                </label>
-                                <div class="col-md-2">
-                                    <input class="form-control input-md" value="" type="text" id="user_id" name="user_id" disabled>
+                                <div class="form-group">
+                                    <label class="col-lg-4 form-control-label" for="user_id">User ID</label>
+                                    <div class="col-lg-2">
+                                        <input class="form-control form-control-sm" value="" type="text" id="user_id"
+                                        name="user_id" disabled>
+                                    </div>
                                 </div>
-                            </div>
-                                
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="user_name">
-                                    Username
-                                </label>
-                                <div class="col-md-4">
-                                    <input class="form-control input-md"  value="" type="text" id="user_name" name="user_name">
+                                <div class="form-group">
+                                    <label class="col-lg-4 form-control-label" for="user_name">Username</label>
+                                    <div class="col-lg-4">
+                                        <input class="form-control form-control-sm" value="" type="text" id="user_name"
+                                        name="user_name">
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="password">
-                                    Password
-                                </label>
-                                <div class="col-md-4">
-                                  <input class="form-control input-md" value="" type="password" id="password" name="password">
+                                <div class="form-group">
+                                    <label class="col-lg-4 form-control-label" for="password">Password</label>
+                                    <div class="col-lg-4">
+                                        <input class="form-control form-control-sm" value="" type="password" id="password"
+                                        name="password">
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="full_name">
-                                    Full name
-                                </label>
-                                <div class="col-md-6">
-                                  <input class="form-control input-md" value="" type="text" id="full_name" name="full_name">
+                                <div class="form-group">
+                                    <label class="col-lg-4 form-control-label" for="full_name">Full name</label>
+                                    <div class="col-lg-6">
+                                        <input class="form-control form-control-sm" value="" type="text" id="full_name"
+                                        name="full_name">
+                                    </div>
                                 </div>
-                            </div>
-                                    
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="email">
-                                        E-mail
-                                </label>
-                                <div class="col-md-6">
-                                      <input class="form-control input-md" value="" type="text" id="email" name="email">
+                                <div class="form-group">
+                                    <label class="col-lg-4 form-control-label" for="email">E-mail</label>
+                                    <div class="col-lg-6">
+                                        <input class="form-control form-control-sm" value="" type="text" id="email" name="email">
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <div class="col-md-8 col-md-offset-4">
-                                    <label class="control-label" for="signal_receiver">
-                                        <input value="" type="checkbox" id="signal_receiver" name="signal_receiver">
-                                        Signal receiver
+                                <div class="form-group">
+                                    <div class="col-lg-8 offset-md-">
+                                        <label class="form-control-label" for="signal_receiver">
+                                            <input value="" type="checkbox" id="signal_receiver" name="signal_receiver">Signal receiver</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-lg-4 form-control-label">Role</label>
+                                    <label class="form-control-label" for="role_id1">
+                                        <input type="radio" name="role_id" id="role_id1" value="1">Reader</label>
+                                    <label class="form-control-label" for="role_id2">
+                                        <input type="radio" name="role_id" id="role_id2" value="2">Normal</label>
+                                    <label class="form-control-label" for="role_id3">
+                                        <input type="radio" name="role_id" id="role_id3" value="3">Administrator</label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-lg-4 form-control-label" for="is_data_provider">
+                                        <input value="false" type="checkbox" id="is_data_provider" name="is_data_provider">Data provider</label>
+                                    <label class="col-lg-2 form-control-label" for="data_provider_grade_types_container">Grade</label>
+                                    <label id="data_provider_grade_select_container" class="col-lg-6 controls">
+                                        <select class="form-control" id="data_provider_grade_id" name="data_provider_grade_id"></select>
                                     </label>
                                 </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-4 control-label">
-                                        Role
-                                </label>
-                                <label class="control-label" for="role_id1">
-                                  <input type="radio" name="role_id" id="role_id1" value="1">
-                                  Reader
-                                </label>
-                                <label class="control-label" for="role_id2">
-                                  <input type="radio" name="role_id" id="role_id2" value="2">
-                                  Normal
-                                </label>
-                                <label class="control-label" for="role_id3">
-                                  <input type="radio" name="role_id" id="role_id3" value="3">
-                                  Administrator
-                                </label>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="col-md-4 control-label" for="is_data_provider">
-                                   <input value="false" type="checkbox" id="is_data_provider" name="is_data_provider">
-                                     Data provider
-                                </label>
-                                <label class="col-md-2 control-label" for="data_provider_grade_types_container">
-                                    Grade
-                                </label>
-                                <label id="data_provider_grade_select_container" class="col-md-6 controls">
-                                    <select class="form-control" id="data_provider_grade_id" name="data_provider_grade_id">
-                                    </select>
-                                </label>
-                            </div>
-
-
                             </fieldset>
                         </form>
                     </div>
-                     <div class="modal-footer">
-                         <button class="btn btn-success" id="edit-user-save-button">Save</button>
-                         <button class="btn btn-primary" id="edit-user-cancel-button">Cancel</button>
+                    <div class="modal-footer">
+                        <button class="btn btn-success" id="edit-user-save-button">Save</button>
+                        <button class="btn btn-primary" id="edit-user-cancel-button">Cancel</button>
                     </div>
-
                 </div>
             </div>
-        </div>    
+        </div>
     </script>
- 
+
     <script type="text/html" id="template_DataProvideGradeOptionView">
         <div id="users_list_container">
         </div>
-        <div class="radio-inline">
+        <div class="form-radio-inline">
         <label>
           <input type="radio" name="data_provider_grade_id" id="data_provider_grade_id<%=grade.grade_id%>" value="<%=grade.grade_id%>">
           <%= grade.description %>
@@ -473,24 +380,24 @@
     </script>
 
     <script type="text/html" id="template_ReviewTable">
-          <table id="<%=table_id%>" class="<%=classname%>" cellpadding="0" cellspacing="0" border="0"> 
+          <table id="<%=table_id%>" class="<%=classname%>" cellpadding="0" cellspacing="0" border="0">
             <thead/><tbody/>
-          </table> 
+          </table>
     </script>
 
     <script type="text/html" id="template_RejectIndicator">
-        <label class="checkbox-inline">
-            <input type="checkbox" id="<%=checkbox_id%>" class="reject-checkbox input-md" local_db_id="<%=local_db_id%>" entity_type_id="<%=entity_type_id%>">
+        <span class="form-check">
+            <input type="checkbox" id="<%=checkbox_id%>" class="reject-checkbox form-control-lg" local_db_id="<%=local_db_id%>" entity_type_id="<%=entity_type_id%>">
             <span id="<%=indicator_id%>" class="text-danger reject-indicator"></span>
-        </label>
+        </span>
     </script>
-    
+
     <script type="text/html" id="template_ReviewTableRow">
         <tr id="<%=options.row_id_prefix%><%=row.local_db_id%>" local_db_id="<%=row.local_db_id%>" class="<%=options.row_class%>">
             <td><span class="indicator-container s"></span>
             </td>
             <% _.each(columns, function(column) { %>
-                <td 
+                <td
                   <% if (column.public_column_field && row[column.public_column_field] && row[column.column_field] != row[column.public_column_field]) {  %>
                     title=<%=row[column.public_column_field]%>
                   <% } %>
@@ -501,10 +408,10 @@
             <% }) %>
         </tr>
     </script>
-    
+
     <script type="text/html" id="template_LatestSitesView">
 
-        <table class="table table-condensed sead-smaller-font-size">
+        <table class="table table-sm sead-smaller-font-size">
         <thead><tr><th>Latest sites</th></tr></thead>
         <tbody>
             <% _.each(data, function(x) { %>

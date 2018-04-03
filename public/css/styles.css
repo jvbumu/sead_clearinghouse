@@ -1,15 +1,26 @@
-/*body {
-  padding-top: 50px;
-}*/
-.container { height: 100%; }
-a.plain:link
-{ color: #333; text-decoration: none }
-a.plain:active
-{ color: #333; text-decoration: none }
-a.plain:visited
-{ color: #333; text-decoration: none }
-a.plain:hover
-{ color: #333; text-decoration: none }
+.container {
+    height: 100%;
+}
+
+a.plain:link {
+    color: #333;
+    text-decoration: none
+}
+
+a.plain:active {
+    color: #333;
+    text-decoration: none
+}
+
+a.plain:visited {
+    color: #333;
+    text-decoration: none
+}
+
+a.plain:hover {
+    color: #333;
+    text-decoration: none
+}
 
 .status-bar {
     height: 60px;
@@ -19,19 +30,18 @@ a.plain:hover
     float: left;
     margin-right: 12px;
 }
+
 /* Sticky footer styles
 -------------------------------------------------- */
 
-html, body {
-  height: 100%;
-  /* The html and body elements cannot have any padding or margin. */
-}
-
+html,
 body {
+    height: 100%;
     *position: absolute;
 }
 
 /* Wrapper for page content to push down footer */
+
 #wrap {
     min-height: 100% !important;
     height: 100% !important;
@@ -42,12 +52,14 @@ body {
 }
 
 /* Set the fixed height of the footer here */
+
 #footer {
-  height: 40px;
-  background-color: #f5f5f5;
+    height: 40px;
+    background-color: #f5f5f5;
 }
 
 /* Highligh table row */
+
 .table-striped tbody tr.highlight td {
     background-color: red;
 }
@@ -57,87 +69,90 @@ body {
 .maxheight {
     min-height: 100%;
     height: auto !important;
-    height: 100%;   
+    height: 100%;
 }
 
 .tree {
     font-size: smaller;
-    min-height:20px;
-    padding:0px; /* 19pg */
-    margin-bottom:0px;
-    background-color:#fbfbfb;
-    /* border:1px solid #999;*/
-    -webkit-border-radius:4px;
-    -moz-border-radius:4px;
-    border-radius:4px;
-    -webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
-    -moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
-    box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
-        
-    /* scrollbar */
+    min-height: 20px;
+    padding: 0px;
+    margin-bottom: 0px;
+    background-color: #fbfbfb;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
     overflow-y: auto;
-    overflow-x:hidden;
-    /* width: 35%; */
-    /* float:left; */
-    
-    height:650px; 
-    /* min-height: 100%; */
-    /*height: 100% !important;*/
+    overflow-x: hidden;
+    height: 650px;
     display: block;
 
+    line-height: 1;
 }
-.tree li {
-    list-style-type:none;
-    margin:0;
-    padding:10px 5px 0 5px;
-    position:relative
-}
-.tree li::before, .tree li::after {
-    content:'';
-    left:-20px;
-    position:absolute;
-    right:auto
-}
-.tree li::before {
-    border-left:1px solid #999;
-    bottom:50px;
-    height:100%;
-    top:0;
-    width:1px
-}
-.tree li::after {
 
+.tree li {
+    list-style-type: none;
+    margin: 0;
+    padding: 10px 5px 0 5px;
+    position: relative
+}
+
+.tree li::before,
+.tree li::after {
+    content: '';
+    left: -20px;
+    position: absolute;
+    right: auto
+}
+
+.tree li::before {
+    border-left: 1px solid #999;
+    bottom: 50px;
+    height: 100%;
+    top: 0;
+    width: 1px
+}
+
+.tree li::after {
     border-top: 1px solid #999;
-    height:20px;
-    top:25px;
-    width:25px
+    height: 20px;
+    top: 25px;
+    width: 25px
 }
 
 .tree li span {
-    -moz-border-radius:5px;
-    -webkit-border-radius:5px;
-    border:1px solid #999;
-    border-radius:5px;
-    display:inline-block;
-    padding:3px 8px;
-    text-decoration:none
-}
-.tree li.parent_li>span {
-    cursor:pointer
-}
-.tree>ul>li::before, .tree>ul>li::after {
-    border:0
-}
-.tree li:last-child::before {
-    height:30px
-}
-.tree li.parent_li>span:hover, .tree li.parent_li>span:hover+ul li span {
-    background:#eee;
-    border:1px solid #94a0b4;
-    color:#000
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border: 1px solid #999;
+    border-radius: 5px;
+    display: inline-block;
+    padding: 3px 8px;
+    text-decoration: none
 }
 
-.tree > ul {
+.tree li.parent_li>span {
+    cursor: pointer
+}
+
+.tree>ul>li::before,
+.tree>ul>li::after {
+    border: 0
+}
+
+.tree li:last-child::before {
+    height: 30px
+}
+
+.tree li.parent_li>span:hover,
+.tree li.parent_li>span:hover+ul li span {
+    background: #eee;
+    border: 1px solid #94a0b4;
+    color: #000
+}
+
+.tree>ul {
     padding-left: 0px;
 }
 
@@ -147,41 +162,37 @@ body {
 
 /* Navigation Tree End */
 
-.bottom-buffer { margin-bottom:20px; }
+.bottom-buffer {
+    margin-bottom: 20px;
+}
 
 .popover-content {
     color: red;
     background-color: lightgreen;
 }
+
 .sead-smaller-font-size {
-    font-size: 0.8em; 
-}
-.sead-fluid-container {
-  padding-left: 15px;
-  padding-right: 15px;
-  margin-left: auto;
-  margin-right: auto;
+    font-size: 0.8em;
 }
 
 #error-dialog .modal-dialog {
-  width: 80%; /* desired relative width */
-  left: 10%; /* (100%-width)/2 */
-  /* place center */
-  margin-left:auto;
-  margin-right:auto; 
+    width: 80%;
+    left: 10%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .sead-existing-value {
-  color: black;
+    color: black;
 }
 
 .sead-new-value {
-  color: blue;
+    color: blue;
 }
 
 .sead-updated-value {
-  color: red;
-  cursor: pointer;
+    color: red;
+    cursor: pointer;
 }
 
 .sead-number {
@@ -194,9 +205,15 @@ body {
 }
 
 .sead-badge-data-exists {
-  background-color: blue;
+    /* background-color: blue; */
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #999;
+    border-radius: 10px;
+    margin: 2px;
+    width: 30px;
+    text-align: center;
 }
-
 
 #content:first-child {
     height: 90%;
@@ -208,26 +225,26 @@ body {
 }
 
 .navigation-tree-height {
-    //min-height: 100% !important;
-    height: 800px; //100% !important;
+    height: 800px;
+    ;
     overflow: auto;
 }
 
 .nobr {
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
 .spinner {
-/*     position:fixed;
-     top:50%;
-     left:49%;*/
-     width: 100%;
-     height: 150%;
-     position: absolute;
-     z-index: 100;
-     background-color: white;
-     left: 0; 
-     bottom: 0;
-     right: 0;
-     opacity: 0.5;
+    width: 100%;
+    height: 150%;
+    position: absolute;
+    z-index: 100;
+    background-color: white;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    opacity: 0.5;
 }
+
+.card-header div { display: inline-block; }
+label { margin-bottom: 0px; margin-top: 0px; }

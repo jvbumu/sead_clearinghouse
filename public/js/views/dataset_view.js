@@ -1,4 +1,4 @@
-window.DataSetView = window.ReviewBaseView.extend({
+var DataSetView = window.DataSetView = window.ReviewBaseView.extend({
 
     get_store: function() {
         return DataSet_Column_Store;
@@ -6,18 +6,19 @@ window.DataSetView = window.ReviewBaseView.extend({
 
     render_root: function(model)
     {
-        $("#dataset_id", this.$el).text(model.dataset.local_db_id);
-        utils.set_review_value($("#dataset_name", this.$el), model.dataset.dataset_name, model.dataset.public_dataset_name);
-        utils.set_review_value($("#data_type_name", this.$el), model.dataset.data_type_name, model.dataset.public_data_type_name);
-        utils.set_review_value($("#master_name", this.$el), model.dataset.master_name, model.dataset.public_master_name);
-        utils.set_review_value($("#previous_dataset_name", this.$el), model.dataset.previous_dataset_name, model.dataset.public_previous_dataset_name);
-        utils.set_review_value($("#method_name", this.$el), model.dataset.method_name, model.dataset.public_method_name);
-        utils.set_review_value($("#project_stage_name", this.$el), model.dataset.project_stage_name, model.dataset.public_project_stage_name);
+        this.render_root_default(model.dataset, "dataset_id")
+        // $("#dataset_id", this.$el).text(model.dataset.local_db_id);
+        // this.set_review_value($("#dataset_name", this.$el), model.dataset.dataset_name, model.dataset.public_dataset_name);
+        // this.set_review_value($("#data_type_name", this.$el), model.dataset.data_type_name, model.dataset.public_data_type_name);
+        // this.set_review_value($("#master_name", this.$el), model.dataset.master_name, model.dataset.public_master_name);
+        // this.set_review_value($("#previous_dataset_name", this.$el), model.dataset.previous_dataset_name, model.dataset.public_previous_dataset_name);
+        // this.set_review_value($("#method_name", this.$el), model.dataset.method_name, model.dataset.public_method_name);
+        // this.set_review_value($("#project_stage_name", this.$el), model.dataset.project_stage_name, model.dataset.public_project_stage_name);
         return this;
     }
 });
 
-window.DataSet_Column_Store = {
+var DataSet_Column_Store = window.DataSet_Column_Store = {
 
     data_type: "dataset",
 
@@ -60,4 +61,4 @@ window.DataSet_Column_Store = {
     })
 };
 
-
+export { DataSetView, DataSet_Column_Store };

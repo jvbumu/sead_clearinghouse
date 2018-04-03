@@ -1,13 +1,13 @@
-window.HeaderView = Backbone.View.extend({
+var HeaderView = window.HeaderView = Backbone.View.extend({
 
     initialize: function (options) {
         this.options = options || {};
-        
+
         //this.loginView = new LoginView();
         //this.listenTo(this.loginView, "login_completed", this.login_completed);
         //this.listenTo(this.loginView, "login_failed", this.login_failed);
         this.render();
-                
+
     },
 
     render: function () {
@@ -15,7 +15,7 @@ window.HeaderView = Backbone.View.extend({
         $(this.el).html(this.template());
 
         //$(this.el).find("#login-container").html(this.loginView.render().el);
-        
+
         $(this.el).find('.dropdown-toggle').dropdown();
 
         $(this.el).find('.dropdown input, .dropdown label').click(function(e) {
@@ -31,18 +31,18 @@ window.HeaderView = Backbone.View.extend({
             $('.' + menuItem).addClass('active');
         }
     },
-            
-//    login_completed: function(user)
-//    {
-//        //alert("Signed " + user.name + " in!");
-//        AppRouter.navigate("", {trigger: true});
-//    },
-//    
-//    login_failed: function(reason)
-//    {
-//        alert("Sign on failed: " + reason );
-//    },
-    
+
+    //    login_completed: function(user)
+    //    {
+    //        //alert("Signed " + user.name + " in!");
+    //        AppRouter.navigate("", {trigger: true});
+    //    },
+    //
+    //    login_failed: function(reason)
+    //    {
+    //        alert("Sign on failed: " + reason );
+    //    },
+
     setName: function(name)
     {
         try {
@@ -52,3 +52,5 @@ window.HeaderView = Backbone.View.extend({
     }
 
 });
+
+export default HeaderView;

@@ -1,4 +1,7 @@
-window.ReviewView = Backbone.View.extend({
+import { ReviewTableView } from './review_table_view.js';
+import { RejectCauseIndicatorView } from './reject_cause_view.js';
+
+var ReviewView = window.ReviewView = Backbone.View.extend({
 
     initialize: function (options) {
         this.options = _.extend(this.options || {}, options || {});
@@ -21,7 +24,7 @@ window.ReviewView = Backbone.View.extend({
 
 });
 
-window.ReviewBaseView = window.ReviewView.extend({
+var ReviewBaseView = window.ReviewBaseView = window.ReviewView.extend({
 
     //initialize: function (options) {
     //    this.options = _.extend(this.options || {}, options || {});
@@ -119,11 +122,27 @@ window.ReviewBaseView = window.ReviewView.extend({
             }).render().el
         );
 
+    },
+
+    render_root_default: function(entity, entity_id_name)
+    {
+        /*
+        default generic render_root.
+        assumes 1) name of dom ids are equal to field ids
+        */
+        var keys = Object.keys(entity);
+        var dataKeys = keys.filter(key => !key.startsWith('public_') && keys.includes('public_' + key));
+
+        $("#" + entity_id_name, this.$el).text(entity.local_db_id);
+        for (var key of dataKeys) {
+            this.set_review_value($("#" + key, this.$el), entity[key], entity["public_" + key] );
+        }
+        return this;
     }
 
 });
 
-window.Bootstrap_Panel_Table_Container_Builder = {
+var Bootstrap_Panel_Table_Container_Builder = window.Bootstrap_Panel_Table_Container_Builder = {
 
     default_collapse_state: "", /* use "in" for default open state */
 
@@ -134,27 +153,27 @@ window.Bootstrap_Panel_Table_Container_Builder = {
         var indicator_container_id =  data_type + "_" + data_key + "_generic_indicator_container";
         var table_container_id =  data_type + "_" + data_key + "_table_container";
 
-        var $heading = $("<div/>", { class: "panel-heading" })
-                .append($("<h4/>", { class: "panel-title row" })
-                          .append($("<span>", { id: indicator_container_id, class: "col-md-1" }))
+        var $heading = $("<div/>", { class: "card-header" })
+                .append($("<span/>", { class: "panel-title" })
+                          .append($("<span>", { id: indicator_container_id }))
                           .append($("<a/>", { text: title, class: "accordion-toggle", "data-toggle": "collapse", "data-parent": "#accordion2", href: "#" + collapse_id }))
                           .append($("<span/>", {
-                              class: "badge pull-right " + (count > 0 ? "sead-badge-data-exists" : ""),
+                              class: "badge badge-primary badge.badge-pill float-right " + (count > 0 ? "sead-badge-data-exists" : ""),
                                  id: data_type + "_" + data_key + "_badge",
-                               text: count,
-                               style: "margin-right: 10px;"
+                               text: count
                            }))
                 );
 
-        var $body = $("<div/>", { id: collapse_id, class: "panel-collapse collapse " + this.default_collapse_state })
-            .append($("<div/>", { class: "panel-body" })
+        var $body = $("<div/>", { id: collapse_id, class: "collapse " + this.default_collapse_state })
+            .append($("<div/>", { class: "card-body" })
                 .append($("<div/>", { id: table_container_id }))
           );
 
-        return $("<div/>", { id: container_id,class: "panel panel-default" })
+        return $("<div/>", { id: container_id,class: "card" })
             .append($heading)
             .append($body);
 
     }
 };
 
+export { ReviewView, ReviewBaseView,  Bootstrap_Panel_Table_Container_Builder };

@@ -1,5 +1,86 @@
 
 
+import "bootstrap/dist/css/bootstrap.min.css";
+import "CssFiles/toggle-switch.css";
+import "CssFiles/font-awesome.min.css";
+
+import "datatables.net-dt/css/jquery.dataTables.css";
+import 'datatables.net-bs4/css/dataTables.bootstrap4.css';
+import 'datatables.net-select-bs4/css/select.bootstrap4.css';
+import 'datatables.net-buttons-bs4/css/buttons.bootstrap4.css';
+
+import "CssFiles/styles.css";
+
+import "jquery";
+import "underscore";
+import "backbone";
+import "bootstrap";
+
+import { DataTable } from 'datatables.net'; // eslint-disable-line
+import * as dtSelect from 'datatables.net-select'; // eslint-disable-line
+import * as dtButton from 'datatables.net-buttons'; // eslint-disable-line
+
+import { default as Spinner } from "spin";
+import { default as ReportView } from './views/report_view.js';
+import { default as AboutView } from './views/about_view.js';
+//import { default as XClaimView } from './views/claim_view.js';
+//import { default as TransferView } from './views/transfer_view.js';
+import { default as FooterView } from './views/footer_view.js';
+import { default as HeaderView } from './views/header_view.js';
+import { default as SubmissionView } from './views/submission_view.js';
+// import { default as CollectionDropdownView } from './views/utility_views.js';
+import { default as SecurityFunctions } from './model/security.js';
+
+import { TemplateStore /*, utils*/ } from './utility/utility.js';
+//import { ReviewView, ReviewBaseView, Bootstrap_Panel_Table_Container_Builder } from './views/review_base_view.js';
+import { HomeView /*, SubmissionListView, InformationBaseView, LatestSitesView, DocumentationListView */ } from './views/home_view.js';
+import { /*UserView, UserListView,*/ UsersView } from './views/users_view.js';
+//import { Table_Template_Store, ReviewTableView } from './views/review_table_view.js';
+import { RejectCauseView, RejectCauseIndicatorView /*, RejectCauseIndicatorView_Store */ } from './views/reject_cause_view.js';
+import { DataSetView /*, DataSet_Column_Store */ } from './views/dataset_view.js';
+import { SampleView /*, Sample_Column_Store*/ } from './views/sample_view.js';
+import { SampleGroupView /*, Sample_Group_Column_Store*/ } from './views/samplegroup_view.js';
+import { SiteView /*, Site_Column_Store */ } from './views/site_view.js';
+
+/*import {
+    SubmissionNavigationView, SubmissionSitesNavigationView, SubmissionReportsNavigationView, SubmissionTablesNavigationView, TreeNodeHelper
+} from './views/navigation_view.js';
+*/
+import {
+    /*BaseDialogView, AcceptOrRejectView, AcceptView,*/ RejectView, ErrorView, LoginView, LogoutView
+} from './views/dialog_view.js';
+
+import {
+    SubmissionCollection,
+    SubmissionMetaDataModel,
+    SubmissionRejectCollection,
+    RejectEntityEntityCollection,
+    ReportCollection,
+    XmlTableCollection,
+    ReportResultCollection,
+    XmlTableRowCollection,
+    SiteDataModel,
+    SampleGroupDataModel,
+    SampleDataModel,
+    DataSetDataModel,
+    UserCollection,
+    RoleTypeCollection,
+    DataProviderGradeTypeCollection
+} from './model/models.js';
+
+// FIXME: MOVE TO BETTER PLACE!
+_.extend(Backbone.View.extend({
+
+    set_disabled_state: function ($button, disabled)
+    {
+        $button.prop("disabled", disabled);
+        if (disabled)
+            $button.addClass("disabled");
+        else
+            $button.removeClass("disabled");
+    }
+
+}));
 var AppRouter = Backbone.Router.extend({
 
     path: {},
@@ -392,7 +473,7 @@ var AppRouter = Backbone.Router.extend({
 
 });
 
-var SEAD = {
+window.SEAD = {
     Router: null,
     BootstrapData: null,
     User: null,
@@ -405,10 +486,8 @@ $(function() {
     fetch('/api/bootstrap')
     .then(function(response) { return response.json(); })
     .then(function(json) {
-        SEAD.BootstrapData = json;
-    });
-
-    TemplateStore.preload([
+        window.SEAD.BootstrapData = json;
+        TemplateStore.preload([
             { name: 'HeaderView', type: "view" },
             { name: 'FooterView', type: "view" },
             { name: 'HomeView', type: "view" },
@@ -421,9 +500,9 @@ $(function() {
             { name: 'RejectCauseView', type: "view" },
             { name: 'Templates', type: "templates" }
         ], function() {
-        SEAD.Router = new AppRouter();
-        Backbone.history.start();
+            window.SEAD.Router = new AppRouter();
+            Backbone.history.start();
+        });
     });
-
 
 });

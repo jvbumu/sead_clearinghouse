@@ -1,4 +1,4 @@
-window.SubmissionNavigationView = Backbone.View.extend({
+var SubmissionNavigationView = window.SubmissionNavigationView = Backbone.View.extend({
 
     initialize: function (options) {
 
@@ -99,7 +99,7 @@ window.SubmissionNavigationView = Backbone.View.extend({
 
 });
 
-window.SubmissionSitesNavigationView = Backbone.View.extend({
+var SubmissionSitesNavigationView = window.SubmissionSitesNavigationView = Backbone.View.extend({
 
     initialize: function (options) {
         this.options = options || {};
@@ -140,9 +140,9 @@ window.SubmissionSitesNavigationView = Backbone.View.extend({
                 $sample_groups.push($sample_group);
 
                 var $samples = [];
-                for (k = 0;k < sample_group.samples.length; k++) {
+                for (var k = 0;k < sample_group.samples.length; k++) {
                     var sample = sample_group.samples[k];
-                    $sample = $(this.sampleNodeTemplate({ sample: sample }));
+                    var $sample = $(this.sampleNodeTemplate({ sample: sample }));
                     $samples.push($sample);
                 }
                 var $sample_placeholder = $("#sample_group_" + sample_group.sample_group_id.toString() + "_placeholder", $sample_group);
@@ -172,7 +172,7 @@ window.SubmissionSitesNavigationView = Backbone.View.extend({
 
 });
 
-window.SubmissionReportsNavigationView = Backbone.View.extend({
+var SubmissionReportsNavigationView =  window.SubmissionReportsNavigationView = Backbone.View.extend({
 
     initialize: function (options) {
         this.options = options || {};
@@ -197,7 +197,7 @@ window.SubmissionReportsNavigationView = Backbone.View.extend({
     }
 });
 
-window.SubmissionTablesNavigationView = Backbone.View.extend({
+var SubmissionTablesNavigationView = window.SubmissionTablesNavigationView = Backbone.View.extend({
 
     initialize: function (options) {
         this.options = options || {};
@@ -240,7 +240,7 @@ var TreeNodeHelper = {
                 children.hide(0); //'fast');
                 $(this).attr('title', 'Expand this branch').find(' > i').addClass('glyphicon-plus-sign').removeClass('glyphicon-minus-sign');
             } else {
-                children.show(0); ('fast');
+                children.show(0); // ('fast');
                 $(this).attr('title', 'Collapse this branch').find(' > i').addClass('glyphicon-minus-sign').removeClass('glyphicon-plus-sign');
             }
             e.stopPropagation();
@@ -250,4 +250,5 @@ var TreeNodeHelper = {
 
 };
 
+export { SubmissionNavigationView, SubmissionSitesNavigationView, SubmissionReportsNavigationView, SubmissionTablesNavigationView, TreeNodeHelper };
 

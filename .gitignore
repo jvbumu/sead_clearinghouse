@@ -10,3 +10,5 @@ public/api/api-cache/
 input/
 output/
 production/
+/dist
+package-lock.json

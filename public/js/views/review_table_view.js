@@ -1,4 +1,7 @@
-window.Table_Template_Store = {
+import { RejectCauseIndicatorView } from './reject_cause_view.js';
+import { ReviewView } from './review_base_view.js';
+
+var Table_Template_Store = window.Table_Template_Store = {
 
     template: function(data_type, data_key, columns) {
 
@@ -43,7 +46,7 @@ String.prototype.toProperCase = function () {
     return tmp.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 };
 
-window.ReviewTableView = window.ReviewView.extend({
+var ReviewTableView = window.ReviewTableView = ReviewView.extend({
 
     initialize: function (options) {
 
@@ -67,7 +70,7 @@ window.ReviewTableView = window.ReviewView.extend({
         this.$el.html(this.template({
             table_id: this.options.table_id,
             //columns: this.options.columns,
-            classname: "display table table-condensed sead-smaller-font-size"
+            classname: "display table table-sm sead-smaller-font-size"
         }));
 
         this.render_data();
@@ -105,7 +108,7 @@ window.ReviewTableView = window.ReviewView.extend({
         ];
         var dataKeys = keys.filter(key => !key.startsWith('public_') && keys.includes('public_' + key));
         for (var key of dataKeys) {
-            columns.push({column_name: key.toProperCase(), column_field: key, public_column_field: "public_" + key})
+            columns.push({column_name: key.toProperCase(), column_field: key, public_column_field: "public_" + key});
         }
         return columns;
     },
@@ -173,3 +176,5 @@ window.ReviewTableView = window.ReviewView.extend({
     }
 
 });
+
+export { Table_Template_Store, ReviewTableView };
