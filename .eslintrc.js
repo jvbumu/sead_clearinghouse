@@ -7,7 +7,10 @@ module.exports = {
   },
   "env": {
     "browser": true,
-    "mocha": true
+    "commonjs": true,
+    "mocha": true,
+    "es6": true,
+    "jquery": true
   },
   "extends": 'eslint:recommended',
   "rules": {
@@ -27,6 +30,12 @@ module.exports = {
     "process": true,
     "module": true,
     "Map": true,
-    "Promise": true
-  }
-}
+    "Promise": true,
+    "Backbone": true,
+    "SEAD": true,
+    "TemplateStore": true,
+    "Table_Template_Store": true,
+    "_": true,
+    "utils": true
+  },
+};

@@ -2,13 +2,13 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlPlugin = require("html-webpack-plugin");
-
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 // Will be used to copy API dir: https://webpack.js.org/plugins/copy-webpack-plugin/
 // const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     mode: 'development',
-    entry: path.join(__dirname, 'public/js/main.js'),
+    entry: path.join(__dirname, 'src/js/main.js'),
     output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'public')
@@ -23,7 +23,7 @@ module.exports = {
             },
             {
                 test: /\.js$/,
-                include: [ path.join(__dirname, 'public') ],
+                include: [ path.join(__dirname, 'src') ],
                 exclude: /(node_modules|bower_components)/,
                 use: {
                     loader: 'babel-loader',
@@ -63,7 +63,7 @@ module.exports = {
     plugins: [
         new webpack.LoaderOptionsPlugin({ options: {} }),
         new HtmlPlugin({
-            template: "./public/index-template.html",
+            template: "./src/index-template.html",
             inject: "body"
         }),
         new webpack.ProvidePlugin({
@@ -73,7 +73,16 @@ module.exports = {
             'window.$': 'jquery',
             _: "underscore",
             Backbone : "backbone",
-        })
+        }),
+        new CopyWebpackPlugin([
+            {
+                from: 'src/api/',
+                to: 'public/api',
+                ignore: [ '*.json' ],
+                toType: 'dir',
+                force: true
+            }
+        ], { debug: 'debug' } )
     ],
     resolve: {
         extensions: [ '.json', '.js', '.jsx', '.css' ],
@@ -81,9 +90,9 @@ module.exports = {
             path.resolve('./node_modules'),
         ],
         alias: {
-            ImageFiles: path.resolve(__dirname, 'public/images/'),
-            CssFiles: path.resolve(__dirname, 'public/css/'),
-            TemplateFiles: path.resolve(__dirname, 'public/templates/')
+            ImageFiles: path.resolve(__dirname, 'src/images/'),
+            CssFiles: path.resolve(__dirname, 'src/css/'),
+            TemplateFiles: path.resolve(__dirname, 'src/templates/')
         }
     },
     devtool: 'source-map',
