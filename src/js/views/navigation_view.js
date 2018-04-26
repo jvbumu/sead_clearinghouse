@@ -1,3 +1,5 @@
+import 'jquery-ui';
+
 var SubmissionNavigationView = window.SubmissionNavigationView = Backbone.View.extend({
 
     initialize: function (options) {
@@ -20,6 +22,8 @@ var SubmissionNavigationView = window.SubmissionNavigationView = Backbone.View.e
         this.listenTo(this.reports, 'reset', this.renderReports);
         this.listenTo(this, 'render:complete', this.assignToggler);
         this.listenTo(this.tablesView, 'render:complete', this.renderCompleteNotifier);
+
+        $(".left.pane").resizable({ handles: "e, w" });
 
     },
 
@@ -235,13 +239,14 @@ var TreeNodeHelper = {
         $('.tree li:has(ul)', context).addClass('parent_li').find(' > span').attr('title', 'Collapse this branch');
 
         $('.tree li.parent_li > span', context).on('click', function (e) {
-            var children = $(this).parent('li.parent_li').find(' > ul > li');
+            var $self = $(this);
+            var children = $self.parent('li.parent_li').find(' > ul'); // > li');
             if (children.is(":visible")) {
                 children.hide(0); //'fast');
-                $(this).attr('title', 'Expand this branch').find(' > i').addClass('glyphicon-plus-sign').removeClass('glyphicon-minus-sign');
+                $self.attr('title', 'Expand this branch').find(' > i').addClass('glyphicon-plus-sign').removeClass('glyphicon-minus-sign');
             } else {
                 children.show(0); // ('fast');
-                $(this).attr('title', 'Collapse this branch').find(' > i').addClass('glyphicon-minus-sign').removeClass('glyphicon-plus-sign');
+                $self.attr('title', 'Collapse this branch').find(' > i').addClass('glyphicon-minus-sign').removeClass('glyphicon-plus-sign');
             }
             e.stopPropagation();
         });

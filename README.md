@@ -21,3 +21,5 @@ npm install datatables.net-responsive datatables.net-responsive-bs4 --save
 npm install "babel-loader@^8.0.0-beta" @babel/core @babel/preset-env webpack --save-dev
 npm i file-loader css-loader style-loader --save-dev
 npx webpack --config webpack.config.js
+
+https://getcomposer.org/download/

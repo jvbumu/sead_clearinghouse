@@ -137,6 +137,7 @@ Create Or Replace Function clearing_house.fn_create_public_db_entity_tables(targ
 	Declare x RECORD;
 	Declare create_script text;
 	Declare drop_script text;
+	Declare index_script text;
 
 Begin
 
@@ -165,6 +166,9 @@ Begin
 
 			create_script := clearing_house.fn_script_public_db_entity_table(x.source_schema, target_schema, x.table_name);
 			drop_script := 'Drop Table If Exists ' || target_schema || '.' ||  x.table_name || ' CASCADE;';
+            -- FIXME: Index create not tested
+            -- index_script = 'Create Index idx_' || x.table_name || '_submission_id On '
+            --    || target_schema || '.' ||  x.table_name || ' (submission_id, public_db_id);';
 
 			If (create_script <> '') Then
 
@@ -172,6 +176,7 @@ Begin
 
                 If (Not only_drop) Then
 				    Execute create_script;
+				    -- Execute index_script;
                 End If;
 
 				Insert Into clearing_house.tbl_clearinghouse_sead_create_table_log (create_script, drop_script) Values (create_script, drop_script);
@@ -469,3 +474,4 @@ Begin
     Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE);
     Perform clearing_house.fn_create_public_db_entity_tables('clearing_house', TRUE);
 End $$ Language plpgsql;
+

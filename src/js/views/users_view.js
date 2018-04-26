@@ -119,7 +119,7 @@ export var UserListView = window.UserListView = Backbone.View.extend({
         var table =
             $("#users-list", this.$el)
                 .bind('page',   function () { self.trigger("paging-occurred"); })
-                .DataTable(
+                .dataTable(
                     {
                         "sDom": "T<'clear'><'toolbar'>frtip<'row-fluid'<'span6'l><'span6'f>r>",
                         "aaData": data,

@@ -12,6 +12,7 @@ import 'datatables.net-buttons-bs4/css/buttons.bootstrap4.css';
 import "CssFiles/styles.css";
 
 import "jquery";
+import "jquery-ui";
 import "underscore";
 import "backbone";
 import "bootstrap";
@@ -112,11 +113,15 @@ var AppRouter = Backbone.Router.extend({
 
     initialize: function () {
 
+        var $headerContainer = $('.header');
         this.headerView = new HeaderView();
-        $('.header').html(this.headerView.el);
+        $headerContainer.html(this.headerView.el);
+        $headerContainer.children().children().unwrap();
 
+        var $footerContainer = $('.footer');
         this.footerView = new FooterView();
-        $('.footer').html(this.footerView.el);
+        $footerContainer.html(this.footerView.el);
+        $footerContainer.children().children().unwrap();
 
         var genericErrorCallback = this.displayError;
 

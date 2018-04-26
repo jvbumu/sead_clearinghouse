@@ -5,14 +5,16 @@
   "main": "public/js/main.js",
   "private": true,
   "scripts": {
-    "clean:all": "npm cache clean && npm run rimraf -- public/*",
-    "clean": "mkdirp public && rimraf public/*",
-    "copy:data": "cp api/ecofig_data.json public/",
-    "copy:api": "cpr node_modules/cesium/Build/Cesium public/cesium",
+    "clean:all": "npm cache clean && rimraf -- public/*",
+    "clean": "mkdirp public && rimraf public/* && mkdirp public/upload",
+    "copy:api": "cpr src/api public/api",
+    "copy:vendor": "rimraf -- public/vendor && cpr src/vendor public/vendor",
+    "update:php:autoload": "cd src && composer dump-autoload -o && cd ..",
+    "copy:clean": "npm run clean && npm run copy:api",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "w": "npx webpack --config webpack.config.js --no-color --watch",
-    "dev": "npx webpack --mode development --config webpack.config.js",
-    "build": "npx webpack --mode production --config webpack.config.js"
+    "dev": "npm run copy:clean && npx webpack --config webpack.config.js --mode development --no-color --watch",
+    "build:dev": "npm run copy:clean && npx webpack --mode development --config webpack.config.js --no-color",
+    "build:release": "npm run copy:clean && npx webpack --mode production --config webpack.config.js --no-color"
   },
   "repository": {
     "type": "git",
@@ -68,6 +70,8 @@
     "datatables.net-select-bs4": "^1.2.5",
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
+    "jquery-ui": "^1.12.1",
+    "jquery-ui-dist": "^1.12.1",
     "popper.js": "^1.14.1",
     "spin": "0.0.1",
     "underscore": "^1.8.3"

@@ -2,12 +2,11 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlPlugin = require("html-webpack-plugin");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
+// const CopyWebpackPlugin = require("copy-webpack-plugin");
 // Will be used to copy API dir: https://webpack.js.org/plugins/copy-webpack-plugin/
 // const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-    mode: 'development',
     entry: path.join(__dirname, 'src/js/main.js'),
     output: {
         filename: 'bundle.js',
@@ -74,15 +73,7 @@ module.exports = {
             _: "underscore",
             Backbone : "backbone",
         }),
-        new CopyWebpackPlugin([
-            {
-                from: 'src/api/',
-                to: 'public/api',
-                ignore: [ '*.json' ],
-                toType: 'dir',
-                force: true
-            }
-        ], { debug: 'debug' } )
+        // new CopyWebpackPlugin([{ from: 'src/api/', to: 'public/api', ignore: [ '*.json' ], toType: 'dir', force: true }])
     ],
     resolve: {
         extensions: [ '.json', '.js', '.jsx', '.css' ],
@@ -92,7 +83,8 @@ module.exports = {
         alias: {
             ImageFiles: path.resolve(__dirname, 'src/images/'),
             CssFiles: path.resolve(__dirname, 'src/css/'),
-            TemplateFiles: path.resolve(__dirname, 'src/templates/')
+            TemplateFiles: path.resolve(__dirname, 'src/templates/'),
+            'jquery-ui': 'jquery-ui-dist/jquery-ui.js'
         }
     },
     devtool: 'source-map',

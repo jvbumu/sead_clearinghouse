@@ -202,6 +202,7 @@ var SubmissionListView = window.SubmissionListView = Backbone.View.extend({
                 }
             });
         try { table.select(0).select(0); } catch(x) { }  // eslint-disable-line no-empty
+
         table.on('select', function ( e, dt, type, indexes ) {
             if ( type === 'row' && indexes.length > 0) {
                 var rowData = table.rows( indexes ).data().toArray();
@@ -219,9 +220,20 @@ var SubmissionListView = window.SubmissionListView = Backbone.View.extend({
     updateRow: function(data)
     {
         try {
+            var self = this;
             this.submissions.findWhere({submission_id: data.submission_id}).set(data);
-            var rowid = "rowid_" + data.submission_id.toString();
-            this.table.fnUpdate(data, this.table.$("#" + rowid)[0]);
+            var table = self.table;
+            table.rows().every(
+                function(idx) {
+                    var d = this.data();
+                    if (d.submission_id === data.submission_id) {
+                        d = $.extend(d, data);
+                        table.row(this).data(d).draw();
+                        self.trigger("submission-selected", d.submission_id, idx);
+                        return;
+                    }
+                }
+            );
         } catch (ex) {
             alert(ex);
             this.table.fnDraw();
