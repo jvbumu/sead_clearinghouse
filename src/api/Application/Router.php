@@ -1,6 +1,11 @@
 <?php
+namespace Application;
 
-namespace Application {
+require_once __DIR__ . '/../../vendor/autoload.php';
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+//use Slim\Slim;
+
 
     class Router {
 
@@ -9,7 +14,7 @@ namespace Application {
         public $config = null;
 
         function __construct($application) {
-            \Slim\Slim::registerAutoloader();
+            //Slim::registerAutoloader();
             $this->application = $application;
             $this->config = $this->getConfig();
         }
@@ -46,67 +51,181 @@ namespace Application {
         function setup()
         {
 
-            $router = new \Slim\Slim($this->config);
+            $router = new \Slim\App($this->config);
+            $container = $router->getContainer();
+            $container['application'] = function($c) { return $this->application; };
 
-            $router->contentType('application/json');
+            // $router->contentType('application/json');
 
-            $router->get('/helloworld', function() { $this->application->getHelloWorld(); });
-            $router->get('/bootstrap', function() { $this->application->getBootstrapData(); });
+            $router->get('/helloworld', function(ServerRequestInterface $request, ResponseInterface $response)
+            {
+                $this->application->getHelloWorld();
+            });
 
-            $router->get('/login', function() { $this->application->login(); });
+            $router->get('/bootstrap', function(ServerRequestInterface $request, ResponseInterface $response) {
+                $this->application->getBootstrapData();
+            });
 
-            $router->get('/logout', function() { $this->application->logout(); });
+            $router->get('/login', function(ServerRequestInterface $request, ResponseInterface $response) {
+                $this->application->login($request, $response);
+            });
 
-            $router->get('/users', function() { $this->application->getUsers(); });
-            $router->get('/users/:id', function($id) { $this->application->getUser($id); });
-            $router->post('/users', function() { $this->application->saveUser(); });
-            $router->put('/users', function() { $this->application->saveUser(); });
-            $router->delete('/users/:id', function($id) { $this->application->deleteUserById($id); });
+            $router->get('/logout', function(ServerRequestInterface $request, ResponseInterface $response) {
+                $this->application->logout();
+            });
 
-            $router->get('/sites', function() { $this->application->getSites(); });
+            $router->get('/users', function(ServerRequestInterface $request, ResponseInterface $response) {
+                $this->application->getUsers();
+            });
 
-            $router->get('/submissions_report', function() { $this->application->getSubmissionsReport(); });
-            $router->get('/submissions', function() { $this->application->getSubmissions(); });
-            $router->get('/submissions/:id/process', function($id) { $this->application->processSubmission($id); });
-            $router->get('/submissions/process_queue', function() { $this->application->processSubmissionQueue(); });
-            $router->get('/submissions/:id', function($id) { $this->application->getSubmission($id); });
-            $router->get('/submissions/:id/sites', function($id) { $this->application->getSubmissionSites($id); });
+            $router->get('/users/{user_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getUser($request, $response, $args);
+            });
 
-            $router->get('/reject_entity_types', function() { $this->application->getRejectTypes(); });
+            $router->post('/users', function() {
+                $this->application->saveUser();
+            });
 
-            $router->get('/submissions/:id/rejects', function($id) { $this->application->getSubmissionRejects($id); });
-            $router->post('/submissions/:id/rejects', function($id) { $this->application->saveSubmissionReject($id); });
-            $router->put('/submissions/:id/rejects', function($id) { $this->application->saveSubmissionReject($id); });
-            $router->put('/submissions/:sid/rejects/:rid', function($sid, $rid) { $this->application->saveSubmissionReject($sid, $rid); });
-            $router->delete('/submissions/:sid/rejects/:rid', function($sid, $rid) { $this->application->deleteSubmissionReject($sid, $rid); });
+            $router->put('/users', function() {
+                $this->application->saveUser();
+            });
 
-            $router->get("/submission/:submission_id/metadata", function($submission_id) { $this->application->getSubmissionMetaData($submission_id); });
+            $router->delete('/users/{user_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->deleteUserById($request, $response, $args);
+            });
 
-            $router->get("/submission/:submission_id/site/:site_id", function($submission_id, $site_id) { $this->application->getSiteModel($submission_id, $site_id); });
-            $router->get("/submission/:submission_id/site/:site_id/sample_group/:sample_group_id", function($submission_id, $site_id, $sample_group_id) { $this->application->getSampleGroupModel($submission_id, $site_id, $sample_group_id); });
-            $router->get("/submission/:submission_id/site/:site_id/sample_group/:sample_group_id/sample/:sample_id", function($submission_id, $site_id, $sample_group_id, $sample_id) { $this->application->getSampleModel($submission_id, $site_id, $sample_group_id, $sample_id); });
-            $router->get("/submission/:submission_id/site/:site_id/sample_group/:sample_group_id/dataset/:dataset_id", function($submission_id, $site_id, $sample_group_id, $dataset_id) { $this->application->getDataSetModel($submission_id, $site_id, $sample_group_id, $dataset_id); });
+            $router->get('/sites', function() {
+                $this->application->getSites();
+            });
 
-            $router->get('/reports/toc', function() { $this->application->getReports(); });
-            $router->get('/reports/execute/:sid/:id', function($sid, $id) { $this->application->executeReport($sid, $id); });
-            $router->get('/submission/:sid/tables', function($sid) { $this->application->getSubmissionTables($sid); });
-            $router->get('/submission/:sid/table/:id', function($sid, $tableid) { $this->application->getSubmissionTableContent($sid, $tableid); });
+            $router->get('/submissions_report', function() {
+                $this->application->getSubmissionsReport();
+            });
+
+            $router->get('/submissions', function() {
+                $this->application->getSubmissions();
+            });
+
+            $router->get('/submissions/{submission_id}/process', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->processSubmission($request, $response, $args);
+            });
+
+            $router->get('/submissions/process_queue', function() {
+                $this->application->processSubmissionQueue();
+            });
+
+            $router->get('/submissions/{submission_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getSubmission($request, $response, $args);
+            });
+
+            $router->get('/submissions/{submission_id}/sites', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getSubmissionSites($request, $response, $args);
+            });
+
+            $router->get('/reject_entity_types', function() {
+                $this->application->getRejectTypes();
+            });
+
+            $router->get('/submissions/{submission_id}/rejects', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getSubmissionRejects($request, $response, $args);
+            });
+
+            $router->post('/submissions/{submission_id}/rejects', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->saveSubmissionReject($request, $response, $args);
+            });
+
+            $router->put('/submissions/{submission_id}/rejects', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->saveSubmissionReject($request, $response, $args);
+            });
+
+            $router->put('/submissions/{submission_id}/rejects/{reject_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->saveSubmissionReject($request, $response, $args);
+            });
+
+            $router->delete('/submissions/{submission_id}/rejects/{reject_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->deleteSubmissionReject($request, $response, $args);
+            });
+
+            $router->get("/submission/{submission_id}/metadata", function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getSubmissionMetaData($request, $response, $args);
+            });
+
+            $router->get("/submission/{submission_id}/site/{site_id}", function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getSiteModel($request, $response, $args);
+            });
+
+            $router->get("/submission/{submission_id}/site/{site_id}/sample_group/{sample_group_id}", function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getSampleGroupModel($request, $response, $args);
+            });
+
+            $router->get("/submission/{submission_id}/site/{site_id}/sample_group/{sample_group_id}/sample/{sample_id}",
+                function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                    $this->application->getSampleModel($request, $response, $args);
+                });
+
+            $router->get("/submission/{submission_id}/site/{site_id}/sample_group/{sample_group_id}/dataset/{dataset_id}",
+                function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                    $this->application->getDataSetModel($request, $response, $args);
+                });
+
+            $router->get('/reports/toc', function() {
+                $this->application->getReports();
+            });
+
+            $router->get('/reports/execute/{submission_id}/{report_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->executeReport($request, $response, $args);
+            });
+
+            $router->get('/submission/{submission_id}/tables', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getSubmissionTables($request, $response, $args);
+            });
+
+            $router->get('/submission/{submission_id}/table/{table_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->getSubmissionTableContent($request, $response, $args);
+            });
 
             $router->get('/copydata', function() { $this->application->copyData(); });
-            $router->get('/unittest/:testcase/:arg1/:arg2', function($a, $b, $c) { $this->application->runUnitTest($a, $b, $c); });
-            $router->get('/unittest/:testcase/:arg1', function($a, $b) { $this->application->runUnitTest($a, $b); });
-            $router->get('/unittest/:testcase', function($a) { $this->application->runUnitTest($a); });
-            $router->get('/mailtest', function() { $this->application->mailTest(); });
+
+            $router->get('/unittest/{testcase}/{a}/{b}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->runUnitTest($request, $response, $args);
+            });
+
+            $router->get('/unittest/{testcase}/{a}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->runUnitTest($request, $response, $args);
+            });
+
+            $router->get('/unittest/{testcase}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->runUnitTest($request, $response, $args);
+            });
+
+            $router->get('/mailtest', function() {
+                $this->application->mailTest();
+            });
 
             /* services */
-            $router->get("/submission/:submission_id/claim", function($submission_id) { $this->application->claimSubmission($submission_id); });
-            $router->get("/submission/:submission_id/unclaim", function($submission_id) { $this->application->unclaimSubmission($submission_id); });
-            $router->get("/submission/:submission_id/transfer", function($submission_id) { $this->application->transferSubmission($submission_id); });
+            $router->get("/submission/{submission_id}/claim", function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->claimSubmission($request, $response, $args);
+            });
 
-            $router->get("/submission/:submission_id/reject", function($submission_id) { $this->application->rejectSubmission($submission_id); });
-            $router->get("/submission/:submission_id/accept", function($submission_id) { $this->application->acceptSubmission($submission_id); });
+            $router->get("/submission/{submission_id}/unclaim", function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->unclaimSubmission($request, $response, $args);
+            });
 
-            $router->get('/nag', function() { $this->application->nag(); });
+            $router->get("/submission/{submission_id}/transfer", function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->transferSubmission($request, $response, $args);
+            });
+
+            $router->get("/submission/{submission_id}/reject", function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->rejectSubmission($request, $response, $args);
+            });
+
+            $router->get("/submission/{submission_id}/accept", function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+                $this->application->acceptSubmission($request, $response, $args);
+            });
+
+            $router->get('/nag', function() {
+                $this->application->nag();
+            });
 
             return $router;
 
@@ -114,5 +233,4 @@ namespace Application {
 
     }
 
-}
 ?>

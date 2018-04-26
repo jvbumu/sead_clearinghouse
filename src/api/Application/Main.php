@@ -1,6 +1,6 @@
 <?php
-
-namespace Application {
+namespace Application;
+//namespace Application {
 
     class Main {
 
@@ -40,20 +40,6 @@ namespace Application {
             return \Application\Session::getCurrentSession();
         }
 
-        public function getRequest()
-        {
-            return \Slim\Slim::getInstance()->request();;
-        }
-
-        public function getRequestData()
-        {
-            $request = \Slim\Slim::getInstance()->request();
-            $entity = json_decode($request->getBody());
-            if (is_object($entity)) {
-                $entity = get_object_vars($entity);
-            }
-            return $entity;
-        }
         public function run()
         {
             \Application\ClearingHouseCommand::assertLoad();
@@ -81,11 +67,11 @@ namespace Application {
             echo "Hello, World!";
         }
 
-        function login() {
-            $request = \Slim\Slim::getInstance()->request();
+        function login($request, $response) {
+            //$request = \Slim\Slim::getInstance()->request();
             $payload = array(
-                "username" => $request->params("username"),
-                "password" => $request->params("password"), //$this->locator->getEncryptPasswordService()->encode($request->params("password")),
+                "username" => $request->getQueryParam("username"),
+                "password" => $request->getQueryParam("password"), //$this->locator->getEncryptPasswordService()->encode($request->params("password")),
                 "ip" => \InfraStructure\Utility::getServerIP()
             );
             echo json_encode((new CH_Login_Command())->execute(0, $payload));
@@ -105,19 +91,21 @@ namespace Application {
             echo json_encode($this->locator->getUserService()->getUsers());
         }
 
-        public function getUser($id) {
-            $user = $this->locator->getUserService()->getUser($id);
+        public function getUser($request, $response, $args) {
+            $id = $args['user_id'];
+            $user = $this->locator->getUserService()->getUser($user_id);
             $user["password_hash"] = $user["password"];
             $user["password"] =  $this->magic_password; //$this->locator->getEncryptPasswordService()->decode($entity["password"]);
             echo json_encode($user);
         }
 
-        public function deleteUserById($id) {
-            echo json_encode($this->locator->getUserService()->deleteById($id));
+        public function deleteUserById($request, $response, $args) {
+            $user_id = $args['user_id'];
+            echo json_encode($this->locator->getUserService()->deleteById($user_id));
         }
 
-        public function saveUser() {
-            $user = $this->getRequestData();
+        public function saveUser($request, $response) {
+            $user = $request->getParsedBody();
             $user["password"] = $user["password"] ==  $this->magic_password ? $user["password_hash"] : password_hash($user["password"], PASSWORD_BCRYPT);
             // $user["password"] = $this->locator->getEncryptPasswordService()->encode($user["password"]);
             echo json_encode((new CH_Save_User_Command())->execute(0, $user));
@@ -131,52 +119,62 @@ namespace Application {
             echo json_encode($this->locator->getSubmissionService()->getSubmissions());
         }
 
-        function getSubmission($id) {
-            echo json_encode($this->locator->getSubmissionService()->getSubmission($id));
+        function getSubmission($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            echo json_encode($this->locator->getSubmissionService()->getSubmission($submission_id));
         }
 
-        function getSubmissionSites($id) {
-            echo json_encode($this->locator->getSubmissionService()->getSubmissionSites($id));
+        function getSubmissionSites($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            echo json_encode($this->locator->getSubmissionService()->getSubmissionSites($submission_id));
         }
 
-        function getSubmissionRejects($id) {
-            echo json_encode($this->locator->getSubmissionService()->getSubmissionRejects($id));
+        function getSubmissionRejects($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            echo json_encode($this->locator->getSubmissionService()->getSubmissionRejects($submission_id));
         }
 
-        function claimSubmission($submission_id)
-        {
+        function claimSubmission($request, $response, $args) {
+            $submission_id = $args['submission_id'];
             echo json_encode((new CH_Claim_Command())->execute($submission_id, null));
         }
 
-        function unclaimSubmission($submission_id)
-        {
+        function unclaimSubmission($request, $response, $args) {
+            $submission_id = $args['submission_id'];
             echo json_encode((new CH_Unclaim_Command())->execute($submission_id, null));
         }
 
-        function rejectSubmission($submission_id)
-        {
+        function rejectSubmission($request, $response, $args) {
+            $submission_id = $args['submission_id'];
             echo json_encode((new CH_Reject_Command())->execute($submission_id, null));
         }
 
-        function acceptSubmission($submission_id)
-        {
+        function acceptSubmission($request, $response, $args) {
+            $submission_id = $args['submission_id'];
             echo json_encode((new CH_Accept_Command())->execute($submission_id, null));
         }
 
-        function transferSubmission($submission_id)
-        {
-            echo json_encode((new CH_Transfer_Command())->execute($submission_id, $this->getRequestData()));
+        function transferSubmission($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            $data = $request->getParsedBody();
+            echo json_encode((new CH_Transfer_Command())->execute($submission_id, $data));
         }
 
-        function saveSubmissionReject($submission_id, $reject_id) {
-            echo json_encode((new CH_Save_Reject_Cause_Command())->execute($submission_id, $this->getRequestData()));
+        function saveSubmissionReject($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            $reject_id = $args['reject_id'];
+            $data = $request->getParsedBody();
+            echo json_encode((new CH_Save_Reject_Cause_Command())->execute($submission_id, $data));
         }
 
-        function deleteSubmissionReject($submission_id, $submission_reject_id) {
-            echo json_encode((new CH_Delete_Reject_Cause_Command())->execute($submission_id, $submission_reject_id));
+        function deleteSubmissionReject($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            $reject_id = $args['reject_id'];
+            echo json_encode((new CH_Delete_Reject_Cause_Command())->execute($submission_id, $reject_id));
         }
 
-        function processSubmission($submission_id) {
+        function processSubmission($request, $response, $args) {
+            $submission_id = $args['submission_id'];
             echo json_encode((new CH_Process_Command())->execute($submission_id, null));
         }
 
@@ -188,8 +186,8 @@ namespace Application {
             echo json_encode((new CH_Process_Queue_Command())->execute(0, null));
         }
 
-        function getSubmissionMetaData($submission_id)
-        {
+        function getSubmissionMetaData($request, $response, $args) {
+            $submission_id = $args['submission_id'];
             $command = new CH_Open_Command();
             $json_data = $this->executeCommand($command, $submission_id, null);
             echo $json_data;
@@ -201,23 +199,32 @@ namespace Application {
             echo $json_data;
         }
 
-        function getSiteModel($submission_id, $site_id)
-        {
+        function getSiteModel($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            $site_id = $args['site_id'];
             echo json_encode($this->locator->getSiteService()->getSiteModel($submission_id, $site_id));
         }
 
-        function getSampleGroupModel($submission_id, $site_id, $sample_group_id)
-        {
+        function getSampleGroupModel($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            $site_id = $args['site_id'];
+            $sample_group_id = $args['sample_group_id'];
             echo json_encode($this->locator->getSampleGroupService()->getSampleGroupModel($submission_id, $site_id, $sample_group_id));
         }
 
-        function getSampleModel($submission_id, $site_id, $sample_group_id, $sample_id)
-        {
+        function getSampleModel($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            $site_id = $args['site_id'];
+            $sample_group_id = $args['sample_group_id'];
+            $sample_id = $args['sample_id'];
             echo json_encode($this->locator->getSampleService()->getSampleModel($submission_id, /* $site_id, $sample_group_id, */ $sample_id));
         }
 
-        function getDataSetModel($submission_id, $site_id, $sample_group_id, $dataset_id)
-        {
+        function getDataSetModel($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            $site_id = $args['site_id'];
+            $sample_group_id = $args['sample_group_id'];
+            $dataset_id = $args['dataset_id'];
             echo json_encode($this->locator->getDataSetService()->getDataSetModel($submission_id, /* $site_id, $sample_group_id, */ $dataset_id));
         }
 
@@ -229,19 +236,22 @@ namespace Application {
             echo json_encode($this->locator->getReportService()->getReports());
         }
 
-        function executeReport($id, $sid)
+        function executeReport($request, $response, $args)
         {
-            echo json_encode($this->locator->getReportService()->executeReport($id, intval($sid)));
+            $report_id = $args['report_id'];
+            $submission_id = $args['submission_id'];
+            echo json_encode($this->locator->getReportService()->executeReport($report_id, intval($submission_id)));
         }
 
-        function getSubmissionTables($sid)
-        {
-            echo json_encode($this->locator->getReportService()->getSubmissionTables(intval($sid)));
+        function getSubmissionTables($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            echo json_encode($this->locator->getReportService()->getSubmissionTables(intval($submission_id)));
         }
 
-        function getSubmissionTableContent($sid, $tableid)
-        {
-            echo json_encode($this->locator->getReportService()->getSubmissionTableContent(intval($sid), intval($tableid)));
+        function getSubmissionTableContent($request, $response, $args) {
+            $submission_id = $args['submission_id'];
+            $table_id = $args['table_id'];
+            echo json_encode($this->locator->getReportService()->getSubmissionTableContent(intval($submission_id), intval($table_id)));
         }
 
         function copyData()
@@ -284,5 +294,5 @@ namespace Application {
         }
     }
 
-}
+//}
 ?>
