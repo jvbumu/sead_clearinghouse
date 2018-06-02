@@ -2,9 +2,8 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlPlugin = require("html-webpack-plugin");
-// const CopyWebpackPlugin = require("copy-webpack-plugin");
 // Will be used to copy API dir: https://webpack.js.org/plugins/copy-webpack-plugin/
-// const CopyWebpackPlugin = require('copy-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     entry: path.join(__dirname, 'src/js/main.js'),
@@ -73,7 +72,16 @@ module.exports = {
             _: "underscore",
             Backbone : "backbone",
         }),
-        // new CopyWebpackPlugin([{ from: 'src/api/', to: 'public/api', ignore: [ '*.json' ], toType: 'dir', force: true }])
+        new CopyWebpackPlugin([
+            {
+                from: 'src/api/',
+                to: 'public/api',
+                ignore: [ '*.json' ],
+                toType: 'dir',
+                force: true,
+                copyUnmodified: false
+            }
+        ])
     ],
     resolve: {
         extensions: [ '.json', '.js', '.jsx', '.css' ],

@@ -144,7 +144,12 @@ Begin
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_sead_create_table_log') Then
 
 	    -- Drop Table If Exists clearing_house.tbl_clearinghouse_sead_create_table_log;
-	    Create Table clearing_house.tbl_clearinghouse_sead_create_table_log (create_script text, drop_script text);
+	    Create Table clearing_house.tbl_clearinghouse_sead_create_table_log (
+            create_log_id SERIAL PRIMARY KEY,
+            create_script text,
+            drop_script text,
+            date_updated timestamp with time zone DEFAULT now()
+        );
 
     End If;
 
@@ -342,16 +347,18 @@ End $$ Language plpgsql;
 **	When		2013-10-14
 **	What		Creates "union-views" of local and public entity tables
 **  Note
+**  Todo        Option for total recreate - now existing views are untouched
 **  Uses
 **  Used By
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE)
 -- Select * From clearing_house.tbl_clearinghouse_sead_create_view_log
-Create Or Replace Function clearing_house.fn_create_local_union_public_entity_views(target_schema character varying(255), local_schema character varying(255), only_drop BOOLEAN = FALSE)
+-- Drop Function clearing_house.fn_create_local_union_public_entity_views(target_schema character varying(255), local_schema character varying(255), only_drop BOOLEAN);
+Create Or Replace Function clearing_house.fn_create_local_union_public_entity_views(target_schema character varying(255), local_schema character varying(255), only_drop BOOLEAN = FALSE, only_missing BOOLEAN = FALSE)
 Returns void As $$
 
-	Declare x RECORD;
+	Declare v_row RECORD;
 	Declare drop_script text;
 	Declare create_script text;
 
@@ -361,18 +368,32 @@ Begin
 
 	Create Table clearing_house.tbl_clearinghouse_sead_create_view_log (create_script text, drop_script text);
 
-	For x In (
-		Select distinct table_schema As public_schema, table_name, replace(table_name, 'tbl_', 'view_') As view_name
-		From clearing_house.tbl_clearinghouse_sead_rdb_schema
-		Where table_schema Not In ('information_schema', 'pg_catalog', 'clearing_house', 'metainformation')
-		  And table_name Like 'tbl%'
-		  And is_pk = 'YES' /* Måste finnas PK */
+	For v_row In (
+
+        WITH clearinghouse_views AS (
+            SELECT c.relname as view_name
+            FROM pg_catalog.pg_class c
+            JOIN pg_catalog.pg_namespace n
+                ON n.oid = c.relnamespace
+            WHERE TRUE
+                AND c.relkind = 'v'    -- only tables
+                AND n.nspname = 'clearing_house'
+        )
+            SELECT DISTINCT r.table_schema As public_schema, r.table_name, replace(r.table_name, 'tbl_', 'view_') As view_name
+            FROM clearing_house.tbl_clearinghouse_sead_rdb_schema r
+            LEFT JOIN clearinghouse_views x
+            ON x.view_name = replace(r.table_name, 'tbl_', 'view_')
+            WHERE r.table_schema Not In ('information_schema', 'pg_catalog', 'clearing_house', 'metainformation')
+              AND r.table_name Like 'tbl_%'
+              AND r.is_pk = 'YES' /* Måste finnas PK */
+              AND (NOT only_missing OR x.view_name IS NULL)
+
 	)
 	Loop
 
-		drop_script = 'Drop View If Exists ' || target_schema || '.' || x.view_name || ' CASCADE;';
+		drop_script = 'Drop View If Exists ' || target_schema || '.' || v_row.view_name || ' CASCADE;';
 
-		create_script := clearing_house.fn_script_local_union_public_entity_view(target_schema, local_schema, x.public_schema, x.table_name);
+		create_script := clearing_house.fn_script_local_union_public_entity_view(target_schema, local_schema, v_row.public_schema, v_row.table_name);
 
 		If (create_script <> '') Then
 
@@ -385,7 +406,7 @@ Begin
             End If;
 
 		Else
-			Insert Into clearing_house.tbl_clearinghouse_sead_create_view_log (create_script, drop_script) Values ('--Failed: ' || target_schema || '.' || x.table_name, '');
+			Insert Into clearing_house.tbl_clearinghouse_sead_create_view_log (create_script, drop_script) Values ('--Failed: ' || target_schema || '.' || v_row.table_name, '');
 		End If;
 
 
@@ -464,14 +485,14 @@ Begin
 
     Perform clearing_house.fn_create_public_db_entity_tables('clearing_house', FALSE);
     Perform clearing_house.fn_generate_foreign_key_indexes();
-    Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', FALSE);
+    Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', FALSE, FALSE);
 
 End $$ Language plpgsql;
 
 Create Or Replace Function clearing_house.fn_drop_clearinghouse_public_db_model()
 Returns void As $$
 Begin
-    Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE);
+    Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE, FALSE);
     Perform clearing_house.fn_create_public_db_entity_tables('clearing_house', TRUE);
 End $$ Language plpgsql;
 

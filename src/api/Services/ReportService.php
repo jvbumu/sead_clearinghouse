@@ -1,7 +1,7 @@
 <?php
 
 namespace Services {
-    
+
     class ReportService extends ServiceBase {
 
         function getReports()
@@ -12,7 +12,11 @@ namespace Services {
         function executeReport($id, $sid)
         {
             $data = $this->registry->getReportRepository()->execute($id, $sid);
-            
+            $columns = ReportColumnsBuilder::createReviewTableColumns($data["columns"]);
+
+            //if () {
+            //    $value
+            //}
             $result = array (
                 "data" => $data["data"],
                 "columns" => ReportColumnsBuilder::createReviewTableColumns($data["columns"]),
@@ -22,7 +26,7 @@ namespace Services {
             );
             return $result;
         }
-        
+
         function getSubmissionTables($sid)
         {
             return $this->registry->getReportRepository()->getSubmissionTables($sid);
@@ -31,7 +35,7 @@ namespace Services {
         function getSubmissionTableContent($sid, $tableid)
         {
             $data = $this->registry->getReportRepository()->getSubmissionTableContent($sid, $tableid);
-            
+
             $result = array (
                 "data" => $data["data"],
                 "columns" => ReportColumnsBuilder::createReviewTableColumns($data["columns"], false),
@@ -40,11 +44,11 @@ namespace Services {
                 )
             );
             return $result;
-            
+
         }
-        
+
     }
-    
+
     class ReportColumnsBuilder
     {
         public static function createDataTablesColumns($columns)
@@ -59,7 +63,7 @@ namespace Services {
                     $columns
             );
         }
-        
+
         public static function createReviewTableColumns($columns, $ignore_id_columns = true)
         {
             $review_columns = array();
@@ -81,9 +85,9 @@ namespace Services {
                 }
                 $review_columns[] = $column_data;
             }
-            
+
             return $review_columns;
-        }      
+        }
 
 
     }

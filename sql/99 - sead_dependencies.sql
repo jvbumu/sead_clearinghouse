@@ -1,6 +1,6 @@
 ﻿/* Select all tables that has no foreign_table_name that isn't in sead_table_dep_depths */
-/*
-create or replace view clearing_house.view_sead_dependencies as 
+
+create or replace view clearing_house.view_sead_dependencies as
     with constraints as (
             select c.constraint_name
             , x.table_schema as schema_name
@@ -27,8 +27,8 @@ create or replace view clearing_house.view_sead_dependencies as
       --  and c.foreign_table_name is null
     ) select distinct table_name, foreign_table_name
       from dependencies;
-*/
-      
+
+
 Do $$
 Declare
     v_rows_affected int default 0;
@@ -61,7 +61,7 @@ Begin
             Where 1 = 1
               and x.table_name is null
               and a_count = b_count;
-        
+
         GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
 
         Exit When v_rows_affected = 0;  -- same result as previous example
@@ -70,10 +70,6 @@ Begin
 
 End $$ language plpgsql;
 
-select *
-
-select *
-from clearing_house.sead_table_dep_depths
 with x as (
     Select d.table_name, count(d.foreign_table_name) as a_count, count(dd.table_name) as b_count, string_agg(d.foreign_table_name || case when dd.table_name  is null then '*' else '' end, ', ') as b_tables
     From clearing_house.view_sead_dependencies d
@@ -83,4 +79,3 @@ with x as (
 ) select *
   from x
   where a_count > b_count
-  

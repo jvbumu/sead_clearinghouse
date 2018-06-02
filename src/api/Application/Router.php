@@ -172,7 +172,7 @@ use Psr\Http\Message\ResponseInterface;
                 $this->application->getReports();
             });
 
-            $router->get('/reports/execute/{submission_id}/{report_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
+            $router->get('/reports/execute/{report_id}/{submission_id}', function(ServerRequestInterface $request, ResponseInterface $response, $args) {
                 $this->application->executeReport($request, $response, $args);
             });
 

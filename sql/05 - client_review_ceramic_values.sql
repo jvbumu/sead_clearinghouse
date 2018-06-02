@@ -143,7 +143,7 @@ End $$ Language plpgsql;
 -- Drop Function clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(p_submission_id int)
 -- select * from clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(1)
 Create Or Replace Function clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(p_submission_id int)
-RETURNS TABLE (sample_name text, measured_values text[][])
+RETURNS TABLE (sample_name text, local_db_id int, public_db_id int, entity_type_id int, json_data_values json)
 AS $$
 	DECLARE
 		v_categories_sql text;
@@ -160,17 +160,17 @@ BEGIN
 		ORDER BY name
 	';
 	v_data_values_sql = format('
-		SELECT	sample_name,
+		SELECT	sample_name, local_db_id, public_db_id, entity_type_id,
 				lookup_name,
-				ARRAY[lookup_name, max(measurement_value), max(public_measurement_value)] as measurement_value
+				ARRAY[lookup_name, ''text'', max(measurement_value), max(public_measurement_value)] as measurement_value
 		FROM clearing_house.fn_clearinghouse_review_dataset_ceramic_values_client_data(%s, null) c
 		WHERE TRUE
-		GROUP BY sample_name, lookup_name
+		GROUP BY sample_name, local_db_id, public_db_id, entity_type_id, lookup_name
 		ORDER BY sample_name, lookup_name
 	', p_submission_id);
 
 	SELECT string_agg(format('%I text[]', name), ', ' order by name) as typed_fields,
-		   string_agg(format('COALESCE(%I, ARRAY[%L, null, null])', name, name), ', ' order by name) AS field_names,
+		   string_agg(format('COALESCE(%I, ARRAY[%L, '''', null, null])', name, name), ', ' order by name) AS field_names,
 		   string_agg(format('ARRAY[%L, ''local'', ''public'']', name), ', ' order by name) AS column_names
 	INTO v_typed_fields, v_field_names, v_column_names
 	FROM clearing_house.tbl_ceramics_lookup
@@ -179,16 +179,15 @@ BEGIN
 	SELECT format('
 		-- SELECT ''HEADER'', ARRAY[%s]
 		-- UNION ALL
-		SELECT sample_name, ARRAY[%s]
-		FROM crosstab(%L, %L) AS ct(sample_name text, %s)',
+		SELECT sample_name, local_db_id, public_db_id, entity_type_id, array_to_json(ARRAY[%s]) AS json_data_values
+		FROM crosstab(%L, %L) AS ct(sample_name text, local_db_id int, public_db_id int, entity_type_id int, %s)',
 				  v_column_names, v_field_names, v_data_values_sql, v_categories_sql, v_typed_fields)
 	INTO v_sql;
 
-	RAISE NOTICE '%', v_sql;
+	-- RAISE NOTICE '%', v_sql;
 
 	RETURN QUERY EXECUTE v_sql;
 
 END
 $$ LANGUAGE 'plpgsql';
-
--- select * from clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(1);
+select * from clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(1);
