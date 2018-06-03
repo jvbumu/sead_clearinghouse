@@ -9,9 +9,11 @@ DO $$
         GRANT USAGE ON SCHEMA audit TO humlab_admin;
         GRANT SELECT ON ALL TABLES IN SCHEMA audit TO humlab_admin;
 
-        -- You may also want to set default privileges for future schemas and tables. Run for every role that creates objects in your db
-        -- ALTER DEFAULT PRIVILEGES FOR ROLE mycreating_user IN SCHEMA public
-        -- GRANT SELECT ON TABLES TO humlab_admin;
+        GRANT USAGE ON SCHEMA audit TO sead_master, sead_read, humlab_admin, humlab_read, phil, mattias, postgres;
+        GRANT ALL ON ALL TABLES IN SCHEMA audit TO sead_master, sead_read, humlab_admin, mattias, phil, postgres;
+        ALTER DEFAULT PRIVILEGES FOR ROLE humlab_admin IN SCHEMA audit
+            GRANT SELECT ON TABLES TO sead_master, sead_read, humlab_admin, mattias, phil, humlab_read;
+
     END
 $$;
 
@@ -41,30 +43,35 @@ BEGIN
 		v_table_name = p_table_schema || '.' || v_record.table_name;
 		PERFORM audit.audit_table(v_table_name);
 
-        v_table_audit_view_sql = clearing_house.fn_script_audit_views(p_table_schema, v_record.table_name);
-        Execute v_table_audit_view_sql;
+        -- v_table_audit_view_sql = clearing_house.fn_script_audit_views(p_table_schema, v_record.table_name);
+        -- Execute v_table_audit_view_sql;
 
 		RAISE NOTICE 'DONE: %', v_table_name;
 	END LOOP;
 
 END
-$$ LANGUAGE plpgsql STABLE;
+$$ LANGUAGE plpgsql VOLATILE;
 
 /********************************************************************************************************
-**  FUNCTION    clearing_house.fn_script_audit_views
+**  FUNCTION    metainformation.fn_script_audit_views
 **  WHO         Roger Mähler
 **  WHAT        Script view DDL over audit HSTORE data for a specific table
 *********************************************************************************************************/
-
-Create Or Replace Function clearing_house.fn_script_audit_views(source_schema character varying(255), p_table_name character varying(255)) Returns text As $$
-	Declare sql_template text;
-	Declare sql_view text;
-	Declare column_list text;
-	Declare column_type text;
+-- DROP FUNCTION IF EXISTS metainformation.fn_script_audit_views(character varying(255), character varying(255))
+Create Or Replace Function metainformation.fn_script_audit_views(source_schema character varying(255), p_table_name character varying(255)) Returns text As $$
+	Declare v_template text;
+	Declare v_view_name text;
+	Declare v_view_dml text;
+	Declare v_column_list text;
+	Declare v_column_type text;
 	Declare x clearing_house.tbl_clearinghouse_sead_rdb_schema%rowtype;
 Begin
 
-	sql_template = 'CREATE VIEW audit.view_#TABLE-NAME# AS
+    v_view_name = Replace(p_table_name, 'tbl_', 'view_');
+
+	v_template = '
+    DROP VIEW IF EXISTS audit.#VIEW-NAME#;
+    CREATE VIEW audit.#VIEW-NAME# AS
 		SELECT #COLUMN-LIST#,
 		action,
 		session_user_name,
@@ -73,30 +80,59 @@ Begin
 		WHERE table_name = ''#TABLE-NAME#''
 	;';
 
-	column_list := '';
+	v_column_list := '';
 
 	For x In (
 		Select *
-		From clearing_house.tbl_clearinghouse_sead_rdb_schema s
+		From clearing_house.fn_dba_get_sead_public_db_schema() s
 		Where s.table_schema = source_schema
 		  And s.table_name = p_table_name
 		Order By ordinal_position)
 	Loop
 
-		column_list := column_list || Case When column_list = '' Then '' Else ',
+		v_column_list := v_column_list || Case When v_column_list = '' Then '' Else ',
 		'
 		End;
-		column_type := clearing_house.fn_create_schema_type_string(x.data_type, x.character_maximum_length, x.numeric_precision, x.numeric_scale, 'YES');
-		column_type := replace(column_type, ' null', '');
-		column_list := column_list || '(row_data->''' || x.column_name || ''')::' || column_type || ' AS ' || x.column_name;
+		v_column_type := clearing_house.fn_create_schema_type_string(x.data_type, x.character_maximum_length, x.numeric_precision, x.numeric_scale, 'YES');
+		v_column_type := replace(v_column_type, ' null', '');
+		v_column_list := v_column_list || '(row_data->''' || x.column_name || ''')::' || v_column_type || ' AS ' || x.column_name;
 
 	End Loop;
 
-	sql_view := sql_template;
-	sql_view := replace(sql_view, '#TABLE-NAME#', p_table_name);
-	sql_view := replace(sql_view, '#COLUMN-LIST#', column_list);
+	v_view_dml := v_template;
+	v_view_dml := replace(v_view_dml, '#VIEW-NAME#', v_view_name);
+	v_view_dml := replace(v_view_dml, '#TABLE-NAME#', p_table_name);
+	v_view_dml := replace(v_view_dml, '#COLUMN-LIST#', v_column_list);
 
-	Return sql_view;
+	Return v_view_dml;
 
 End $$ Language plpgsql;
 
+CREATE OR REPLACE FUNCTION metainformation.create_typed_audit_views(p_table_schema text = 'public') RETURNS void AS $$
+DECLARE
+   v_record RECORD;
+   v_table_name text;
+   v_view_dml text;
+BEGIN
+
+	FOR v_record IN
+		select  distinct t.table_name
+		from information_schema.tables t
+		join pg_trigger g
+		  on not g.tgisinternal
+		 and g.tgrelid = (t.table_schema || '.' || t.table_name)::regclass
+		where t.table_schema = p_table_schema
+		  and t.table_type = 'BASE TABLE'
+		order by 1
+	LOOP
+
+        v_view_dml = metainformation.fn_script_audit_views(p_table_schema, v_record.table_name);
+        Execute v_view_dml;
+
+		RAISE NOTICE 'DONE: %', v_table_name;
+	END LOOP;
+
+END
+$$ LANGUAGE plpgsql VOLATILE;
+
+-- SELECT metainformation.create_typed_audit_views('public');

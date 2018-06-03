@@ -20,7 +20,7 @@ BEGIN
 		date_updated timestamp with time zone DEFAULT now()
 	);
 
-	create table tbl_season_or_qualifier (
+	create table public.tbl_season_or_qualifier (
 		season_or_qualifier_id serial PRIMARY KEY,
 		season_or_qualifier_type character varying(150) NOT NULL,
 		description text,
@@ -33,23 +33,33 @@ BEGIN
 	alter table tbl_dendro_dates add column error_plus int;
 	alter table tbl_dendro_dates add column error_minus int;
 
-	alter table tbl_dendro_dates add column dendro_lookup_id integer not null, 
+	alter table tbl_dendro_dates add column dendro_lookup_id integer not null,
 		  add constraint fk_dendro_lookup_dendro_lookup_id
-		  foreign key (dendro_lookup_id) 
+		  foreign key (dendro_lookup_id)
 		  references tbl_dendro_lookup (dendro_lookup_id);
 
-	alter table tbl_dendro_dates 
-	  add column error_uncertainty_id integer not null, 
+	alter table tbl_dendro_dates
+	  add column error_uncertainty_id integer not null,
 		  add constraint fk_tbl_error_uncertainties_error_uncertainty_id
-		  foreign key (error_uncertainty_id) 
+		  foreign key (error_uncertainty_id)
 		  references tbl_error_uncertainties (error_uncertainty_id);
 
 	alter table tbl_dendro_dates drop column years_type_id;
-	alter table tbl_dendro_dates 
-	  add column age_type_id integer not null, 
+	alter table tbl_dendro_dates
+	  add column age_type_id integer not null,
 		  add constraint fk_tbl_age_types_age_type_id
-		  foreign key (age_type_id) 
+		  foreign key (age_type_id)
 		  references tbl_age_types (age_type_id);
+
+    ALTER TABLE public.tbl_age_types OWNER to sead_master;
+    ALTER TABLE public.tbl_error_uncertainties OWNER to sead_master;
+    ALTER TABLE public.tbl_season_or_qualifier OWNER to sead_master;
+
+    GRANT ALL ON TABLE public.tbl_age_types, public.tbl_error_uncertainties, public.tbl_season_or_qualifier
+        TO sead_master, sead_read, humlab_admin, mattias, postgres;
+
+    GRANT SELECT ON TABLE public.tbl_age_types, public.tbl_error_uncertainties, public.tbl_season_or_qualifier
+        TO humlab_read;
 
 	COMMIT;
 END $$;
@@ -270,7 +280,7 @@ BEGIN
 		(v_data_type_group, 'Estimated Years','Dates that are an estimation'),
 		(v_data_type_group, 'Composite date','A date which may include other information than the age, such as season, terminus and/or error margin.'),
 		(v_data_type_group, 'Approximate location','Geographical location given as approximate values or text. May include multiple levels, text strings and exclusions (e.g. not Poland).');
-		
+
 END $$;
 
 INSERT INTO tbl_dataset_masters (master_name, url) VALUES
@@ -502,32 +512,6 @@ INSERT INTO tbl_project_types (project_type_name, description) VALUES
 INSERT INTO tbl_project_stages (stage_name, description) VALUES
     ('Dendrochronological study','An investigation using tree rings to determine the age of wood. Sampling in historic building investigation and archaeological contexts.');
 
--- SELECT clearing_house.fn_dba_create_and_transfer_sead_public_db_schema()
-DO $$
-DECLARE
-	v_tablename text;
-	v_drop text;
-	v_create text;
-BEGIN
-	FOR v_tablename IN SELECT table_name
-	FROM (VALUES
-		('tbl_dendro_dates'),
-		('tbl_age_types'),
-		('tbl_error_uncertainties'),
-		('tbl_season_or_qualifier')		  
-	) AS tables(table_name)
-	LOOP
-		v_drop = 'DROP IF EXISTS clearing_house.' || v_tablename || ';';
-		v_create = clearing_house.fn_script_public_db_entity_table('public', 'clearing_house', v_tablename);
-
-		EXECUTE v_drop;
-		EXECUTE v_create;
-		
-		RAISE NOTICE 'DONE: %', v_create;
-		
-	END LOOP;
-
-END $$;
 
 COMMIT;
 
