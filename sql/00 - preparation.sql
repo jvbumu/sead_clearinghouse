@@ -10,6 +10,10 @@ CREATE USER clearinghouse_worker WITH
 
 GRANT sead_read TO clearinghouse_worker;
 
+CREATE SCHEMA clearing_house;
+
+ALTER SCHEMA clearing_house OWNER TO clearinghouse_worker;
+
 /*
 --
 -- CHANGE OWNER IF schema clearing_house EXISTS WITH WRONG OWNER

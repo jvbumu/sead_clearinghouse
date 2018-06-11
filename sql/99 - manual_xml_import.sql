@@ -27,7 +27,8 @@ $function$
 CREATE TABLE clearing_house.tbl_clearinghouse_xml_temp(
   id serial not null,
   xmldata xml
-)
+);
+
 -- Transfer XML to submission table
 CREATE OR REPLACE FUNCTION clearing_house.xml_transfer_bulk_upload(p_submission_id integer DEFAULT NULL::integer, p_xml_id integer DEFAULT NULL::integer, p_upload_user_id integer DEFAULT 4)
  RETURNS integer
@@ -81,7 +82,7 @@ Returns void As $$
     Declare item_count int;
 Begin
 
-    Raise 'This error raise must be removed before this function will run';
+    -- Raise 'This error raise must be removed before this function will run';
 
 	For x In (
         Select t.*

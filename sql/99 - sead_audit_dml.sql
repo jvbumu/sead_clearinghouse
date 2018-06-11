@@ -73,6 +73,7 @@ Begin
     DROP VIEW IF EXISTS audit.#VIEW-NAME#;
     CREATE VIEW audit.#VIEW-NAME# AS
 		SELECT #COLUMN-LIST#,
+		transaction_id,
 		action,
 		session_user_name,
 		action_tstamp_tx
@@ -80,6 +81,7 @@ Begin
 		WHERE table_name = ''#TABLE-NAME#''
 	;';
 
+    /*
 	v_column_list := '';
 
 	For x In (
@@ -97,7 +99,19 @@ Begin
 		v_column_type := replace(v_column_type, ' null', '');
 		v_column_list := v_column_list || '(row_data->''' || x.column_name || ''')::' || v_column_type || ' AS ' || x.column_name;
 
-	End Loop;
+	End Loop; */
+
+    WITH table_columns AS (
+        SELECT column_name,
+            clearing_house.fn_create_schema_type_string(data_type, character_maximum_length, numeric_precision, numeric_scale, 'YES') as column_type
+        FROM clearing_house.tbl_clearinghouse_sead_rdb_schema s -- clearing_house.fn_dba_get_sead_public_db_schema() s
+        WHERE s.table_schema = 'public'
+        AND s.table_name = 'tbl_locations'
+        ORDER BY ordinal_position
+    )
+        SELECT string_agg('(row_data->''' || column_name || ''')::' || replace(column_type, ' null', '') || ' AS ' || column_name, ', ' || CHR(13))
+        INTO v_column_list
+        FROM table_columns;
 
 	v_view_dml := v_template;
 	v_view_dml := replace(v_view_dml, '#VIEW-NAME#', v_view_name);
@@ -111,7 +125,6 @@ End $$ Language plpgsql;
 CREATE OR REPLACE FUNCTION metainformation.create_typed_audit_views(p_table_schema text = 'public') RETURNS void AS $$
 DECLARE
    v_record RECORD;
-   v_table_name text;
    v_view_dml text;
 BEGIN
 
@@ -125,11 +138,9 @@ BEGIN
 		  and t.table_type = 'BASE TABLE'
 		order by 1
 	LOOP
-
         v_view_dml = metainformation.fn_script_audit_views(p_table_schema, v_record.table_name);
         Execute v_view_dml;
-
-		RAISE NOTICE 'DONE: %', v_table_name;
+		RAISE NOTICE 'DONE: %', v_record.table_name;
 	END LOOP;
 
 END

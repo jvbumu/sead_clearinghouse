@@ -14,15 +14,15 @@ Declare z RECORD;
 Begin
 
 	/* Create CHDB specific data tables */
-	
+
 	Execute clearing_house.fn_dba_create_clearing_house_db_model();
 
 	/* Transfer PDB column catalog to CHDB */
-	
-	-- Execute clearing_house.fn_dba_create_clearing_house_db_model();
 
+	-- Execute clearing_house.fn_dba_create_clearing_house_db_model();
+    -- Select clearing_house.fn_dba_populate_clearing_house_db_model();
 	/* Create CHDB entity tables */
-	
+
 	Execute clearing_house.fn_create_public_db_entity_tables('clearing_house');
 
 	/* TEST: Process av NEW submissions */
