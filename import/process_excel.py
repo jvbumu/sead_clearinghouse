@@ -5,51 +5,36 @@ import pandas as pd
 import numpy as np
 import numbers
 import io
-import tidylib
-import base64
-import zlib
 import logging
+
+from utility import tidy_xml, flatten_sets
+from upload_xml import upload_xml
+from explode_xml import explode_xml_to_rdb, truncate_all_clearinghouse_entity_tables
+from data_specification import DataTableSpecification
 from functools import reduce
 
 logger = logging.getLogger('Excel XML processor')
 
-def setup_logger(filename):
+def setup_logger(filename, level=logging.DEBUG):
     global logger
     '''
     Setup logging of import messages to both file and console
     '''
     logger.handlers = []
 
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(level)
     formatter = logging.Formatter('%(message)s')
 
     fh = logging.FileHandler(filename)
-    fh.setLevel(logging.DEBUG)
+    fh.setLevel(level)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
     ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
+    ch.setLevel(level)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-def flatten(l):
-    '''
-    Flattens a list of lists
-    '''
-    return [item for sublist in l for item in sublist]
-
-def flatten_sets(x, y):
-    '''
-    Flattens a set of sets
-    '''
-    return set(list(x) + list(y))
-
-'''
-Import assumes that all FK references points to a local "system_id" in referenced table
-All data tables MUST have a non null "system_id"
-All data tables MUST have a PK column with a name equal to that specified in "Tables" meta-data PK-name field
-'''
 class MetaData:
 
     '''
@@ -110,8 +95,9 @@ class MetaData:
 
     def table_fields(self, table_name):
         return self.Columns[(self.Columns.table_name == table_name)]
-#    def get_columns(self, table_name):
-#        return self.Columns[(self.Columns.table_name == table_name)].to_dict()
+
+    # def get_columns(self, table_name):
+    #     return self.Columns[(self.Columns.table_name == table_name)].to_dict()
 
     def table_exists(self, table_name):
         return table_name in self.Tables.table_name.values
@@ -265,117 +251,6 @@ class ValueData:
         ]
         return reduce(flatten_sets, sets_of_keys or [], [])
 
-class DataTableSpecification:
-
-    '''
-    Specification class that tests validity of data
-    '''
-    def __init__(self):
-        self.errors = []
-        self.warnings = []
-        self.ignore_columns = [ 'date_updated' ]
-
-    def is_satisfied_by(self, data):
-
-        self.errors = []
-        self.warnings = []
-
-        for table_name in data.MetaData.tables_with_data():
-            self.is_satisfied_by_table(data, table_name)
-
-        if len(self.warnings) > 0:
-            logger.info("\n".join(self.warnings))
-
-        if len(self.errors) > 0:
-            logger.error("\n".join(self.errors))
-
-        return len(self.errors) == 0
-
-    def is_satisfied_by_table(self, data, table_name):
-
-        try:
-            # Must exist as data table in metadata
-            if table_name not in data.tables_with_data():
-                self.errors.append("{0} not defined as data table".format(table_name))
-
-            # Must have a system identit
-            if not data.has_system_id(table_name):
-                self.errors.append("{0} has no system id data column".format(table_name))
-
-            if not data.MetaData.table_exists(table_name):
-                self.errors.append("{0} not found in meta data".format(table_name))
-
-            if not data.has_data(table_name):
-                self.errors.append("{0} has NO DATA!".format(table_name))
-
-            # Verify that all fields in MetaFields exists DataTable.columns
-            meta_column_names = sorted(data.MetaData.table_fields(table_name)['column_name'].values.tolist())
-            data_column_names = sorted(data.DataTables[table_name].columns.values.tolist()) \
-                if data.has_data(table_name) and data.MetaData.table_exists(table_name) else []
-
-            missing_column_names = list(set(meta_column_names) - set(data_column_names) - set(self.ignore_columns))
-            extra_column_names = list(set(data_column_names) - set(meta_column_names) - set(self.ignore_columns))
-
-            if len(missing_column_names) > 0:
-                self.errors.append("ERROR {0} has MISSING DATA columns: ".format(table_name) + (", ".join(missing_column_names)))
-
-            if len(extra_column_names) > 0:
-                self.warnings.append("WARNING {0} has EXTRA DATA columns: ".format(table_name) + (", ".join(extra_column_names)))
-
-            data_table = data.DataTables[table_name]
-
-            if data_table is not None:
-
-                if 'system_id' not in data_table.columns:
-                    self.errors.append('CRITICAL ERROR Table {} has no column named "system_id"'.format(table_name))
-
-                pk_name = data.MetaData.get_pk_name(table_name)
-                if pk_name not in data_table.columns:
-                    self.errors.append('CRITICAL ERROR Table {} has no PK named "{}"'.format(table_name, pk_name))
-
-                fields = data.MetaData.table_fields(table_name)
-                type_compatibility_matrix = {
-                    ('integer', 'float64'): True,
-                    ('timestamp with time zone', 'float64'): False,
-                    ('text', 'float64'): False,
-                    ('character varying', 'float64'): False,
-                    ('numeric', 'float64'): True,
-                    ('timestamp without time zone', 'float64'): False,
-                    ('boolean', 'float64'): False,
-                    ('date', 'float64'): False,
-                    ('smallint', 'float64'): True,
-                    ('integer', 'object'): False,
-                    ('timestamp with time zone', 'object'): True,
-                    ('text', 'object'): True,
-                    ('character varying', 'object'): True,
-                    ('numeric', 'object'): False,
-                    ('timestamp without time zone', 'object'): True,
-                    ('boolean', 'object'): False,
-                    ('date', 'object'): True,
-                    ('smallint', 'object'): False,
-                    ('integer', 'int64'): True,
-                    ('timestamp with time zone', 'int64'): False,
-                    ('text', 'int64'): False,
-                    ('character varying', 'int64'): False,
-                    ('numeric', 'int64'): True,
-                    ('timestamp without time zone', 'int64'): False,
-                    ('boolean', 'int64'): False,
-                    ('date', 'int64'): False,
-                    ('smallint', 'int64'): True,
-                    ('timestamp with time zone', 'datetime64[ns]'): True,
-                    ('date', 'datetime64[ns]'): True
-                }
-
-                for _, item in fields.loc[(~fields.column_name.isin(self.ignore_columns))].iterrows():
-                    column = item.to_dict()
-                    if column['column_name'] in data_table.columns:
-                        data_column_type = data_table.dtypes[column['column_name']].name
-                        if not type_compatibility_matrix[(column['type'], data_column_type)]:
-                            self.warnings.append("WARNING Type clash: {}.{} {}<=>{}".format(table_name, column['column_name'], column['type'], data_column_type))
-
-        except Exception as e:
-            self.errors.append('Error occurred when validating {}: {}'.format(table_name, str(e)))
-
 class XmlProcessor:
     '''
     Main class that processes the Excel file and produces a corresponging XML-file.
@@ -401,6 +276,11 @@ class XmlProcessor:
         return first + ''.join(word.capitalize() for word in rest)
 
     def process_data(self, data, table_names, max_rows=0):
+        '''
+        Import assumes that all FK references points to a local "system_id" in referenced table
+        All data tables MUST have a non null "system_id"
+        All data tables MUST have a PK column with a name equal to that specified in "Tables" meta-data PK-name field
+        '''
         date_updated = ''.format(time.strftime("%Y-%m-%d %H%M"))
         for table_name in table_names:
             try:
@@ -471,17 +351,21 @@ class XmlProcessor:
                                     self.emit('<{0} class="{1}">{2}</{0}>'.format(camel_case_column_name, class_name, value), 3)
                                 else:  # value is a fk system_id
                                     try:
-                                        if np.isnan(value):
-                                            # CHANGE: Cannot allow id="NULL" as foreign key
-                                            logger.error("Warning: table {}, id {} FK {} is NULL. Skipping property!".format(table_name, system_id, column_name))
-                                            continue
-                                        fk_system_id = int(value)
+
                                         fk_table_name = data.MetaData.get_tablename_by_classname(class_name)
                                         if fk_table_name is None:
                                             logger.warning('Table {}, FK column {}: unable to resolve FK class {}'.format(table_name, column_name, class_name))
                                             continue
+
                                         fk_data_table = data.DataTables[fk_table_name]
 
+                                        if np.isnan(value):
+                                            # CHANGE: Cannot allow id="NULL" as foreign key
+                                            # logger.error("Warning: table {}, id {} FK {} is NULL. Skipping property!".format(table_name, system_id, column_name))
+                                            self.emit('<{} class="com.sead.database.{}" id="NULL"/>'.format(camel_case_column_name, class_name), 3)
+                                            continue
+
+                                        fk_system_id = int(value)
                                         if fk_data_table is None:
                                             fk_public_id = fk_system_id
                                         else:
@@ -525,6 +409,7 @@ class XmlProcessor:
                     for key in referenced_keyset:
                         self.emit('<com.sead.database.{} id="{}" clonedId="{}"/>'.format(class_name, int(key), int(key)), 2)
                 self.emit('</{}>'.format(table_definition['JavaClass']), 1)
+
             except:
                 logger.exception('CRITICAL ERROR')
                 raise
@@ -545,76 +430,83 @@ class XmlProcessor:
 
             self.emit(xml)
 
-    def process(self, data, tablenames=None, extranames=None):
+    def process(self, data, table_names=None, extra_names=None):
 
-        if not self.specification.is_satisfied_by(data):
+        self.specification.is_satisfied_by(data)
+
+        if len(self.specification.warnings) > 0:
+            logger.info("\n".join(self.specification.warnings))
+
+        if len(self.specification.errors) > 0:
+            logger.error("\n".join(self.specification.errors))
             raise DataImportError("Process ABORTED since data does not conform to SPECIFICATION")
 
-        tablenames = data.MetaData.tables_with_data() if tablenames is None else tablenames
-        extranames = set(data.MetaData.Tables["table_name"].tolist()) - set(data.tables_with_data()) if extranames is None else extranames
+        table_names = data.MetaData.tables_with_data() if table_names is None else table_names
+        extra_names = set(data.MetaData.Tables["table_name"].tolist()) - set(data.tables_with_data()) if extra_names is None else extra_names
 
         self.emit('<?xml version="1.0" ?>')
         self.emit('<sead-data-upload>')
-        self.process_lookups(data, extranames)
-        self.process_data(data, tablenames)
+        self.process_lookups(data, extra_names)
+        self.process_data(data, table_names)
         self.emit('</sead-data-upload>')
-
-class XmlDocumentService:
-
-    def cleanUp(self, path, suffix='_tidy'):
-        tidy_path = path[:-4] + '{}.xml'.format(suffix)
-        with io.open(path, 'r', encoding='utf8') as instream:
-            xml_document = instream.read()
-        tidy_xml_document = tidylib.tidy_document(xml_document, {"input_xml": True})[0]
-        with io.open(tidy_path, 'w', encoding='utf8') as outstream:
-            outstream.write(tidy_xml_document)
-
-    def compress_and_encode(self, path):
-
-        compressed_data = zlib.compress(path.encode('utf8'))
-        encoded = base64.b64encode(compressed_data)
-        uue_filename = path + '.gz.uue'
-        with io.open(uue_filename, 'wb') as outstream:
-            outstream.write(encoded)
-
-        gz_filename = path + '.gz'
-        with io.open(gz_filename, 'wb') as outstream:
-            outstream.write(compressed_data)
-
 
 source_folder = "C:\\Users\\roma0050\\Google Drive\\Project\\Projects\\VISEAD (Humlab)\\SEAD Ceramics & Dendro"
 
-options = [
+db_opts = dict(
+    database="sead_master_9_ceramics",
+    user=os.environ['SEAD_CH_USER'],
+    password=os.environ['SEAD_CH_PASSWORD'],
+    host="snares.humlab.umu.se",
+    port=5432
+)
 
-    # dict(
-    #     input_folder=os.path.join(source_folder, 'Dendro import'),
-    #     output_folder=os.path.join(source_folder, 'output'),
-    #     meta_filename='table metadata BUILD DENDRO.xlsx',
-    #     data_filename='01_BYGG_20180608.xlsm'
-    # ),
+def process_xml(reset_entity_db=False):
 
-    dict(
-        input_folder=os.path.join(source_folder, 'Dendro import'),
-        output_folder=os.path.join(source_folder, 'output'),
-        meta_filename='table metadata ARKEO DENDRO.xlsx',
-        data_filename='02_Ark_dendro_20180608.xlsm'
-    ),
+    options = [
 
-    # dict(
-    #     input_folder=os.path.join(source_folder, 'Ceramics import'),
-    #     output_folder=os.path.join(source_folder, 'output'),
-    #     meta_filename='table_metadata_20180608.xlsx',
-    #     data_filename='tunnslipstabell - in progress 20180608.xlsm'
-    # )
+        dict(
+            skip=True,
+            input_folder=os.path.join(source_folder, 'Dendro import'),
+            output_folder=os.path.join(source_folder, 'output'),
+            meta_filename='table metadata BUILD DENDRO 20180613.xlsx',
+            data_filename='01_BYGG_20180612.xlsm',
+            data_types='Dendro BYGG',
+            table_names=None
+        ),
 
-]
+        dict(
+            skip=False,
+            input_folder=os.path.join(source_folder, 'Dendro import'),
+            output_folder=os.path.join(source_folder, 'output'),
+            meta_filename='table metadata ARKEO DENDRO 20180613.xlsx',
+            data_filename='02_Ark_dendro_20180613.xlsm',
+            data_types='Dendro ARKEO',
+            table_names=None
+        ),
 
-if __name__ == "__main__":
+        dict(
+            skip=True,
+            input_folder=os.path.join(source_folder, 'Ceramics import'),
+            output_folder=os.path.join(source_folder, 'output'),
+            meta_filename='table_metadata_20180608.xlsx',
+            data_filename='tunnslipstabell - in progress 20180612.xlsm',
+            data_types='Ceramics',
+            table_names=None
+        )
+
+    ]
+    if reset_entity_db:
+        truncate_all_clearinghouse_entity_tables(**db_opts)
 
     for option in options:
 
         try:
             basename = os.path.splitext(option['data_filename'])[0]
+
+            if option.get('skip', True) is True:
+                logger.info("Skipping: %s", basename)
+                continue
+
             timestamp = time.strftime("%Y%m%d-%H%M%S")
 
             meta_filename = os.path.join(option['input_folder'], option['meta_filename'])
@@ -631,9 +523,42 @@ if __name__ == "__main__":
             data = ValueData(meta_data).load(data_filename)
 
             with io.open(output_filename, 'w', encoding='utf8') as outstream:
+                service = XmlProcessor(outstream)
+                service.process(data, option['table_names'])
 
-                XmlProcessor(outstream).process(data)
+            tidy_xml_filename = tidy_xml(output_filename)
 
-            XmlDocumentService().cleanUp(output_filename)
+            submission_id = upload_xml(tidy_xml_filename, submission_state_id=1, data_types=option['data_types'], upload_user_id=4, **db_opts)
+
+            explode_xml_to_rdb(submission_id, **db_opts)
+
         except:
             logger.exception('ABORTED CRITICAL ERROR %s ', basename)
+
+def upload_xmls():
+    options = [
+        dict(data_types='Dendro BYGG', tidy_xml_filename='01_BYGG_20180612_20180612-182341_tidy.xml'),
+        dict(data_types='Dendro ARKEO', tidy_xml_filename='02_Ark_dendro_20180612_20180612-202836_tidy.xml'),
+        dict(data_types='Ceramics', tidy_xml_filename='tunnslipstabell - in progress 20180612_20180612-183324_tidy.xml')
+    ]
+    for option in options:
+        try:
+            tidy_xml_filename = os.path.join(source_folder, 'output', option['tidy_xml_filename'])
+            submission_id = upload_xml(tidy_xml_filename, submission_state_id=1, data_types=option['data_types'], upload_user_id=4, **db_opts)
+        except:
+            logger.exception('ABORTED CRITICAL ERROR %s ', option['tidy_xml_filename'])
+
+def explode_xmls():
+    setup_logger('explode.log', level=logging.DEBUG)
+    submission_ids = [ 1, 2, 3 ]
+    for submission_id in submission_ids:
+        try:
+            explode_xml_to_rdb(submission_id, **db_opts)
+        except:
+            logger.exception('ABORTED CRITICAL ERROR %s ', submission_id)
+
+if __name__ == "__main__":
+    process_xml(reset_entity_db=False)
+
+
+

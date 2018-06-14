@@ -3,8 +3,8 @@
 **  When        2013-10-17
 **  What        Creates DB clearing_house specific schema objects (not entity objects) for Clearing House application
 **  Who         Roger Mähler
-**  Note    
-**  Uses    
+**  Note
+**  Uses
 **  Used By     Clearing House server installation. DBA.
 **  Revisions
 **********************************************************************************************************************************/
@@ -57,7 +57,7 @@ Begin
         );
 
     End If;
-    
+
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_signals') Then
 
         Create Table If Not Exists clearing_house.tbl_clearinghouse_signals (
@@ -113,7 +113,7 @@ Begin
 		Drop Table If Exists clearing_house.tbl_clearinghouse_user_roles;
 		Drop Table If Exists clearing_house.tbl_clearinghouse_data_provider_grades;
 		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_states;
-		
+
 	End If;
 
     /*********************************************************************************************************************************
@@ -130,7 +130,7 @@ Begin
 			entity_type_id int not null default(0),
 			Constraint pk_tbl_clearinghouse_use_cases PRIMARY KEY (use_case_id)
 		);
-		
+
 	End If;
 
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_activity_log') Then
@@ -156,9 +156,9 @@ Begin
 			On clearing_house.tbl_clearinghouse_activity_log (entity_type_id, entity_id);
 
 	End If;
-	
+
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_signal_log') Then
-    
+
 		Create Table clearing_house.tbl_clearinghouse_signal_log (
 			signal_log_id serial not null,
 			use_case_id int not null,
@@ -167,9 +167,9 @@ Begin
 			cc text not null,
 			subject text not null,
 			body text not null,
-			Constraint pk_signal_log_id PRIMARY KEY (signal_log_id)		
+			Constraint pk_signal_log_id PRIMARY KEY (signal_log_id)
 		);
-		
+
 	End If;
 
     /*********************************************************************************************************************************
@@ -195,7 +195,7 @@ Begin
         );
 
     End If;
-    
+
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_users') Then
 		-- Drop Table clearing_house.tbl_clearinghouse_users
         Create Table clearing_house.tbl_clearinghouse_users (
@@ -232,16 +232,16 @@ Begin
 		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_columns;
 		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_tables;
 		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_tables;
-	
+
 	End If;
 
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submission_tables') Then
-	
+
 		Create Table clearing_house.tbl_clearinghouse_submission_tables (
 			table_id serial not null,
 			table_name character varying(255) not null,
 			table_name_underscored character varying(255) not null,
-			Constraint pk_tbl_clearinghouse_submission_tables Primary Key (table_id) 
+			Constraint pk_tbl_clearinghouse_submission_tables Primary Key (table_id)
 		);
 
 		Create Unique Index idx_tbl_clearinghouse_submission_tables_name1
@@ -251,10 +251,10 @@ Begin
 			On clearing_house.tbl_clearinghouse_submission_tables (table_name_underscored);
 
 	End If;
-	
+
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submission_xml_content_tables') Then
 
-	
+
 		Create Table clearing_house.tbl_clearinghouse_submission_xml_content_tables (
 			content_table_id serial not null,
 			submission_id int not null,
@@ -272,8 +272,8 @@ Begin
 
 		Create Unique Index fk_idx_tbl_submission_xml_content_tables_table_name
 			On clearing_house.tbl_clearinghouse_submission_xml_content_tables (submission_id, table_id);
-            
-            
+
+
 	End If;
 
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submission_xml_content_columns') Then
@@ -292,7 +292,7 @@ Begin
 			Constraint fk_tbl_submission_xml_content_columns_table_id Foreign Key (table_id)
 			  References clearing_house.tbl_clearinghouse_submission_tables (table_id) Match Simple
 				On Update NO ACTION ON DELETE Cascade
-		); 
+		);
 
 		Create Unique Index idx_tbl_submission_xml_content_columns_submission_id
 			On clearing_house.tbl_clearinghouse_submission_xml_content_columns (submission_id, table_id, column_name);
@@ -311,7 +311,7 @@ Begin
 			Constraint fk_tbl_submission_xml_content_records_table_id Foreign Key (table_id)
 			  References clearing_house.tbl_clearinghouse_submission_tables (table_id) Match Simple
 				On Update NO ACTION ON DELETE Cascade
-			
+
 		);
 
 		Create Unique Index idx_tbl_submission_xml_content_records_submission_id
@@ -336,14 +336,14 @@ Begin
 			Constraint fk_tbl_submission_xml_content_meta_record_values_table_id Foreign Key (table_id)
 			  References clearing_house.tbl_clearinghouse_submission_tables (table_id) Match Simple
 				On Update NO ACTION ON DELETE Cascade
-			
+
 		);
 
 		Create Unique Index idx_tbl_submission_xml_content_record_values_column_id
 			On clearing_house.tbl_clearinghouse_submission_xml_content_values (submission_id, table_id, local_db_id, column_id);
 
 	End If;
-	
+
     /*********************************************************************************************************************************
     ** Submissions
     **********************************************************************************************************************************/
@@ -371,11 +371,11 @@ Begin
         (
           submission_id serial NOT NULL,
           submission_state_id integer NOT NULL,
-          data_types character varying(255), 
+          data_types character varying(255),
           upload_user_id integer NOT NULL,
           upload_date Date Not Null default now(),
           upload_content text,
-          xml xml, 
+          xml xml,
           status_text text,
           claim_user_id integer,
           claim_date_time date,
@@ -493,7 +493,7 @@ Begin
         Create Index fk_clearinghouse_submission_rejects On clearing_house.tbl_clearinghouse_submission_rejects (submission_id);
 
     End If;
-    
+
 
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submission_reject_entities') Then
 
@@ -520,7 +520,7 @@ Begin
         Create Table clearing_house.tbl_clearinghouse_reports
         (
             report_id int NOT NULL,
-            report_name character varying(255), 
+            report_name character varying(255),
             report_procedure text not null,
             Constraint pk_tbl_clearinghouse_reports PRIMARY KEY (report_id)
         );
@@ -540,5 +540,57 @@ Begin
         );
 
     End If;
-    
+
 End $$ Language plpgsql;
+
+
+/*****************************************************************************************************************************
+**	Function	fn_truncate_all_entity_tables
+**	Who			Roger Mähler
+**	When		2018-03-25
+**	What		Truncates all clearinghouse entity tables and resets sequences
+**  Note        NOTE! This Function clears ALL entities in CH tables!
+**	Uses
+**	Revisions
+******************************************************************************************************************************/
+-- Select clearing_house.fn_truncate_all_entity_tables()
+Create Or Replace Function clearing_house.fn_truncate_all_entity_tables()
+Returns void As $$
+    Declare x record;
+    Declare command text;
+    Declare item_count int;
+Begin
+
+    -- Raise 'This error raise must be removed before this function will run';
+
+	For x In (
+        Select t.*
+        From clearing_house.tbl_clearinghouse_submission_tables t
+	) Loop
+
+        command = 'select count(*) from clearing_house.' || x.table_name_underscored || ';';
+
+        Raise Notice '%: %', command, item_count;
+
+        Begin
+            Execute command Into item_count;
+            If item_count > 0 Then
+                command = 'TRUNCATE clearing_house.' || x.table_name_underscored || ' RESTART IDENTITY;';
+                Execute command;
+            End If;
+       Exception
+            When undefined_table Then
+                Raise Notice 'Missing: %', x.table_name_underscored;
+                -- Do nothing, and loop to try the UPDATE again.
+       End;
+
+	Truncate Table clearing_house.tbl_clearinghouse_submission_xml_content_values Restart Identity Cascade;
+	Truncate Table clearing_house.tbl_clearinghouse_submission_xml_content_columns Restart Identity Cascade;
+	Truncate Table clearing_house.tbl_clearinghouse_submission_xml_content_records Restart Identity Cascade;
+	Truncate Table clearing_house.tbl_clearinghouse_submission_xml_content_tables Restart Identity Cascade;
+    Truncate Table clearing_house.tbl_clearinghouse_submissions Restart Identity Cascade;
+    -- Truncate Table clearing_house.tbl_clearinghouse_xml_temp Restart Identity Cascade;
+
+	End Loop;
+	End
+$$ Language plpgsql;

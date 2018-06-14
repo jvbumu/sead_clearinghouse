@@ -1,4 +1,9 @@
 @Echo Off
+
+Echo "This script is deprecated and should not be used. It has been replaced with upload_xml.py"
+pause
+goto :eof
+
 SET SOURCE_DIR="C:\Users\roma0050\Google Drive\Project\Projects\VISEAD (Humlab)\SEAD Ceramics & Dendro\output"
 REM SET SOURCE_FILE=tunnslipstabell_20180608_20180608-212746_tidy.xml
 REM SET SOURCE_FILE=02_Ark_dendro_20180608_20180610-110946_tidy.xml
@@ -27,9 +32,10 @@ IF EXIST .\temp_upload.txt DEL /F .\temp_upload.txt
 @echo insert into clearing_house.tbl_clearinghouse_xml_temp (xmldata) values (clearing_house.xml_import(:LASTOID, true)); >> ./temp_upload.txt
 @echo Select clearing_house.xml_transfer_bulk_upload(NULL,NULL,4); >> ./temp_upload.txt
 
-psql --echo-queries --file=./temp_upload.txt --host=%DBHOST% --username=%DBUSER% --password --dbname=%DBNAME%
+echo psql --echo-queries --file=./temp_upload.txt --host=%DBHOST% --username=%DBUSER% --password --dbname=%DBNAME%
 
 ::del .\temp_upload.txt
 
 @echo Import done!
 pause
+:eof

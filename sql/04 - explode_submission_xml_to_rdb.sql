@@ -20,9 +20,9 @@ Begin
 	Where c.submission_id = $1
 	  And t.table_name_underscored = $2
 	Group By c.submission_id, t.table_name;
-	
+
 	return columns;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_get_public_table_column_names
@@ -67,7 +67,7 @@ Begin
 	return key_column;
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
-**	Function	
+**	Function
 **	Who			Roger Mähler
 **	When		2013-10-14
 **	What		Returns column SQL types for specified table as an array
@@ -88,9 +88,9 @@ Begin
 	Where c.submission_id = $1
 	  And t.table_name_underscored = $2
 	Group By c.submission_id, t.table_name;
-	
+
 	return columns;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_select_xml_content_tables
@@ -124,7 +124,7 @@ Begin
               And x.submission_id = $1
               And Not xml Is Null
               And xml Is Document
-              
+
         ) d;
 
 End $$ Language plpgsql;
@@ -135,7 +135,7 @@ End $$ Language plpgsql;
 **	When		2013-10-14
 **	What		Returns all listed columns in a submission XML
 **  Note        First (not cloned) record per table is selected
-**	Uses    
+**	Uses
 **	Used By     fn_extract_and_store_submission_columns
 **	Revisions
 ******************************************************************************************************************************/
@@ -188,7 +188,7 @@ Begin
     Return Query
 
         With submission_xml_data_rows As (
-        
+
             Select x.submission_id,
 				   unnest(xpath('/sead-data-upload/*/*', x.xml)) As xml
             From clearing_house.tbl_clearinghouse_submissions x
@@ -233,12 +233,12 @@ ALTER FUNCTION clearing_house.fn_select_xml_content_records(integer)
 CREATE OR REPLACE FUNCTION clearing_house.fn_select_xml_content_values(
 	integer,
 	character varying)
-RETURNS TABLE(submission_id integer, table_name character varying, local_db_id integer, public_db_id integer, column_name character varying, column_type character varying, fk_local_db_id integer, fk_public_db_id integer, value text) 
+RETURNS TABLE(submission_id integer, table_name character varying, local_db_id integer, public_db_id integer, column_name character varying, column_type character varying, fk_local_db_id integer, fk_public_db_id integer, value text)
     LANGUAGE 'plpgsql'
 AS $BODY$
 Begin
 
-	Return Query 
+	Return Query
 
 		With record_xml As (
             Select x.submission_id, unnest(xpath('/sead-data-upload/' || $2 || '/*', x.xml))					As xml
@@ -264,7 +264,7 @@ Begin
                     nullif((xpath('./text()', x.xml))[1]::text, 'NULL')::text									As value
             From record_value_xml x;
 
-End 
+End
 $BODY$;
 
 ALTER FUNCTION clearing_house.fn_select_xml_content_values(integer, character varying)
@@ -306,7 +306,7 @@ Begin
 		Left Join clearing_house.tbl_clearinghouse_submission_tables x
 		  On x.table_name = t.table_name
 		Where x.table_name Is NULL;
-	
+
 	/* Store all tables that att exists in submission */
 	Insert Into clearing_house.tbl_clearinghouse_submission_xml_content_tables (submission_id, table_id, record_count)
 		Select t.submission_id, x.table_id, t.row_count
@@ -316,7 +316,7 @@ Begin
 		;
 
 	--Raise Notice 'XML entity tables extracted and stored for submission id %', $1;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_extract_and_store_submission_columns
@@ -335,7 +335,7 @@ Begin
 
 	Delete From clearing_house.tbl_clearinghouse_submission_xml_content_columns
 		Where submission_id = $1;
-		
+
 	/* Extract all unique column names */
 	Insert Into clearing_house.tbl_clearinghouse_submission_xml_content_columns (submission_id, table_id, column_name, column_name_underscored, data_type, fk_flag, fk_table, fk_table_underscored)
 		Select	c.submission_id,
@@ -355,8 +355,18 @@ Begin
 		Set fk_table_underscored = clearing_house.fn_pascal_case_to_underscore(fk_table)
 	Where submission_id = $1;
 
+    update clearing_house.tbl_clearinghouse_submission_xml_content_columns
+        set column_name = 'address_1', column_name_underscored = 'address_1'
+    where submission_id = $1
+      And column_name = 'address1';
+
+    update clearing_house.tbl_clearinghouse_submission_xml_content_columns
+        set column_name = 'address_2', column_name_underscored = 'address_2'
+    where submission_id = $1
+      And column_name = 'address2';
+
 	--Raise Notice 'XML columns extracted and stored for submission id %', $1;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_extract_and_store_submission_records
@@ -373,6 +383,9 @@ Create Or Replace Function clearing_house.fn_extract_and_store_submission_record
 
 Begin
 
+	Delete From clearing_house.tbl_clearinghouse_submission_xml_content_records
+		Where submission_id = $1;
+
 	/* Extract all unique records */
 	Insert Into clearing_house.tbl_clearinghouse_submission_xml_content_records (submission_id, table_id, local_db_id, public_db_id)
 		Select r.submission_id, t.table_id, r.local_db_id, coalesce(r.public_db_id_tag, public_db_id_attr)
@@ -380,9 +393,9 @@ Begin
 		Join clearing_house.tbl_clearinghouse_submission_tables t
 		  On t.table_name = r.table_name
 		Where r.submission_id = $1;
-		
+
 	--Raise Notice 'XML record headers extracted and stored for submission id %', $1;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_extract_and_store_submission_values
@@ -398,6 +411,9 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_extract_and_store_submission_values(int) Returns void As $$
 	Declare x RECORD;
 Begin
+
+	Delete From clearing_house.tbl_clearinghouse_submission_xml_content_values
+		Where submission_id = $1;
 
 	For x In (Select t.*
 			  From clearing_house.tbl_clearinghouse_submission_tables t
@@ -423,20 +439,21 @@ Begin
 			 And c.table_id = t.table_id
 			 And c.column_name = v.column_name;
 
-	End Loop;		
-	
+	End Loop;
+
 	--Raise Notice 'XML entity field values extracted and stored for submission id %', $1;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
-**	View        clearing_house.view_clearinghouse_local_fk_references
+**	View        DEPRECATED clearing_house.view_clearinghouse_local_fk_references
 **	Who			Roger Mähler
 **	When		2013-11-06
 **	What		Gives FK-column that references a local record in the CHDB database
-**  Note        Note that CHDB table is in underscore notation e.g. "tblAbundances"
+**  Note        DEPRECATED MADE INLINE IN fn_copy_extracted_values_to_entity_table
+*               Note that CHDB table is in underscore notation e.g. "tblAbundances"
 **	Uses        fn_get_submission_table_column_names, fn_get_submission_table_column_types
 **	Used By     fn_explode_submission_xml_to_rdb
-**	Revisions
+**	Revisions   DEPRECATED
 ******************************************************************************************************************************/
 -- Drop View clearing_house.view_clearinghouse_local_fk_references
 -- Select * From clearing_house.view_clearinghouse_local_fk_references
@@ -448,7 +465,7 @@ Create Or Replace View clearing_house.view_clearinghouse_local_fk_references As
       On c.submission_id = v.submission_id
      And c.table_id = v.table_id
      And c.column_id = v.column_id
-    Join clearing_house.tbl_clearinghouse_submission_tables fk_t 
+    Join clearing_house.tbl_clearinghouse_submission_tables fk_t
       On fk_t.table_name_underscored = c.fk_table_underscored
     Join clearing_house.view_clearinghouse_SEAD_rdb_schema_pk_columns s
       On s.table_schema = 'public'
@@ -482,24 +499,25 @@ Create Or Replace Function clearing_house.fn_copy_extracted_values_to_entity_tab
 	Declare schema_columns character varying(255)[];
 	Declare submission_columns character varying(255)[];
 	Declare submission_column_types character varying(255)[];
-	
+	Declare submission_column_type character varying(255);
+
 	Declare insert_columns_string text;
 	Declare select_columns_string text;
 	Declare public_columns_string text;
 	Declare public_key_columns_string text;
-	
+
 	Declare sql text;
 	Declare i integer;
-	
+
 Begin
 
 	If clearing_house.fn_table_exists($2) = false Then
 		Raise Exception 'Table does not exist: %', $2;
 		Return Null;
-	End If;  
+	End If;
 
 	sql := 'Delete From clearing_house.' || $2 || ' Where submission_id = ' || $1::character varying(20) || ';';
-	
+
 	Execute sql;
 
 	submission_columns := clearing_house.fn_get_submission_table_column_names($1, $2);
@@ -509,12 +527,19 @@ Begin
 		submission_column_types := clearing_house.fn_get_submission_table_column_types($1, $2);
 
 		insert_columns_string := array_to_string(submission_columns, ', ');
-		
+
 		select_columns_string := '';
 		For i In array_lower(submission_columns, 1) .. array_upper(submission_columns, 1)
 		Loop
 
-			select_columns_string := select_columns_string || ' v.values[' || i::text || ']::' || submission_column_types[i] || Case When i < array_upper(submission_columns, 1) Then ', ' Else '' End;
+            submission_column_type :=  submission_column_types[i];
+
+            If submission_column_type = 'integer' Then
+                -- Fix to handle conversion of e.g. "1753.0" which raises an error!
+                submission_column_type := 'float::integer';
+            End If;
+
+			select_columns_string := select_columns_string || ' v.values[' || i::text || ']::' || submission_column_type || Case When i < array_upper(submission_columns, 1) Then ', ' Else '' End;
 
 		End Loop;
 
@@ -528,8 +553,31 @@ Begin
 		insert_columns_string := replace(insert_columns_string, 'cloned_id', 'public_db_id');
 
 		/* Insert values to entity tables. Insert Local DB id attribute (ref_id) if the attribute is a FK */
-		sql := sql || 'Insert Into clearing_house.' || $2 || ' (submission_id, source_id, local_db_id, ' || insert_columns_string || ') 
-			Select v.submission_id, 1 as source_id, -v.local_db_id, ' || select_columns_string || '
+		sql := 'Insert Into clearing_house.' || $2 || ' (submission_id, source_id, local_db_id, ' || insert_columns_string || ')
+        with clearing_house_view_clearinghouse_local_fk_references as (
+                Select v.submission_id, v.local_db_id, c.table_id, c.column_id, v.fk_local_db_id, /* v.fk_public_db_id, */ fk_t.table_id as fk_table_id, fk_c.column_id as fk_column_id --, fk_v.value::int as fk_id
+                From clearing_house.tbl_clearinghouse_submission_xml_content_values v
+                Join clearing_house.tbl_clearinghouse_submission_xml_content_columns c
+                  On c.submission_id = v.submission_id
+                 And c.table_id = v.table_id
+                 And c.column_id = v.column_id
+                Join clearing_house.tbl_clearinghouse_submission_tables fk_t
+                  On fk_t.table_name_underscored = c.fk_table_underscored
+                Join clearing_house.view_clearinghouse_SEAD_rdb_schema_pk_columns s
+                  On s.table_schema = ''public''
+                 And s.table_name = fk_t.table_name_underscored
+                Join clearing_house.tbl_clearinghouse_submission_xml_content_columns fk_c
+                  On fk_c.submission_id = v.submission_id
+                 And fk_c.table_id = fk_t.table_id
+                 And fk_c.column_name_underscored = s.column_name
+                Join clearing_house.tbl_clearinghouse_submission_xml_content_values fk_v
+                  On fk_v.submission_id = v.submission_id
+                 And fk_v.table_id = fk_t.table_id
+                 And fk_v.column_id = fk_c.column_id
+                 And fk_v.local_db_id = v.fk_local_db_id
+                Where v.fk_flag = true
+            )
+		Select v.submission_id, 1 as source_id, -v.local_db_id, ' || select_columns_string || '
 			From (
 				Select v.submission_id, t.table_name, v.local_db_id, array_agg(
 					   Case when v.fk_flag = TRUE Then
@@ -548,7 +596,7 @@ Begin
 				 And c.column_id = v.column_id
 
                 /* Check if public record pointed to by FK exists in local DB. In such case set FK value to -fk_local_db_id */
-                Left Join clearing_house.view_clearinghouse_local_fk_references r
+                Left Join clearing_house_view_clearinghouse_local_fk_references r
                   On v.fk_flag = TRUE
                  And r.submission_id = v.submission_id
                  And r.table_id = t.table_id
@@ -563,41 +611,14 @@ Begin
 			) as v
 		';
 
-
-
 		-- Raise Notice 'Inserted %', sql;
-		
+
 		Execute sql;
-	
-	End If;  
 
-
-	/* Insert explicilty referenced public data */
-	
-/*
-	public_columns_string := array_to_string(clearing_house.fn_get_public_table_column_names('public', $2), ', ');
-	public_key_columns_string := clearing_house.fn_get_public_table_key_column_name('public', $2);
-	
-	sql := 'Insert Into clearing_house.' || $2 || ' (submission_id, source_id, local_db_id, public_db_id, ' || public_columns_string || ') 
-		Select ' || $1::text || ' as submission_id, 2 as source_id, r.local_db_id, e.' || public_key_columns_string || ', ' || public_columns_string || '
-		From public.' || $2 || ' e
-		Join clearing_house.tbl_clearinghouse_submission_xml_content_records r
-		  On r.submission_id = ' || $1::text || '
-		 And r.public_db_id = e.' || public_key_columns_string || '
-		Join clearing_house.tbl_clearinghouse_submission_tables t
-		  On t.table_id = r.table_id
-		Where r.submission_id = ' || $1::text || '
-		  And t.table_name_underscored = ''' || $2 || ''' 
-		  And Not r.public_db_id Is NULL
-	';
-*/
-
-	Execute sql;
-
-	--Raise Notice 'Copied data: %', sql;
+	End If;
 
 	Return sql;
-	
+
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -605,7 +626,7 @@ End $$ Language plpgsql;
 **	Who			Roger Mähler
 **	When		2013-10-14
 **	What		Copies extracted XML values to entity specific CHDB tables
-**  Note        
+**  Note
 **	Uses        fn_rdb_schema_add_new_columns
 **              fn_copy_extracted_values_to_entity_table
 **	Used By     fn_explode_submission_xml_to_rdb
@@ -616,6 +637,8 @@ Create Or Replace Function clearing_house.fn_copy_extracted_values_to_entity_tab
 Returns void As $$
 	Declare x RECORD;
 Begin
+
+    Raise Notice 'DEPRECATED - Replaced by Python import script';
 
     -- NOTE! FIXME! Must take greater care on how inserts are sorted
 	For x In (
@@ -631,24 +654,24 @@ Begin
         If (p_add_missing_columns) Then
 		    Perform clearing_house.fn_add_new_public_db_columns(p_submission_id, x.table_name_underscored);
         End If;
-        
+
         If Not (p_dry_run) Then
             Perform clearing_house.fn_copy_extracted_values_to_entity_table(p_submission_id, x.table_name_underscored);
         End If;
-        
+
         Raise Notice 'PERFORM clearing_house.fn_copy_extracted_values_to_entity_table(%, ''%'');', p_submission_id, x.table_name_underscored;
 
-	End Loop;	
-	
+	End Loop;
+
 	--Raise Notice 'XML entity field values extracted and stored for submission id %', p_submission_id;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
-**	Function	fn_explode_submission_xml_to_rdb
+**	Function	DEPRECATED! fn_explode_submission_xml_to_rdb
 **	Who			Roger Mähler
 **	When		2013-10-14
 **	What		Explodes uploaded XML data to CHDB RDB tables
-**  Note
+**  Note        DEPRECATED
 **	Uses        fn_extract_and_store_submission_tables
 **              fn_extract_and_store_submission_columns
 **              fn_extract_and_store_submission_records
@@ -662,6 +685,8 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_explode_submission_xml_to_rdb(submission_id int) Returns void As $$
 
 Begin
+
+    Raise Notice 'DEPRECATED - Replaced by Python import script';
 
 	Perform clearing_house.fn_extract_and_store_submission_tables(submission_id);
 	Perform clearing_house.fn_extract_and_store_submission_columns(submission_id);
@@ -681,4 +706,3 @@ Begin
 	Perform clearing_house.fn_copy_extracted_values_to_entity_tables(submission_id);
 
 End $$ Language plpgsql;
-

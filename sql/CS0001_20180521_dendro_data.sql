@@ -1,4 +1,28 @@
 
+/****************************************************************************************************************
+  Change author
+    Mattias Sjölander, Roger Mähler, 2018-06-12
+  Change description
+    DDL changes to SEAD DB to accommodate Dendro data
+  Risk assessment
+    Low risk since the data is new
+  Planning
+    Low risk
+  Change execution and rollback
+    Apply this script.
+    Steps to verify change: N/A
+    Steps to rollback change: N/A
+  Change prerequisites (e.g. tests)
+  Change reviewer
+    Mattias Sjölander
+  Change Approver Signoff
+    Phil Buckland
+  Notes:
+    FK constraint is of "SIMPLE MATCH" which allows NULL FK values i.e. no change needed
+  Impact on dependent modules
+    Changes must be propagated to Clearing House
+*****************************************************************************************************************/
+
 drop view postgrest_default_api.dendro_date;
 drop view clearing_house.view_dendro_dates;
 

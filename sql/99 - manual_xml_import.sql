@@ -1,5 +1,6 @@
 
 -- Add the following stored procedure to server side target database (if not exists):
+-- DEPRECATED use python script upload_xml.py instead!
 CREATE OR REPLACE FUNCTION clearing_house.xml_import(loid oid, p_unlink boolean DEFAULT true)
  RETURNS xml
  LANGUAGE plpgsql
@@ -24,12 +25,14 @@ AS $function$
 $function$
 
 -- Create a target table where the XML will be stored.
+-- DEPRECATED use python script upload_xml.py instead!
 CREATE TABLE clearing_house.tbl_clearinghouse_xml_temp(
   id serial not null,
   xmldata xml
 );
 
 -- Transfer XML to submission table
+-- DEPRECATED use python script upload_xml.py instead!
 CREATE OR REPLACE FUNCTION clearing_house.xml_transfer_bulk_upload(p_submission_id integer DEFAULT NULL::integer, p_xml_id integer DEFAULT NULL::integer, p_upload_user_id integer DEFAULT 4)
  RETURNS integer
  LANGUAGE plpgsql
@@ -65,54 +68,4 @@ End $function$
 
 
 
-/*****************************************************************************************************************************
-**	Function	fn_truncate_all_entity_tables
-**	Who			Roger Mähler
-**	When		2018-03-25
-**	What		Truncates all clearinghouse entity tables and resets sequences
-**  Note        NOTE! This Function clears ALL entities in CH tables!
-**	Uses
-**	Revisions
-******************************************************************************************************************************/
--- Select clearing_house.fn_truncate_all_entity_tables()
-Create Or Replace Function clearing_house.fn_truncate_all_entity_tables()
-Returns void As $$
-    Declare x record;
-    Declare command text;
-    Declare item_count int;
-Begin
-
-    -- Raise 'This error raise must be removed before this function will run';
-
-	For x In (
-        Select t.*
-        From clearing_house.tbl_clearinghouse_submission_tables t
-	) Loop
-
-        command = 'select count(*) from clearing_house.' || x.table_name_underscored || ';';
-
-        Raise Notice '%: %', command, item_count;
-
-        Begin
-            Execute command Into item_count;
-            If item_count > 0 Then
-                command = 'TRUNCATE clearing_house.' || x.table_name_underscored || ' RESTART IDENTITY;';
-                Execute command;
-            End If;
-       Exception
-            When undefined_table Then
-                Raise Notice 'Missing: %', x.table_name_underscored;
-                -- Do nothing, and loop to try the UPDATE again.
-       End;
-
-	Truncate Table clearing_house.tbl_clearinghouse_submission_xml_content_values Restart Identity Cascade;
-	Truncate Table clearing_house.tbl_clearinghouse_submission_xml_content_columns Restart Identity Cascade;
-	Truncate Table clearing_house.tbl_clearinghouse_submission_xml_content_records Restart Identity Cascade;
-	Truncate Table clearing_house.tbl_clearinghouse_submission_xml_content_tables Restart Identity Cascade;
-    Truncate Table clearing_house.tbl_clearinghouse_submissions Restart Identity Cascade;
-    Truncate Table clearing_house.tbl_clearinghouse_xml_temp Restart Identity Cascade;
-
-	End Loop;
-	End
-$$ Language plpgsql;
 
