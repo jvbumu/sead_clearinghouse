@@ -1,17 +1,3 @@
-/*********************************************************************************************************************************
-**  View        view_clearinghouse_sead_rdb_schema_pk_columns
-**  When        2013-10-18
-**  What        Returns PK column name for RDB tables
-**  Who         Roger Mähler
-**  Uses        INFORMATION_SCHEMA.catalog in SEAD production
-**  Used By     Clearing House installation. DBA.
-**  Revisions
-**********************************************************************************************************************************/
-Create Or Replace view clearing_house.view_clearinghouse_sead_rdb_schema_pk_columns as
-    Select table_schema, table_name,  column_name
-    From clearing_house.tbl_clearinghouse_sead_rdb_schema
-    Where is_pk = 'YES'
-;
 /*****************************************************************************************************************************
 **	Function	fn_rdb_schema_script_table
 **	Who			Roger Mähler
@@ -197,6 +183,45 @@ Begin
 
 End $$ Language plpgsql;
 
+/*****************************************************************************************************************************
+**	Function	fn_create_local_public_primary_key_view
+**	Who			Roger Mähler
+**	When		2018-06-15
+**	What		Fast lookup of public_db_id given submission_id, local_db_id to public_db_id
+**  Note        Is a MTERIALIZED view that MUST BE UPDATED!
+**  Uses
+**  Used By     Transfer CH-data to SEAD module
+**	Revisions
+******************************************************************************************************************************/
+
+CREATE OR REPLACE FUNCTION clearing_house.fn_create_local_to_public_id_view() RETURNS VOID AS $$
+DECLARE v_sql text;
+BEGIN
+
+	SELECT string_agg(' SELECT submission_id, ''' || table_name || ''' as table_name, local_db_id, public_db_id from clearing_house.' || table_name || '', E'  \nUNION ')
+		INTO STRICT v_sql
+	FROM clearing_house.tbl_clearinghouse_sead_rdb_schema
+	WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'clearing_house')
+	  AND table_name LIKE 'tbl%'
+	  AND is_pk = 'YES';
+
+	v_sql = E'
+		DROP VIEW IF EXISTS clearing_house.view_local_to_public_id;
+		CREATE MATERIALIZED VIEW clearing_house.view_local_to_public_id AS \n' || v_sql	|| ';
+		DROP INDEX IF EXISTS idx_view_local_to_public_id;
+		CREATE INDEX idx_view_local_to_public_id ON clearing_house.view_local_to_public_id (submission_id, table_name, local_db_id);';
+
+	EXECUTE v_sql;
+
+END;
+$$ LANGUAGE plpgsql;
+
+-- SELECT clearing_house.fn_create_local_to_public_id_view();
+CREATE OR REPLACE FUNCTION clearing_house.fn_local_to_public_id(int,varchar,int) RETURNS INT
+	AS 'SELECT public_db_id FROM clearing_house.view_local_to_public_id WHERE submission_id = $1 and table_name = $2 and local_db_id = $3; '
+	LANGUAGE SQL STABLE RETURNS NULL ON NULL INPUT;
+
+-- REFRESH MATERIALIZED VIEW clearing_house.view_local_to_public_id;
 
 /*****************************************************************************************************************************
 **	Function	fn_add_new_public_db_columns

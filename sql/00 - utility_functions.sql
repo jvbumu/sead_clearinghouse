@@ -24,10 +24,10 @@ Begin
    v_iDeg := Trunc(p_dDecDeg)::INT;
    v_iMin := Trunc((Abs(p_dDecDeg) - Abs(v_iDeg)) * 60)::int;
    v_dSec := Round(((((Abs(p_dDecDeg) - Abs(v_iDeg)) * 60) - v_iMin) * 60)::numeric, 3)::float;
-   
+
    Return trim(to_char(v_iDeg,'9999')) || p_sDegreeSymbol::text || trim(to_char(v_iMin,'99')) || p_sMinuteSymbol::text ||
           Case When v_dSec = 0::FLOAT Then '0' Else replace(trim(to_char(v_dSec,'99.999')),'.000','') End || p_sSecondSymbol::text;
-          
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_pascal_case_to_underscore
@@ -66,11 +66,11 @@ Begin
 	If (lower($1) in ('java.util.date', 'java.sql.date')) Then
 		return 'date';
 	End If;
-	
+
 	If (lower($1) in ('java.math.bigdecimal', 'java.lang.double')) Then
 		return 'numeric';
 	End If;
-	
+
 	If (lower($1) in ('java.lang.integer', 'java.util.integer', 'java.long.short')) Then
 		return 'integer';
 	End If;
@@ -88,8 +88,8 @@ Begin
 	End If;
 
 	Raise Exception 'Fatal error: Java type % encountered in XML not expected', $1;
-	
-End 
+
+End
 
 $BODY$;
 
@@ -145,14 +145,14 @@ Returns Boolean As $$
 	Declare exists Boolean;
 Begin
 
-	Select Count(*) > 0 Into exists 
-		From information_schema.tables 
+	Select Count(*) > 0 Into exists
+		From information_schema.tables
 		Where table_catalog = CURRENT_CATALOG
 		  And table_schema = CURRENT_SCHEMA
 		  And table_name = $1;
 
 	return exists;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_get_schema_table_column_names
@@ -170,13 +170,13 @@ Returns character varying(255)[] As $$
 Begin
 
 	Select array_agg(column_name::character varying(255)) Into columns
-		From information_schema.columns 
+		From information_schema.columns
 		Where table_catalog = CURRENT_CATALOG
 		  And table_schema = CURRENT_SCHEMA
 		  And table_name = $1;
-	
+
 	return columns;
-	
+
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_to_integer
@@ -191,14 +191,14 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_to_integer(character varying(255))
 Returns int As $$
 Begin
-	Return Case When ($1 ~ '^[0-9]+$') Then $1::int Else null End;	
+	Return Case When ($1 ~ '^[0-9]+$') Then $1::int Else null End;
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
 **	Function	fn_get_entity_type_for
 **	Who			Roger Mähler
 **	When		2013-10-14
-**	What		Returns entity type for table 
+**	What		Returns entity type for table
 **	Uses
 **	Used By
 **	Revisions
@@ -215,14 +215,14 @@ Begin
       On x.table_id = t.table_id
     Where table_name_underscored = $1;
 
-    Return Coalesce(table_entity_type_id,0);	
+    Return Coalesce(table_entity_type_id,0);
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
 **	Function	xml_transfer_bulk_upload
 **	Who			Roger Mähler
 **	When		2017-10-26
-**	What		
+**	What
 **	Uses
 **	Used By
 **	Revisions
@@ -234,14 +234,14 @@ Returns int As $$
 Begin
 
 	p_xml_id = Coalesce(p_xml_id, (Select Max(ID) from clearing_house.tbl_clearinghouse_xml_temp));
-    
+
 	If p_submission_id Is Null Then
-    
+
         Select Coalesce(Max(submission_id),0) + 1
         Into p_submission_id
         From clearing_house.tbl_clearinghouse_submissions;
-    
-        Insert Into clearing_house.tbl_clearinghouse_submissions(submission_id, submission_state_id, data_types, upload_user_id, 
+
+        Insert Into clearing_house.tbl_clearinghouse_submissions(submission_id, submission_state_id, data_types, upload_user_id,
             upload_date, upload_content, xml, status_text, claim_user_id, claim_date_time)
 
             Select p_submission_id, 1, 'Undefined other', p_upload_user_id, now(), null, xmldata, 'New', null, null
@@ -254,9 +254,25 @@ Begin
         From clearing_house.tbl_clearinghouse_xml_temp X
         Where clearing_house.tbl_clearinghouse_submissions.submission_id = p_submission_id
           And X.id = p_xml_id;
-    
+
     End If;
-    
+
     Return p_submission_id;
 End $$ Language plpgsql;
 
+/*****************************************************************************************************************************
+**	Function	fn_sead_table_entity_name
+**	Who			Roger Mähler
+**	When		2018-10-21
+**	What        Computes a noun from a sead table name in singular form
+**	Uses
+**	Used By     Clearinghouse transfer & commit
+**	Revisions
+******************************************************************************************************************************/
+CREATE OR REPLACE FUNCTION clearing_house.fn_sead_table_entity_name(p_table_name text)
+RETURNS information_schema.sql_identifier AS $$
+Begin
+	return Replace(Case When p_table_name Like  '%ies' Then regexp_replace(p_table_name, 'ies$', 'y')
+		 When Not p_table_name Like '%status' Then rtrim(p_table_name, 's')
+		 Else p_table_name End, 'tbl_', '')::information_schema.sql_identifier As entity_name;
+End; $$ language plpgsql;

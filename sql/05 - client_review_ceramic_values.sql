@@ -190,4 +190,3 @@ BEGIN
 
 END
 $$ LANGUAGE 'plpgsql';
-select * from clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(1);

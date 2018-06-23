@@ -3,6 +3,27 @@ import io
 import tidylib
 import base64
 import zlib
+import logging
+
+def setup_logger(logger, filename, level=logging.DEBUG):
+    '''
+    Setup logging of import messages to both file and console
+    '''
+    logger.handlers = []
+
+    logger.setLevel(level)
+    formatter = logging.Formatter('%(message)s')
+
+    fh = logging.FileHandler(filename)
+    fh.setLevel(level)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
 
 def flatten(l):
     '''

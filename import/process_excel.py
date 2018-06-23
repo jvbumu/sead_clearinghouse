@@ -7,33 +7,13 @@ import numbers
 import io
 import logging
 
-from utility import tidy_xml, flatten_sets
+from utility import tidy_xml, flatten_sets, setup_logger
 from upload_xml import upload_xml
 from explode_xml import explode_xml_to_rdb, truncate_all_clearinghouse_entity_tables
 from data_specification import DataTableSpecification
 from functools import reduce
 
 logger = logging.getLogger('Excel XML processor')
-
-def setup_logger(filename, level=logging.DEBUG):
-    global logger
-    '''
-    Setup logging of import messages to both file and console
-    '''
-    logger.handlers = []
-
-    logger.setLevel(level)
-    formatter = logging.Formatter('%(message)s')
-
-    fh = logging.FileHandler(filename)
-    fh.setLevel(level)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-
-    ch = logging.StreamHandler()
-    ch.setLevel(level)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
 
 class MetaData:
 
@@ -514,7 +494,7 @@ def process_xml(reset_entity_db=False):
             log_filename = os.path.join(option['output_folder'], '{}_{}.log'.format(basename, timestamp))
             output_filename = os.path.join(option['output_folder'], '{}_{}.xml'.format(basename, timestamp))
 
-            setup_logger(log_filename)
+            setup_logger(logger, log_filename)
 
             logger.info('PROCESS OF %s STARTED', basename)
 
@@ -535,27 +515,28 @@ def process_xml(reset_entity_db=False):
         except:
             logger.exception('ABORTED CRITICAL ERROR %s ', basename)
 
-def upload_xmls():
-    options = [
-        dict(data_types='Dendro BYGG', tidy_xml_filename='01_BYGG_20180612_20180612-182341_tidy.xml'),
-        dict(data_types='Dendro ARKEO', tidy_xml_filename='02_Ark_dendro_20180612_20180612-202836_tidy.xml'),
-        dict(data_types='Ceramics', tidy_xml_filename='tunnslipstabell - in progress 20180612_20180612-183324_tidy.xml')
-    ]
-    for option in options:
-        try:
-            tidy_xml_filename = os.path.join(source_folder, 'output', option['tidy_xml_filename'])
-            submission_id = upload_xml(tidy_xml_filename, submission_state_id=1, data_types=option['data_types'], upload_user_id=4, **db_opts)
-        except:
-            logger.exception('ABORTED CRITICAL ERROR %s ', option['tidy_xml_filename'])
+# Partial executions:
+# def upload_xmls():
+#     options = [
+#         dict(data_types='Dendro BYGG', tidy_xml_filename='01_BYGG_20180612_20180612-182341_tidy.xml'),
+#         dict(data_types='Dendro ARKEO', tidy_xml_filename='02_Ark_dendro_20180612_20180612-202836_tidy.xml'),
+#         dict(data_types='Ceramics', tidy_xml_filename='tunnslipstabell - in progress 20180612_20180612-183324_tidy.xml')
+#     ]
+#     for option in options:
+#         try:
+#             tidy_xml_filename = os.path.join(source_folder, 'output', option['tidy_xml_filename'])
+#             submission_id = upload_xml(tidy_xml_filename, submission_state_id=1, data_types=option['data_types'], upload_user_id=4, **db_opts)
+#         except:
+#             logger.exception('ABORTED CRITICAL ERROR %s ', option['tidy_xml_filename'])
 
-def explode_xmls():
-    setup_logger('explode.log', level=logging.DEBUG)
-    submission_ids = [ 1, 2, 3 ]
-    for submission_id in submission_ids:
-        try:
-            explode_xml_to_rdb(submission_id, **db_opts)
-        except:
-            logger.exception('ABORTED CRITICAL ERROR %s ', submission_id)
+# def explode_xmls():
+#     setup_logger('explode.log', level=logging.DEBUG)
+#     submission_ids = [ 1, 2, 3 ]
+#     for submission_id in submission_ids:
+#         try:
+#             explode_xml_to_rdb(submission_id, **db_opts)
+#         except:
+#             logger.exception('ABORTED CRITICAL ERROR %s ', submission_id)
 
 if __name__ == "__main__":
     process_xml(reset_entity_db=False)
