@@ -1,6 +1,4 @@
-Drop Function If Exists clearing_house.fn_dba_get_sead_public_db_schema(text, text);
--- Drop Table If Exists clearing_house.tbl_clearinghouse_sead_rdb_schema;
-Drop Function If Exists clearing_house.fn_dba_create_and_transfer_sead_public_db_schema();
+-- Drop Function If Exists clearing_house.fn_dba_get_sead_public_db_schema(text, text);
 
 /*********************************************************************************************************************************
 **  Function    fn_dba_get_sead_public_db_schema
@@ -92,47 +90,8 @@ CREATE OR REPLACE FUNCTION clearing_house.fn_dba_get_sead_public_db_schema(p_sch
     ORDER BY table_name, ordinal_position ASC;
 End
 $BODY$;
-/*********************************************************************************************************************************
-**  Function    fn_dba_create_and_transfer_sead_public_db_schema
-**  When        2013-10-18
-**  What        Stores a snapshot of SEAD public db schema catalog in local (frozen) table tbl_chdb_SEAD_rdb_schema
-**  Who         Roger Mähler
-**  Used By     Clearing House installation. DBA.
-**  Revisions
-**********************************************************************************************************************************/
--- Select * From  clearing_house.tbl_clearinghouse_sead_rdb_schema;
-CREATE OR REPLACE FUNCTION clearing_house.fn_dba_create_and_transfer_sead_public_db_schema()
-RETURNS void LANGUAGE 'plpgsql' AS $BODY$
-Begin
-
-    Create Table If Not Exists clearing_house.tbl_clearinghouse_sead_rdb_schema (
-        table_schema information_schema.sql_identifier not null,
-        table_name information_schema.sql_identifier not null,
-        column_name information_schema.sql_identifier not null,
-        ordinal_position information_schema.cardinal_number not null,
-        data_type information_schema.character_data not null,
-        numeric_precision information_schema.cardinal_number,
-        numeric_scale information_schema.cardinal_number,
-        character_maximum_length information_schema.cardinal_number,
-        is_nullable information_schema.yes_or_no not null,
-        is_pk information_schema.yes_or_no not null,
-        is_fk information_schema.yes_or_no not null,
-        fk_table_name information_schema.sql_identifier,
-        fk_column_name information_schema.sql_identifier
-    );
-
-    Drop Index If Exists idx_sead_rdb_schema;
-
-    Create Index idx_sead_rdb_schema On clearing_house.tbl_clearinghouse_sead_rdb_schema (table_name, column_name);
-
-	Delete From clearing_house.tbl_clearinghouse_sead_rdb_schema;
-
-	Insert Into clearing_house.tbl_clearinghouse_sead_rdb_schema (table_schema, table_name, column_name, ordinal_position, data_type, numeric_precision, numeric_scale, character_maximum_length, is_nullable, is_pk, is_fk, fk_table_name, fk_column_name)
-		Select table_schema, table_name, column_name, ordinal_position, data_type, numeric_precision, numeric_scale, character_maximum_length, is_nullable, is_pk, is_fk, fk_table_name, fk_column_name
-		From clearing_house.fn_dba_get_sead_public_db_schema()
-		Order By 1,2,3;
-End
-$BODY$;
+ALTER FUNCTION clearing_house.fn_dba_get_sead_public_db_schema(text, text)
+    OWNER TO clearinghouse_worker;
 /*********************************************************************************************************************************
 **  View        view_clearinghouse_sead_rdb_schema_pk_columns
 **  When        2013-10-18
@@ -144,18 +103,9 @@ $BODY$;
 **********************************************************************************************************************************/
 Create Or Replace view clearing_house.view_clearinghouse_sead_rdb_schema_pk_columns as
     Select table_schema, table_name, column_name
-    From clearing_house.tbl_clearinghouse_sead_rdb_schema
+    From clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master')
     Where is_pk = 'YES'
 ;
-
-ALTER FUNCTION clearing_house.fn_dba_create_and_transfer_sead_public_db_schema()
-    OWNER TO clearinghouse_worker;
-
-ALTER FUNCTION clearing_house.fn_dba_get_sead_public_db_schema(text, text)
-    OWNER TO clearinghouse_worker;
-
--- ALTER TABLE clearing_house.tbl_clearinghouse_sead_rdb_schema
---    OWNER TO clearinghouse_worker;
 
 ALTER VIEW clearing_house.view_clearinghouse_sead_rdb_schema_pk_columns
     OWNER TO clearinghouse_worker;
@@ -179,9 +129,8 @@ ALTER VIEW clearing_house.view_clearinghouse_sead_rdb_schema_pk_columns
 -- 	Return Query
 -- 		With tables as (
 -- 			SELECT DISTINCT r.table_name, replace(r.table_name, 'tbl_', '') as plural_entity_name
--- 			FROM clearing_house.tbl_clearinghouse_sead_rdb_schema r
--- 			WHERE r.table_schema In ('public')
--- 			  AND r.table_name Like 'tbl_%'
+-- 			FROM clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master') r
+-- 			WHERE r.table_name Like 'tbl_%'
 -- 			  AND r.is_pk = 'YES' /* Måste finnas PK */
 -- 		) Select t.table_name::information_schema.sql_identifier,
 -- 			Case When plural_entity_name Like  '%ies' Then regexp_replace(plural_entity_name, 'ies$', 'y')

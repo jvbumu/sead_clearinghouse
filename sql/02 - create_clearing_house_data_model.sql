@@ -9,12 +9,36 @@
 **  Revisions
 **********************************************************************************************************************************/
 -- Select clearing_house.fn_dba_create_clearing_house_db_model();
--- Drop Function If Exists fn_dba_create_clearing_house_db_model();
-Create Or Replace Function clearing_house.fn_dba_create_clearing_house_db_model() Returns void As $$
+-- Drop Function If Exists fn_dba_create_clearing_house_db_model(BOOLEAN);
+Create Or Replace Function clearing_house.fn_dba_create_clearing_house_db_model(p_drop_tables BOOLEAN=FALSE) Returns void As $$
 
 Begin
 
+	if (p_drop_tables) Then
 
+		Drop Table If Exists clearing_house.tbl_clearinghouse_activity_log;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_submissions;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_signal_log;
+
+		Drop Table If Exists clearing_house.tbl_clearinghouse_submissions;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_reject_cause_types;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_reject_causes;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_users;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_user_roles;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_data_provider_grades;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_states;
+
+	End If;
+
+	If (p_drop_tables) Then
+
+		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_values;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_records;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_columns;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_tables;
+		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_tables;
+
+	End If;
 
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_settings') Then
 
@@ -74,47 +98,7 @@ Begin
 
     End If;
 
-    /*
-    Create Table If Not Exists tbl_error_id_types (
-        error_id int not null,
-        description character varying(255) not null,
-        Constraint pk_error_id Primary Key (error_id),
-        Constraint fk_tbl_user_roles_role_id Foreign Key (role_id)
-            References tbl_user_roles (role_id) Match Simple
-                On Update No Action On Delete No Action
-    );
 
-
-    Insert Into tbl_error_id_types (error_id, description) Values (0, 'Not specified');
-
-    Create Table If Not Exists tbl_error_log (
-        error_log_id serial not null,
-        error_id int not null,
-        error_type character varying(32) not null,
-        error_message text not null,
-        error_file character varying(255) not null,
-        error_line int not null,
-        error_time date not null,
-        error_user character varying(255) not null,
-        Constraint pk_tbl_error_log Primary Key (error_log_id)
-    );
-    */
-
-	if (false) Then
-
-		Drop Table If Exists clearing_house.tbl_clearinghouse_activity_log;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_submissions;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_signal_log;
-
-		Drop Table If Exists clearing_house.tbl_clearinghouse_submissions;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_reject_cause_types;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_reject_causes;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_users;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_user_roles;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_data_provider_grades;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_states;
-
-	End If;
 
     /*********************************************************************************************************************************
     ** Activity
@@ -224,16 +208,6 @@ Begin
     /*********************************************************************************************************************************
     ** XML content tables - intermediate tables using during process
     **********************************************************************************************************************************/
-
-	If (false) Then
-
-		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_values;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_records;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_columns;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_xml_content_tables;
-		Drop Table If Exists clearing_house.tbl_clearinghouse_submission_tables;
-
-	End If;
 
     If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_submission_tables') Then
 

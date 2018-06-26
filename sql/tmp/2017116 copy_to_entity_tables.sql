@@ -6,7 +6,7 @@
     update clearing_house.tbl_clearinghouse_submission_xml_content_columns
         set column_name = 'address_2', column_name_underscored = 'address_2'
     where column_name = 'address2';
-    
+
     with pk_values As (
         select v.value_id, s.table_name_underscored, c.column_name_underscored, v.value, v.local_db_id
         from clearing_house.tbl_clearinghouse_submission_xml_content_values v
@@ -16,13 +16,13 @@
     ) SELECT m.value_id, s.table_name, s.column_name, s.data_type, m.value, m.local_db_id,
             'UPDATE clearing_house.tbl_clearinghouse_submission_xml_content_values SET value = local_db_id WHERE value is NULL AND value_id = ' || value_id::text || ';'
       FROM pk_values m
-      JOIN clearing_house.tbl_clearinghouse_sead_rdb_schema s
+      JOIN clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master') s
         ON s.table_name = m.table_name_underscored
        AND s.column_name = m.column_name_underscored
       WHERE s.is_pk = 'YES'
         --AND s.table_name = 'tbl_ceramics'
         AND m.value is NULL
-        
+
 Do $$
 Begin
 

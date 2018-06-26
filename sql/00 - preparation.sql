@@ -14,6 +14,13 @@ CREATE SCHEMA clearing_house;
 
 ALTER SCHEMA clearing_house OWNER TO clearinghouse_worker;
 
+Drop Domain clearing_house.transport_crud_type;
+
+CREATE DOMAIN clearing_house.transport_crud_type CHAR
+    CHECK (VALUE IS NULL OR VALUE IN ('C', 'U', 'D'))
+    DEFAULT NULL
+    NULL;
+
 /*
 --
 -- CHANGE OWNER IF schema clearing_house EXISTS WITH WRONG OWNER

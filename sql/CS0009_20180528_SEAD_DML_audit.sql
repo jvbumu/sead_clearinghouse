@@ -83,7 +83,6 @@ Create Or Replace Function metainformation.fn_script_audit_views(source_schema c
 	Declare v_view_dml text;
 	Declare v_column_list text;
 	Declare v_column_type text;
-	Declare x clearing_house.tbl_clearinghouse_sead_rdb_schema%rowtype;
 Begin
 
     v_view_name = Replace(p_table_name, 'tbl_', 'view_');
@@ -100,30 +99,10 @@ Begin
 		WHERE table_name = ''#TABLE-NAME#''
 	;';
 
-    /*
-	v_column_list := '';
-
-	For x In (
-		Select *
-		From clearing_house.fn_dba_get_sead_public_db_schema() s
-		Where s.table_schema = source_schema
-		  And s.table_name = p_table_name
-		Order By ordinal_position)
-	Loop
-
-		v_column_list := v_column_list || Case When v_column_list = '' Then '' Else ',
-		'
-		End;
-		v_column_type := clearing_house.fn_create_schema_type_string(x.data_type, x.character_maximum_length, x.numeric_precision, x.numeric_scale, 'YES');
-		v_column_type := replace(v_column_type, ' null', '');
-		v_column_list := v_column_list || '(row_data->''' || x.column_name || ''')::' || v_column_type || ' AS ' || x.column_name;
-
-	End Loop; */
-
     WITH table_columns AS (
         SELECT column_name,
             clearing_house.fn_create_schema_type_string(data_type, character_maximum_length, numeric_precision, numeric_scale, 'YES') as column_type
-        FROM clearing_house.tbl_clearinghouse_sead_rdb_schema s -- clearing_house.fn_dba_get_sead_public_db_schema() s
+        FROM clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master') s
         WHERE s.table_schema = 'public'
         AND s.table_name = 'tbl_locations'
         ORDER BY ordinal_position

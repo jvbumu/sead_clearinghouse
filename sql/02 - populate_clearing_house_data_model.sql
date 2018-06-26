@@ -3,8 +3,8 @@
 **  When        2017-11-06
 **  What        Adds data to DB clearing_house specific schema objects
 **  Who         Roger Mähler
-**  Note    
-**  Uses    
+**  Note
+**  Uses
 **  Used By     Clearing House server installation. DBA.
 **  Revisions
 **********************************************************************************************************************************/
@@ -14,8 +14,8 @@ Create Or Replace Function clearing_house.fn_dba_populate_clearing_house_db_mode
 Begin
 
     If (Select Count(*) From clearing_house.tbl_clearinghouse_settings) = 0 Then
-        
-        Insert Into clearing_house.tbl_clearinghouse_settings (setting_group, setting_key, setting_value, setting_datatype) 
+
+        Insert Into clearing_house.tbl_clearinghouse_settings (setting_group, setting_key, setting_value, setting_datatype)
             Values
                 ('logger', 'folder', '/tmp/', 'string'),
                 ('', 'max_execution_time', '120', 'numeric'),
@@ -38,24 +38,24 @@ Reject causes:
 This is an auto-generated mail from the SEAD Clearing House system
 
 ', 'string'),
- 
+
                 ('signal-templates', 'reject-cause',
 '
-            
-Entity type: #ENTITY-TYPE# 
-Error scope: #ERROR-SCOPE# 
-Entities: #ENTITY-ID-LIST# 
-Note:  #ERROR-DESCRIPTION# 
+
+Entity type: #ENTITY-TYPE#
+Error scope: #ERROR-SCOPE#
+Entities: #ENTITY-ID-LIST#
+Note:  #ERROR-DESCRIPTION#
 
 --------------------------------------------------------------------
 
 ', 'string'),
 
                 ('signal-templates', 'accept-subject', 'SEAD Clearing House: submission has been accepted', 'string'),
-        
+
                 ('signal-templates', 'accept-body',
 '
-            
+
 Your submission to SEAD Clearing House has been accepted!
 
 This is an auto-generated mail from the SEAD Clearing House system
@@ -63,9 +63,9 @@ This is an auto-generated mail from the SEAD Clearing House system
 ', 'string'),
 
                 ('signal-templates', 'reclaim-subject', 'SEAD Clearing House notfication: Submission #SUBMISSION-ID# has been transfered to pending', 'string'),
-        
+
                 ('signal-templates', 'reclaim-body', '
-            
+
 Status of submission #SUBMISSION-ID# has been reset to pending due to inactivity.
 
 A submission is automatically reset to pending status when #DAYS-UNTIL-RECLAIM# days have passed since the submission
@@ -74,11 +74,11 @@ was claimed for review, and if no activity during has been registered during las
 This is an auto-generated mail from the SEAD Clearing House system.
 
 ', 'string'),
- 
+
                 ('signal-templates', 'reminder-subject', 'SEAD Clearing House reminder: Submission #SUBMISSION-ID#', 'string'),
-        
+
                 ('signal-templates', 'reminder-body', '
-            
+
 Status of submission #SUBMISSION-ID# has been reset to pending due to inactivity.
 
 A reminder is automatically send when #DAYS-UNTIL-REMINDER# have passed since the submission
@@ -87,12 +87,12 @@ was claimed for review.
 This is an auto-generated mail from the SEAD Clearing House system.
 
 ', 'string'),
-    
+
                 ('reminder', 'days_until_first_reminder', '14', 'numeric'),
                 ('reminder', 'days_since_claimed_until_transfer_back_to_pending', '28', 'numeric'),
                 ('reminder', 'days_without_activity_until_transfer_back_to_pending', '14', 'numeric');
 
-    
+
     End If;
 
     If (Select Count(*) From clearing_house.tbl_clearinghouse_info_references) = 0 Then
@@ -106,8 +106,8 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
     If (Select Count(*) From clearing_house.tbl_clearinghouse_use_cases) = 0 Then
 
-        -- Update clearing_house.tbl_clearinghouse_use_cases Set entity_type_id = 1 Where use_case_id In (1,2,20,21) 
-        Insert Into clearing_house.tbl_clearinghouse_use_cases (use_case_id, use_case_name, entity_type_id) 
+        -- Update clearing_house.tbl_clearinghouse_use_cases Set entity_type_id = 1 Where use_case_id In (1,2,20,21)
+        Insert Into clearing_house.tbl_clearinghouse_use_cases (use_case_id, use_case_name, entity_type_id)
             Values (0, 'General', 0),
 				   (1, 'Login', 1),
 				   (2, 'Logout', 1),
@@ -142,7 +142,7 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
     If (Select Count(*) From clearing_house.tbl_clearinghouse_user_roles) = 0 Then
 
-        Insert Into clearing_house.tbl_clearinghouse_user_roles (role_id, role_name) 
+        Insert Into clearing_house.tbl_clearinghouse_user_roles (role_id, role_name)
             Values (0, 'Undefined'),
 				   (1, 'Reader'),
 				   (2, 'Normal'),
@@ -155,7 +155,7 @@ This is an auto-generated mail from the SEAD Clearing House system.
     If (Select Count(*) From clearing_house.tbl_clearinghouse_users) = 0 Then
 
 		-- update clearing_house.tbl_clearinghouse_users set signal_receiver = true where user_id = 2
-        Insert Into clearing_house.tbl_clearinghouse_users (user_name, password, full_name, role_id, data_provider_grade_id, create_date, email, signal_receiver) 
+        Insert Into clearing_house.tbl_clearinghouse_users (user_name, password, full_name, role_id, data_provider_grade_id, create_date, email, signal_receiver)
             Values ('test_reader', '$2y$10$/u3RCeK8Q.2s75UsZmvQ4.4TOxvLNKH8EoH4k6NYYtkAMavjP.dry', 'Test Reader', 1, 0, '2013-10-08', 'roger.mahler@umu.se', false),
                    ('test_normal', '$2y$10$/u3RCeK8Q.2s75UsZmvQ4.4TOxvLNKH8EoH4k6NYYtkAMavjP.dry', 'Test Normal', 2, 0, '2013-10-08', 'roger.mahler@umu.se', false),
                    ('test_admin', '$2y$10$/u3RCeK8Q.2s75UsZmvQ4.4TOxvLNKH8EoH4k6NYYtkAMavjP.dry', 'Test Administrator', 3, 0, '2013-10-08', 'roger.mahler@umu.se', true),
@@ -171,8 +171,7 @@ This is an auto-generated mail from the SEAD Clearing House system.
 			Select replace(initcap(replace(s.table_name, '_', ' ')), ' ', '') , s.table_name
 			From (
 				Select distinct table_name
-				From clearing_house.tbl_clearinghouse_sead_rdb_schema
-				Where table_schema = 'public'
+				From clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master')
 			) As s
 			Left Join clearing_house.tbl_clearinghouse_submission_tables t
 			  On t.table_name_underscored = s.table_name
@@ -201,7 +200,7 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
             Select 0,  0, 'Not specified'
 			Union
-            Select row_number() over (ORDER BY table_name),  table_id, left(substring(table_name,4),Length(table_name)-4) 
+            Select row_number() over (ORDER BY table_name),  table_id, left(substring(table_name,4),Length(table_name)-4)
             From clearing_house.tbl_clearinghouse_submission_tables
             Where table_name Like 'Tbl%s'
             Order by 1;
@@ -209,7 +208,7 @@ This is an auto-generated mail from the SEAD Clearing House system.
         /* Komplettera med nya */
         Insert Into clearing_house.tbl_clearinghouse_reject_entity_types (entity_type_id, table_id, entity_type)
 
-            Select (Select Max(entity_type_id) From clearing_house.tbl_clearinghouse_reject_entity_types) + row_number() over (ORDER BY table_name),  t.table_id, left(substring(table_name,4),Length(table_name)-3) 
+            Select (Select Max(entity_type_id) From clearing_house.tbl_clearinghouse_reject_entity_types) + row_number() over (ORDER BY table_name),  t.table_id, left(substring(table_name,4),Length(table_name)-3)
             From clearing_house.tbl_clearinghouse_submission_tables t
 			Left Join clearing_house.tbl_clearinghouse_reject_entity_types x
 			  On x.table_id = t.table_id
@@ -245,6 +244,7 @@ This is an auto-generated mail from the SEAD Clearing House system.
                     --(10, '*Ecological reference data - Taxonomic species description', 'Select * From clearing_house.fn_dummy_data_list_procedure(?)'),
                     (11, 'Relative ages', 'Select * From clearing_house.fn_clearinghouse_report_relative_ages(?)'),
                     (13, 'Methods', 'Select * From clearing_house.fn_clearinghouse_report_methods(?)');
+                    (14, 'Ceramic values', 'Select * From clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(?)');
 
     End If;
 

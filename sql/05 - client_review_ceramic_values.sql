@@ -177,8 +177,8 @@ BEGIN
 	;
 
 	SELECT format('
-		-- SELECT ''HEADER'', ARRAY[%s]
-		-- UNION ALL
+		SELECT ''HEADER'', ARRAY[%s]
+		UNION ALL
 		SELECT sample_name, local_db_id, public_db_id, entity_type_id, array_to_json(ARRAY[%s]) AS json_data_values
 		FROM crosstab(%L, %L) AS ct(sample_name text, local_db_id int, public_db_id int, entity_type_id int, %s)',
 				  v_column_names, v_field_names, v_data_values_sql, v_categories_sql, v_typed_fields)

@@ -31,7 +31,7 @@ End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_script_public_db_entity_table
 **	Who			Roger Mähler
-**	When		2013-10-14
+**	When		2018-06-25
 **	What		Creates new CHDB tables based on SEAD information_schema.catalog
 **					- All columns in SEAD catalog is included, and using the same data_types and null attribute
 **					- CHDB specific columns submission_id and source_id (LDB or PDB) is added
@@ -40,72 +40,49 @@ End $$ Language plpgsql;
 **					- PK in new table is submission_id + source_id + "PK:s in Local DB'
 **  Uses
 **  Used By
-**	Revisions
+**	Revisions   2018-06-25 / removed loop
 **	TODO		Add keys on foreign indexes to improve performance.
 ******************************************************************************************************************************/
--- Select clearing_house.fn_script_public_db_entity_table('public', 'clearing_house', 'tbl_physical_samples')
-Create Or Replace Function clearing_house.fn_script_public_db_entity_table(source_schema character varying(255), target_schema character varying(255), table_name character varying(255)) Returns text As $$
-	#variable_conflict use_variable
-	Declare sql_template text;
-	Declare sql text;
-	Declare column_list text;
-	Declare pk_fields text;
-	Declare x clearing_house.tbl_clearinghouse_sead_rdb_schema%rowtype;
-
+-- Select clearing_house.fn_script_public_db_entity_table('public', 'clearing_house', 'tbl_sites')
+Create Or Replace Function clearing_house.fn_script_public_db_entity_table(p_source_schema character varying(255), p_target_schema character varying(255), p_table_name character varying(255)) Returns text As $$
+	Declare sql_stmt text;
+	Declare data_columns text;
+	Declare pk_columns text;
 Begin
 
-	sql_template = '	Create Table #TABLE-NAME# (
+    Select string_agg(column_name || ' ' || clearing_house.fn_create_schema_type_string(data_type, character_maximum_length, numeric_precision, numeric_scale, is_nullable), E',\n        ' ORDER BY ordinal_position ASC),
+           string_agg(Case When is_pk = 'YES' Then column_name Else Null End, E', ' ORDER BY ordinal_position ASC)
+    Into Strict data_columns, pk_columns
+    From clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master') s
+    Where s.table_schema = p_source_schema
+      And s.table_name = p_table_name;
 
-		submission_id int not null,
-		source_id int not null,
+    -- ASSERT NOT pk_columns IS NULL;
 
-		local_db_id int not null,
-		public_db_id int null,
+	sql_stmt = format('Create Table %I.%I (
 
-		#COLUMN-LIST#
+        %s,
 
-		#PK-CONSTRAINT#
+        submission_id int not null,
+        source_id int not null,
+        local_db_id int not null,
+        public_db_id int null,
 
-	);';
+        transport_crud_type clearing_house.transport_crud_type,
+        transport_date timestamp with time zone,
+        transport_id_generated BOOLEAN,
 
-	column_list := '';
-	pk_fields := '';
+        Constraint pk_%s Primary Key (submission_id, source_id, %s)
 
-	For x In (
-		Select *
-		From clearing_house.tbl_clearinghouse_sead_rdb_schema s
-		Where s.table_schema = source_schema
-		  And s.table_name = table_name
-		Order By ordinal_position)
-	Loop
+	);
+    Create Index idx_%s_submission_id_public_id %I.%I On (submission_id, public_db_id);',
+        p_target_schema, p_table_name, data_columns, p_table_name, pk_columns,
+        p_table_name, p_target_schema, p_table_name);
 
-		column_list := column_list || Case When column_list = '' Then '' Else ',
-		'
-		End;
-
-		column_list := column_list || x.column_name || ' ' || clearing_house.fn_create_schema_type_string(x.data_type, x.character_maximum_length, x.numeric_precision, x.numeric_scale, x.is_nullable) || '';
-
-		If x.is_pk = 'YES' Then
-			pk_fields := pk_fields || Case When pk_fields = '' Then '' Else ', ' End || x.column_name;
-		End If;
-
-	End Loop;
-
-	sql := sql_template;
-
-	sql := replace(sql, '#TABLE-NAME#', target_schema || '.' || table_name);
-	sql := replace(sql, '#COLUMN-LIST#', column_list);
-
-	If pk_fields <> '' Then
-		sql := replace(sql, '#PK-CONSTRAINT#', replace(',Constraint pk_' || table_name || ' Primary Key (submission_id, source_id, #PK-FIELDS#)', '#PK-FIELDS#', pk_fields));
-	Else
-		sql := replace(sql, '#PK-CONSTRAINT#', '');
-	End If;
-
-
-	Return sql;
+	Return sql_stmt;
 
 End $$ Language plpgsql;
+
 /*****************************************************************************************************************************
 **	Function	fn_create_public_db_entity_tables
 **	Who			Roger Mähler
@@ -118,69 +95,42 @@ End $$ Language plpgsql;
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_create_public_db_entity_tables('clearing_house')
 -- Select * From clearing_house.tbl_clearinghouse_sead_create_table_log
-Create Or Replace Function clearing_house.fn_create_public_db_entity_tables(target_schema character varying(255), only_drop BOOLEAN = FALSE) Returns void As $$
-
+Create Or Replace Function clearing_house.fn_create_public_db_entity_tables(
+    target_schema character varying(255),
+    p_only_drop BOOLEAN = FALSE,
+    p_dry_run BOOLEAN = TRUE
+) Returns void As $$
 	Declare x RECORD;
 	Declare create_script text;
 	Declare drop_script text;
-	Declare index_script text;
-
 Begin
-
-    If Not Exists (Select * From INFORMATION_SCHEMA.tables Where table_catalog = CURRENT_CATALOG And table_schema = 'clearing_house' And table_name = 'tbl_clearinghouse_sead_create_table_log') Then
-
-	    -- Drop Table If Exists clearing_house.tbl_clearinghouse_sead_create_table_log;
-	    Create Table clearing_house.tbl_clearinghouse_sead_create_table_log (
+    If Not p_dry_run Then
+        Create Table If Not Exists clearing_house.tbl_clearinghouse_sead_create_table_log (
             create_log_id SERIAL PRIMARY KEY,
             create_script text,
             drop_script text,
             date_updated timestamp with time zone DEFAULT now()
         );
-
+        Delete From clearing_house.tbl_clearinghouse_sead_create_table_log;
     End If;
-
-    Delete From clearing_house.tbl_clearinghouse_sead_create_table_log;
-
 	For x In (
 		Select distinct table_schema As source_schema, table_name
-		From clearing_house.tbl_clearinghouse_sead_rdb_schema
-		Where table_schema Not In ('information_schema', 'pg_catalog', 'clearing_house')
-		  And table_name Like 'tbl%'
+		From clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master')
 	)
 	Loop
-
-		If clearing_house.fn_table_exists(target_schema || '.' || x.table_name) Then
-
-			Raise Exception 'Skipped: % since table already exists. ', target_schema || '.' || x.table_name;
-
-		Else
-
-			create_script := clearing_house.fn_script_public_db_entity_table(x.source_schema, target_schema, x.table_name);
-			drop_script := 'Drop Table If Exists ' || target_schema || '.' ||  x.table_name || ' CASCADE;';
-            -- FIXME: Index create not tested
-            -- index_script = 'Create Index idx_' || x.table_name || '_submission_id On '
-            --    || target_schema || '.' ||  x.table_name || ' (submission_id, public_db_id);';
-
-			If (create_script <> '') Then
-
-				Execute drop_script;
-
-                If (Not only_drop) Then
-				    Execute create_script;
-				    -- Execute index_script;
-                End If;
-
-				Insert Into clearing_house.tbl_clearinghouse_sead_create_table_log (create_script, drop_script) Values (create_script, drop_script);
-
-			Else
-				Insert Into clearing_house.tbl_clearinghouse_sead_create_table_log (create_script, drop_script) Values ('--Failed: ' || target_schema || '.' || x.table_name, '');
-			End If;
-
-
-		End If;
-
+        drop_script := format('Drop Table If Exists %I.%I CASCADE;', target_schema, x.table_name);
+        create_script := clearing_house.fn_script_public_db_entity_table(x.source_schema, target_schema, x.table_name);
+        If p_dry_run Then
+            Raise Notice '%', drop_script;
+            Raise Notice '%', create_script;
+        Else
+            Execute drop_script;
+            If Not p_only_drop Then
+                Execute create_script;
+            End If;
+            Insert Into clearing_house.tbl_clearinghouse_sead_create_table_log (create_script, drop_script) Values (create_script, drop_script);
+        End If;
 	End Loop;
-
 End $$ Language plpgsql;
 
 /*****************************************************************************************************************************
@@ -200,9 +150,8 @@ BEGIN
 
 	SELECT string_agg(' SELECT submission_id, ''' || table_name || ''' as table_name, local_db_id, public_db_id from clearing_house.' || table_name || '', E'  \nUNION ')
 		INTO STRICT v_sql
-	FROM clearing_house.tbl_clearinghouse_sead_rdb_schema
-	WHERE table_schema NOT IN ('information_schema', 'pg_catalog', 'clearing_house')
-	  AND table_name LIKE 'tbl%'
+	FROM clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master')
+	WHERE table_name LIKE 'tbl%'
 	  AND is_pk = 'YES';
 
 	v_sql = E'
@@ -234,7 +183,7 @@ CREATE OR REPLACE FUNCTION clearing_house.fn_local_to_public_id(int,varchar,int)
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_add_new_public_db_columns(2, 'tbl_datasets')
-Create Or Replace Function clearing_house.fn_add_new_public_db_columns(int, character varying(255)) Returns void As $$
+Create Or Replace Function clearing_house.fn_add_new_public_db_columns(p_submission_id int, p_table_name character varying(255)) Returns void As $$
 
 	Declare xml_columns character varying(255)[];
 	Declare schema_columns character varying(255)[];
@@ -242,31 +191,17 @@ Create Or Replace Function clearing_house.fn_add_new_public_db_columns(int, char
 	Declare x RECORD;
 
 Begin
-
-	xml_columns := clearing_house.fn_get_submission_table_column_names($1, $2);
-
+	xml_columns := clearing_house.fn_get_submission_table_column_names(p_submission_id, p_table_name);
 	If array_length(xml_columns, 1) = 0 Then
-		Raise Exception 'Fatal error. Table % has unknown fields.', $2;
+		Raise Exception 'Fatal error. Table % has unknown fields.', p_table_name;
 		Return;
 	End If;
 
-	If Not clearing_house.fn_table_exists($2) Then
-
-		sql := 'Create Table clearing_house.' || $2 || ' (
-
-			submission_id int not null,
-			source_id int not null,
-
-			local_db_id int not null,
-			public_db_id int null,
-
-			Constraint pk_' || $2 || '_' || xml_columns[1] || ' Primary Key (submission_id, ' || xml_columns[1] || ')
-
-		) ';
-
+	If Not clearing_house.fn_table_exists(p_table_name) Then
+		Raise Exception 'Fatal error. Table % does not exist.', p_table_name;
+        sql := clearing_house.fn_script_public_db_entity_table('public', 'clearing_house', p_table_name);
 		Raise Notice '%', sql;
 --		Execute sql;
-
 	End If;
 
 	For x In (
@@ -278,20 +213,22 @@ Begin
 		  On ic.table_schema = 'clearing_house'
 		 And ic.table_name = t.table_name_underscored
 		 And ic.column_name = c.column_name_underscored
-		Where c.submission_id = $1
-		  And t.table_name_underscored = $2
+		Where c.submission_id = p_submission_id
+		  And t.table_name_underscored = p_table_name
 		  And c.column_name_underscored <> 'cloned_id'
 		  And ic.table_name Is Null
 	) Loop
 
-		sql := 'Alter Table clearing_house.' || $2 || ' Add Column ' || x.column_name_underscored || ' ' || clearing_house.fn_java_type_to_PostgreSQL(x.data_type) || ' null;';
+		sql := format('Alter Table clearing_house.%I Add Column %I %s null;',
+            p_table_name, x.column_name_underscored, clearing_house.fn_java_type_to_PostgreSQL(x.data_type)
+        );
 
 		Execute sql;
 
 		Raise Notice 'Added new column: % % % [%]', x.table_name_underscored,  x.column_name_underscored , clearing_house.fn_java_type_to_PostgreSQL(x.data_type), sql;
 
         Insert Into clearing_house.tbl_clearinghouse_sead_unknown_column_log (submission_id, table_name, column_name, column_type, alter_sql)
-        Values ($1, x.table_name_underscored, x.column_name_underscored, clearing_house.fn_java_type_to_PostgreSQL(x.data_type), sql);
+            Values (p_submission_id, x.table_name_underscored, x.column_name_underscored, clearing_house.fn_java_type_to_PostgreSQL(x.data_type), sql);
 
 	End Loop;
 
@@ -307,7 +244,6 @@ End $$ Language plpgsql;
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_script_local_union_public_entity_view('clearing_house', 'clearing_house', 'public', 'tbl_dating_uncertainty')
--- Select * From tbl_clearinghouse_sead_rdb_schema
 Create Or Replace Function clearing_house.fn_script_local_union_public_entity_view(target_schema character varying(255), local_schema character varying(255), public_schema character varying(255), table_name character varying(255)) Returns text As $$
 	#variable_conflict use_variable
 	Declare sql_template text;
@@ -317,28 +253,27 @@ Create Or Replace Function clearing_house.fn_script_local_union_public_entity_vi
 Begin
 
 	sql_template =
-'/*****************************************************************************************************************************
-**	Function	#VIEW-NAME#
-**	Who			THIS VIEW IS AUTO-GENERATED BY fn_create_local_union_public_entity_views / Roger Mähler
-**	When		#DATE#
-**	What		Returns union of local and public versions of #TABLE-NAME#
-**  Uses        clearing_house.tbl_clearinghouse_sead_rdb_schema
-**	Note		Plase re-run fn_create_local_union_public_entity_views whenever public schema is changed
-**  Used By     SEAD Clearing House
-******************************************************************************************************************************/
-
+'
 Create Or Replace View #TARGET-SCHEMA#.#VIEW-NAME# As
+    /*
+    **	Function #VIEW-NAME#
+    **	Who      THIS VIEW IS AUTO-GENERATED BY fn_create_local_union_public_entity_views / Roger Mähler
+    **	When     #DATE#
+    **	What     Returns union of local and public versions of #TABLE-NAME#
+    **  Uses     clearing_house.fn_dba_get_sead_public_db_schema
+    **	Note     Please re-run fn_create_local_union_public_entity_views whenever public schema is changed
+    **  Used By  SEAD Clearing House
+    **/
 
-	Select submission_id, source_id, local_db_id as merged_db_id, local_db_id, public_db_id, #COLUMN-LIST#
-	From #LOCAL-SCHEMA#.#TABLE-NAME#
-	Union
-	Select 0 As submission_id, 2 As source_id, #PK-COLUMN# as merged_db_id, 0 As local_db_id, #PK-COLUMN# As public_db_id, #COLUMN-LIST#
-	From #PUBLIC-SCHEMA#.#TABLE-NAME#
-
+    Select #COLUMN-LIST#, submission_id, source_id, local_db_id as merged_db_id, local_db_id, public_db_id
+    From #LOCAL-SCHEMA#.#TABLE-NAME#
+    Union
+    Select #COLUMN-LIST#, 0 As submission_id, 2 As source_id, #PK-COLUMN# as merged_db_id, 0 As local_db_id, #PK-COLUMN# As public_db_id
+    From #PUBLIC-SCHEMA#.#TABLE-NAME#
 ;';
 
 	Select array_to_string(array_agg(s.column_name Order By s.ordinal_position), ',') Into column_list
-	From clearing_house.tbl_clearinghouse_sead_rdb_schema s
+	From clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master') s
 	Join information_schema.columns c /* Ta endast med kolumner som finns i båda */
 	  On c.table_schema = local_schema
 	 And c.table_name = table_name
@@ -347,7 +282,7 @@ Create Or Replace View #TARGET-SCHEMA#.#VIEW-NAME# As
 	  And s.table_name = table_name;
 
 	Select column_name Into pk_field
-	From clearing_house.tbl_clearinghouse_sead_rdb_schema s
+	From clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master') s
 	Where s.table_schema = public_schema
 	  And s.table_name = table_name
 	  And s.is_pk = 'YES';
@@ -377,63 +312,43 @@ End $$ Language plpgsql;
 **  Used By
 **	Revisions
 ******************************************************************************************************************************/
--- Select clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE)
+-- Select clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', FALSE, TRUE)
 -- Select * From clearing_house.tbl_clearinghouse_sead_create_view_log
--- Drop Function clearing_house.fn_create_local_union_public_entity_views(target_schema character varying(255), local_schema character varying(255), only_drop BOOLEAN);
-Create Or Replace Function clearing_house.fn_create_local_union_public_entity_views(target_schema character varying(255), local_schema character varying(255), only_drop BOOLEAN = FALSE, only_missing BOOLEAN = FALSE)
+-- Drop Function clearing_house.fn_create_local_union_public_entity_views(character varying(255), character varying(255), BOOLEAN, BOOLEAN);
+Create Or Replace Function clearing_house.fn_create_local_union_public_entity_views(
+    target_schema character varying(255),
+    local_schema character varying(255),
+    only_drop BOOLEAN = FALSE,
+    dry_run BOOLEAN = TRUE
+)
 Returns void As $$
-
 	Declare v_row RECORD;
 	Declare drop_script text;
 	Declare create_script text;
-
 Begin
 
-	Drop Table If Exists clearing_house.tbl_clearinghouse_sead_create_view_log;
-
-	Create Table clearing_house.tbl_clearinghouse_sead_create_view_log (create_script text, drop_script text);
+	Create Table If Not Exists clearing_house.tbl_clearinghouse_sead_create_view_log (create_script text, drop_script text);
 
 	For v_row In (
+        Select distinct table_schema As public_schema, table_name, replace(table_name, 'tbl_', 'view_') As view_name
+        From clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master')
+        Where is_pk = 'YES' -- /* Måste finnas PK */
+          And table_name Like 'tbl_%'
+	) Loop
 
-        WITH clearinghouse_views AS (
-            SELECT c.relname as view_name
-            FROM pg_catalog.pg_class c
-            JOIN pg_catalog.pg_namespace n
-                ON n.oid = c.relnamespace
-            WHERE TRUE
-                AND c.relkind = 'v'    -- only tables
-                AND n.nspname = 'clearing_house'
-        )
-            SELECT DISTINCT r.table_schema As public_schema, r.table_name, replace(r.table_name, 'tbl_', 'view_') As view_name
-            FROM clearing_house.tbl_clearinghouse_sead_rdb_schema r
-            LEFT JOIN clearinghouse_views x
-            ON x.view_name = replace(r.table_name, 'tbl_', 'view_')
-            WHERE r.table_schema Not In ('information_schema', 'pg_catalog', 'clearing_house', 'metainformation')
-              AND r.table_name Like 'tbl_%'
-              AND r.is_pk = 'YES' /* Måste finnas PK */
-              AND (NOT only_missing OR x.view_name IS NULL)
-
-	)
-	Loop
-
-		drop_script = 'Drop View If Exists ' || target_schema || '.' || v_row.view_name || ' CASCADE;';
-
+		drop_script = format('Drop View If Exists %I.%I CASCADE;', target_schema, v_row.view_name);
 		create_script := clearing_house.fn_script_local_union_public_entity_view(target_schema, local_schema, v_row.public_schema, v_row.table_name);
 
-		If (create_script <> '') Then
+        Insert Into clearing_house.tbl_clearinghouse_sead_create_view_log (create_script, drop_script) Values (create_script, drop_script);
 
-			Insert Into clearing_house.tbl_clearinghouse_sead_create_view_log (create_script, drop_script) Values (create_script, drop_script);
-
-            If (only_drop) Then
-			    Execute drop_script;
-            Else
-			    Execute drop_script || ' ' || create_script;
-            End If;
-
-		Else
-			Insert Into clearing_house.tbl_clearinghouse_sead_create_view_log (create_script, drop_script) Values ('--Failed: ' || target_schema || '.' || v_row.table_name, '');
-		End If;
-
+        If dry_run Then
+            Raise Notice '%', drop_script;
+            Raise Notice '%', create_script;
+        ElseIf (only_drop) Then
+            Execute drop_script;
+        Else
+            Execute drop_script || ' ' || create_script;
+        End If;
 
 	End Loop;
 
@@ -520,4 +435,3 @@ Begin
     Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE, FALSE);
     Perform clearing_house.fn_create_public_db_entity_tables('clearing_house', TRUE);
 End $$ Language plpgsql;
-

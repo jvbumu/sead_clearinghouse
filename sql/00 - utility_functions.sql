@@ -122,7 +122,7 @@ Begin
           ON c.column_id = v.column_id
         JOIN clearing_house.tbl_clearinghouse_submission_tables s
           ON s.table_id = t.table_id
-        JOIN clearing_house.tbl_clearinghouse_sead_rdb_schema x
+        JOIN clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master') x
           ON x.table_name = s.table_name_underscored
          AND x.column_name = c.column_name_underscored
         WHERE v.submission_id = p_submission_id
