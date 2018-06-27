@@ -7,9 +7,7 @@
 **	Used By
 **	Revisions
 ******************************************************************************************************************************/
--- Drop Function clearing_house.fn_clearinghouse_report_locations(int)
 -- Select * From clearing_house.fn_clearinghouse_report_locations(2)
--- Execute clearing_house.fn_clearinghouse_report_locations(2)
 Create Or Replace Function clearing_house.fn_clearinghouse_report_locations(int)
 Returns Table (
 
@@ -37,7 +35,6 @@ Returns Table (
 
 Declare
     entity_type_id int;
-
 Begin
 
 	entity_type_id := clearing_house.fn_get_entity_type_for('tbl_locations');
@@ -86,7 +83,7 @@ End $$ Language plpgsql;
 **	Used By
 **	Revisions
 ******************************************************************************************************************************/
-Drop Function clearing_house.fn_clearinghouse_report_bibliographic_entries(int);
+-- Drop Function If Exists clearing_house.fn_clearinghouse_report_bibliographic_entries(int);
 -- Select * From clearing_house.fn_clearinghouse_report_bibliographic_entries(32)
 Create Or Replace Function clearing_house.fn_clearinghouse_report_bibliographic_entries(int)
 Returns Table (
@@ -476,7 +473,7 @@ Returns Table (
 	public_system_name character varying,
 	public_reference text,
 
-        date_updated text,
+    date_updated text,
 	entity_type_id int
 
 ) As $$
@@ -513,12 +510,10 @@ Begin
 			RDB.public_system_name,
 			RDB.public_reference,
 
-
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
 			entity_type_id              				As entity_type_id
 
 		From (
-
 				select t.submission_id,
 					t.source_id,
 					t.taxon_id As local_db_id,
@@ -555,7 +550,6 @@ Begin
 				Join clearing_house.view_biblio b
 				  On b.merged_db_id = es.biblio_id
 				 And b.submission_id in (0, t.submission_id)
-
 
 		) As LDB Left Join (
 
@@ -627,7 +621,7 @@ Returns Table (
 	public_common_name character varying,
 	public_language_name character varying,
 
-        date_updated text,
+    date_updated text,
 	entity_type_id int
 
 ) As $$
@@ -661,7 +655,6 @@ Begin
 			RDB.public_association_species,
 			RDB.public_common_name,
 			RDB.public_language_name,
-
 
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
 			entity_type_id              				As entity_type_id
@@ -717,7 +710,7 @@ Begin
 			left join clearing_house.view_languages l
 			 on cn.language_id = l.merged_db_id
 			 and l.submission_id in (0, t.submission_id)
-                                 -- // end common names
+            -- // end common names
 
 		) As LDB Left Join (
 			select
@@ -801,7 +794,7 @@ Returns Table (
 	public_identification_key_text text,
 	public_identification_key_reference text,
 
-        date_updated text,
+    date_updated text,
 	entity_type_id int
 
 ) As $$
@@ -1000,7 +993,6 @@ Begin
 			RDB.public_location_name                    As public_location_name,
 			RDB.public_activity_type                    As public_activity_type,
 
-
 			to_char(LDB.date_updated,'YYYY-MM-DD')		As date_updated,
             entity_type_id                                  As entity_type_id
 
@@ -1069,8 +1061,6 @@ Begin
 		Order By LDB.species;
 End $$ Language plpgsql;
 
-
-
 /*****************************************************************************************************************************
 **	Function	fn_clearinghouse_report_relative_ages
 **	Who			Roger Mähler
@@ -1079,38 +1069,6 @@ End $$ Language plpgsql;
 **	Uses
 **	Used By
 **	Revisions
-
-Select 	ps.sample_name,
-		ra.Abbreviation,
-		l.location_name,
-		du.uncertainty,
-		m.method_name,
-		ra.C14_age_older,
-		ra.C14_age_younger,
-		ra.CAL_age_older,
-		ra.CAL_age_younger,
-		ra.relative_age_name,
-		ra.notes,
-		b.authour || '(' || b.year || ')'
-From public.tbl_relative_dates rd
-Join public.tbl_physical_samples ps
-  On ps.physical_sample_id  = rd.physical_sample_id
-Join public.tbl_relative_ages ra
-  On ra.relative_age_id = rd.relative_age_id
-Join public.tbl_methods m
-  On m.method_id = rd.method_id
-Join public.tbl_dating_uncertainty du
-  On du.dating_uncertainty_id = rd.dating_uncertainty_id
-Join public.tbl_relative_age_types rat
-  On rat.relative_age_type_id = ra.relative_age_type_id
-Join public.tbl_locations l
-  On l.location_id = ra.location_id
-Join public.tbl_relative_age_refs raf
-  On raf.relative_age_id = ra.relative_age_id
-Join public.tbl_biblio b
-  On b.biblio_id = raf.biblio_id
-
-
 ******************************************************************************************************************************/
 -- Drop Function clearing_house.fn_clearinghouse_report_relative_ages(int);
 -- Select count(*) From clearing_house.fn_clearinghouse_report_relative_ages(2);
@@ -1302,7 +1260,6 @@ Begin
 
 End $$ Language plpgsql;
 
-
 /*****************************************************************************************************************************
 **	Function	fn_clearinghouse_report_datasets
 **	Who			Roger Mähler
@@ -1313,13 +1270,11 @@ End $$ Language plpgsql;
 **	Revisions	2014-03-18 Bug fix in LDB data
 **					rt.merged_db_id = rt.record_type_id changed to rt.merged_db_id = m.record_type_id
 ******************************************************************************************************************************/
-Drop Function clearing_house.fn_clearinghouse_report_datasets(int);
 -- Select * From clearing_house.fn_clearinghouse_report_datasets(32)
 Create Or Replace Function clearing_house.fn_clearinghouse_report_datasets(int)
 Returns Table (
 
 	local_db_id int,
-
 
     dataset_name                        character varying,
     method_name                         character varying,
@@ -1437,7 +1392,6 @@ End $$ Language plpgsql;
 **	Used By
 **	Revisions
 ******************************************************************************************************************************/
--- Drop Function clearing_house.fn_clearinghouse_report_methods(int)
 -- Select * From clearing_house.fn_clearinghouse_report_methods(2)
 Create Or Replace Function clearing_house.fn_clearinghouse_report_methods(int)
 Returns Table (
@@ -1613,7 +1567,6 @@ Begin
 
 End $$ Language plpgsql;
 
-
 /*****************************************************************************************************************************
 **	Function	fn_clearinghouse_report_feature_types
 **	Who			Roger Mähler
@@ -1688,22 +1641,6 @@ Begin
 
 End $$ Language plpgsql;
 
-Do $$
-Declare v_next_id int;
-Begin
-   If (Select Count(*) From clearing_house.tbl_clearinghouse_reports Where report_procedure like '%fn_clearinghouse_report_feature_types%') = 0 Then
-
-        Select Max(report_id) + 1 Into v_next_id From clearing_house.tbl_clearinghouse_reports;
-
-        Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
-            Values  (v_next_id, 'Feature types', 'Select * From clearing_house.fn_clearinghouse_report_feature_types(?)');
-
-        Raise Notice 'Report wdded with ID: %', v_next_id;
-
-    End If;
-
-End $$ Language plpgsql;
-
 /*****************************************************************************************************************************
 **	Function	fn_clearinghouse_report_sample_group_dimensions
 **	Who			Roger Mähler
@@ -1713,7 +1650,6 @@ End $$ Language plpgsql;
 **	Used By
 **	Revisions
 ******************************************************************************************************************************/
-Drop Function clearing_house.fn_clearinghouse_report_sample_group_dimensions(int);
 -- Select * From clearing_house.fn_clearinghouse_report_sample_group_dimensions(1)
 Create Or Replace Function clearing_house.fn_clearinghouse_report_sample_group_dimensions(int)
 Returns Table (
@@ -1800,22 +1736,6 @@ Begin
           And LDB.submission_id = $1
 
         Order by LDB.sample_group_id;
-
-End $$ Language plpgsql;
-
-Do $$
-Declare v_next_id int;
-Begin
-   If (Select Count(*) From clearing_house.tbl_clearinghouse_reports Where report_procedure like '%fn_clearinghouse_report_sample_group_dimensions%') = 0 Then
-
-        Select Max(report_id) + 1 Into v_next_id From clearing_house.tbl_clearinghouse_reports;
-
-        Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
-            Values  (v_next_id, 'Sample group dimensions', 'Select * From clearing_house.fn_clearinghouse_report_sample_group_dimensions(?)');
-
-        Raise Notice 'Report added with ID: %', v_next_id;
-
-    End If;
 
 End $$ Language plpgsql;
 
@@ -1917,22 +1837,6 @@ Begin
 
 End $$ Language plpgsql;
 
-Do $$
-Declare v_next_id int;
-Begin
-   If (Select Count(*) From clearing_house.tbl_clearinghouse_reports Where report_procedure like '%fn_clearinghouse_report_sample_dimensions%') = 0 Then
-
-        Select Max(report_id) + 1 Into v_next_id From clearing_house.tbl_clearinghouse_reports;
-
-        Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
-            Values  (v_next_id, 'Sample dimensions', 'Select * From clearing_house.fn_clearinghouse_report_sample_dimensions(?)');
-
-        Raise Notice 'Report added with ID: %', v_next_id;
-
-    End If;
-
-End $$ Language plpgsql;
-
 /*****************************************************************************************************************************
 **	Function	fn_clearinghouse_report_sample_descriptions
 **	Who			Roger Mähler
@@ -2022,25 +1926,6 @@ Begin
 End
 $BODY$;
 
-ALTER FUNCTION clearing_house.fn_clearinghouse_report_sample_descriptions(integer)
-    OWNER TO clearinghouse_worker;
-
-Do $$
-Declare v_next_id int;
-Begin
-   If (Select Count(*) From clearing_house.tbl_clearinghouse_reports Where report_procedure like '%fn_clearinghouse_report_sample_descriptions%') = 0 Then
-
-        Select Max(report_id) + 1 Into v_next_id From clearing_house.tbl_clearinghouse_reports;
-
-        Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
-            Values  (v_next_id, 'Sample descriptions', 'Select * From clearing_house.fn_clearinghouse_report_sample_descriptions(?)');
-
-        Raise Notice 'Report added with ID: %', v_next_id;
-
-    End If;
-
-End $$ Language plpgsql;
-
 /*****************************************************************************************************************************
 **	Function	fn_clearinghouse_report_sample_group_descriptions
 **	Who			Roger Mähler
@@ -2050,12 +1935,6 @@ End $$ Language plpgsql;
 **	Used By
 **	Revisions
 ******************************************************************************************************************************/
--- Drop Function clearing_house.fn_clearinghouse_report_sample_group_descriptions(int);
--- Select * From clearing_house.fn_clearinghouse_report_sample_group_descriptions(1)
-
--- FUNCTION: clearing_house.fn_clearinghouse_report_sample_group_descriptions(integer)
-
--- DROP FUNCTION clearing_house.fn_clearinghouse_report_sample_group_descriptions(integer);
 
 CREATE OR REPLACE FUNCTION clearing_house.fn_clearinghouse_report_sample_group_descriptions(integer)
 RETURNS TABLE(
@@ -2147,24 +2026,3 @@ Begin
 
 End
 $BODY$;
-
-ALTER FUNCTION clearing_house.fn_clearinghouse_report_sample_group_descriptions(integer)
-    OWNER TO clearinghouse_worker;
-
-Do $$
-Declare v_next_id int;
-Begin
-   If (Select Count(*) From clearing_house.tbl_clearinghouse_reports Where report_procedure like '%fn_clearinghouse_report_sample_group_descriptions%') = 0 Then
-
-        Select Max(report_id) + 1 Into v_next_id From clearing_house.tbl_clearinghouse_reports;
-
-        Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
-            Values  (v_next_id, 'Sample group descriptions', 'Select * From clearing_house.fn_clearinghouse_report_sample_group_descriptions(?)');
-
-        Raise Notice 'Report added with ID: %', v_next_id;
-
-    End If;
-
-End $$ Language plpgsql;
-
-

@@ -75,7 +75,7 @@ Begin
         Constraint pk_%s Primary Key (submission_id, source_id, %s)
 
 	);
-    Create Index idx_%s_submission_id_public_id %I.%I On (submission_id, public_db_id);',
+    Create Index idx_%s_submission_id_public_id On %I.%I (submission_id, public_db_id);',
         p_target_schema, p_table_name, data_columns, p_table_name, pk_columns,
         p_table_name, p_target_schema, p_table_name);
 
@@ -166,9 +166,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- SELECT clearing_house.fn_create_local_to_public_id_view();
-CREATE OR REPLACE FUNCTION clearing_house.fn_local_to_public_id(int,varchar,int) RETURNS INT
-	AS 'SELECT public_db_id FROM clearing_house.view_local_to_public_id WHERE submission_id = $1 and table_name = $2 and local_db_id = $3; '
-	LANGUAGE SQL STABLE RETURNS NULL ON NULL INPUT;
+-- CREATE OR REPLACE FUNCTION clearing_house.fn_local_to_public_id(int,varchar,int) RETURNS INT
+-- 	AS 'SELECT public_db_id FROM clearing_house.view_local_to_public_id WHERE submission_id = $1 and table_name = $2 and local_db_id = $3; '
+-- 	LANGUAGE SQL STABLE RETURNS NULL ON NULL INPUT;
 
 -- REFRESH MATERIALIZED VIEW clearing_house.view_local_to_public_id;
 
@@ -183,7 +183,9 @@ CREATE OR REPLACE FUNCTION clearing_house.fn_local_to_public_id(int,varchar,int)
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_add_new_public_db_columns(2, 'tbl_datasets')
-Create Or Replace Function clearing_house.fn_add_new_public_db_columns(p_submission_id int, p_table_name character varying(255)) Returns void As $$
+Create Or Replace Function clearing_house.fn_add_new_public_db_columns(
+    p_submission_id int, p_table_name character varying(255)
+) Returns void As $$
 
 	Declare xml_columns character varying(255)[];
 	Declare schema_columns character varying(255)[];
@@ -198,14 +200,14 @@ Begin
 	End If;
 
 	If Not clearing_house.fn_table_exists(p_table_name) Then
-		Raise Exception 'Fatal error. Table % does not exist.', p_table_name;
         sql := clearing_house.fn_script_public_db_entity_table('public', 'clearing_house', p_table_name);
 		Raise Notice '%', sql;
 --		Execute sql;
+		Raise Exception 'Fatal error. Table % does not exist.', p_table_name;
 	End If;
 
 	For x In (
-		Select t.table_name_underscored, c.column_name_underscored, c.data_type
+		Select Distinct t.table_name_underscored, c.column_name_underscored, c.data_type
 		From clearing_house.tbl_clearinghouse_submission_tables t
 		Join clearing_house.tbl_clearinghouse_submission_xml_content_columns c
 		  On c.table_id = t.table_id
@@ -218,6 +220,9 @@ Begin
 		  And c.column_name_underscored <> 'cloned_id'
 		  And ic.table_name Is Null
 	) Loop
+
+        -- Break instead of automatic INSERT
+		Raise Exception 'Fatal error. Unknown column found in XML. Target table %, column %s does not exist.',  x.table_name_underscored,  x.column_name_underscored;
 
 		sql := format('Alter Table clearing_house.%I Add Column %I %s null;',
             p_table_name, x.column_name_underscored, clearing_house.fn_java_type_to_PostgreSQL(x.data_type)
@@ -244,7 +249,12 @@ End $$ Language plpgsql;
 **	Revisions
 ******************************************************************************************************************************/
 -- Select clearing_house.fn_script_local_union_public_entity_view('clearing_house', 'clearing_house', 'public', 'tbl_dating_uncertainty')
-Create Or Replace Function clearing_house.fn_script_local_union_public_entity_view(target_schema character varying(255), local_schema character varying(255), public_schema character varying(255), table_name character varying(255)) Returns text As $$
+Create Or Replace Function clearing_house.fn_script_local_union_public_entity_view(
+    target_schema character varying(255),
+    local_schema character varying(255),
+    public_schema character varying(255),
+    table_name character varying(255)
+) Returns text As $$
 	#variable_conflict use_variable
 	Declare sql_template text;
 	Declare sql text;
@@ -272,9 +282,9 @@ Create Or Replace View #TARGET-SCHEMA#.#VIEW-NAME# As
     From #PUBLIC-SCHEMA#.#TABLE-NAME#
 ;';
 
-	Select array_to_string(array_agg(s.column_name Order By s.ordinal_position), ',') Into column_list
+	Select array_to_string(array_agg(s.column_name::text Order By s.ordinal_position), ',') Into column_list
 	From clearing_house.fn_dba_get_sead_public_db_schema('public', 'sead_master') s
-	Join information_schema.columns c /* Ta endast med kolumner som finns i båda */
+	Join information_schema.columns c /* Column must exist in public and local schema */
 	  On c.table_schema = local_schema
 	 And c.table_name = table_name
 	 And c.column_name = s.column_name
@@ -318,8 +328,8 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_create_local_union_public_entity_views(
     target_schema character varying(255),
     local_schema character varying(255),
-    only_drop BOOLEAN = FALSE,
-    dry_run BOOLEAN = TRUE
+    p_only_drop BOOLEAN = FALSE,
+    p_dry_run BOOLEAN = TRUE
 )
 Returns void As $$
 	Declare v_row RECORD;
@@ -341,13 +351,14 @@ Begin
 
         Insert Into clearing_house.tbl_clearinghouse_sead_create_view_log (create_script, drop_script) Values (create_script, drop_script);
 
-        If dry_run Then
+        If p_dry_run Then
             Raise Notice '%', drop_script;
             Raise Notice '%', create_script;
-        ElseIf (only_drop) Then
-            Execute drop_script;
         Else
-            Execute drop_script || ' ' || create_script;
+            Execute drop_script;
+            If Not p_only_drop Then
+                Execute create_script;
+            End If;
         End If;
 
 	End Loop;
@@ -407,7 +418,6 @@ Begin
 
 End $$ Language plpgsql;
 
-
 /*****************************************************************************************************************************
 **	Function	fn_create_clearinghouse_public_db_model
 **	Who			Roger Mähler
@@ -419,19 +429,22 @@ End $$ Language plpgsql;
 **	Revisions
 ******************************************************************************************************************************/
 
-Create Or Replace Function clearing_house.fn_create_clearinghouse_public_db_model()
+Create Or Replace Function clearing_house.fn_create_clearinghouse_public_db_model(
+    p_only_drop BOOLEAN = FALSE,
+    p_dry_run BOOLEAN = TRUE
+)
 Returns void As $$
 Begin
 
-    Perform clearing_house.fn_create_public_db_entity_tables('clearing_house', FALSE);
+    Perform clearing_house.fn_create_public_db_entity_tables('clearing_house', p_only_drop, p_dry_run);
     Perform clearing_house.fn_generate_foreign_key_indexes();
-    Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', FALSE, FALSE);
+    Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', p_only_drop, p_dry_run);
 
 End $$ Language plpgsql;
 
-Create Or Replace Function clearing_house.fn_drop_clearinghouse_public_db_model()
-Returns void As $$
-Begin
-    Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE, FALSE);
-    Perform clearing_house.fn_create_public_db_entity_tables('clearing_house', TRUE);
-End $$ Language plpgsql;
+-- Create Or Replace Function clearing_house.fn_drop_clearinghouse_public_db_model()
+-- Returns void As $$
+-- Begin
+--     Perform clearing_house.fn_create_local_union_public_entity_views('clearing_house', 'clearing_house', TRUE, FALSE);
+--     Perform clearing_house.fn_create_public_db_entity_tables('clearing_house', TRUE);
+-- End $$ Language plpgsql;

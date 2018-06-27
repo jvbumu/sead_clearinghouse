@@ -66,15 +66,12 @@ var ReviewTableView = window.ReviewTableView = ReviewView.extend({
     },
 
     render: function () {
-
         this.$el.html(this.template({
             table_id: this.options.table_id,
             //columns: this.options.columns,
-            classname: "display table table-sm sead-smaller-font-size"
+            classname: "display table table-sm sead-smaller-font-size table-header-rotated table-striped-column table-hover"
         }));
-
         this.render_data();
-
         return this;
     },
 
@@ -87,13 +84,13 @@ var ReviewTableView = window.ReviewTableView = ReviewView.extend({
         _.each(columns, function(column) {
             $tr.append($("<th/>",
                 $.extend({
-                    text: column.column_name
                 }, column.column_tooltip ? {
                     title: column.column_tooltip
                 } : {}, column.class ? {
                     class: column.class
                 } : {} )
-            ));
+            ).append($('<div/>').append(
+                $('<span/>', { text: column.column_name }))));
         });
         $header.append($tr);
     },
@@ -137,17 +134,13 @@ var ReviewTableView = window.ReviewTableView = ReviewView.extend({
         var rejects = this.options.rejects;
 
         _.each(
-
             data,
-
             function (row) {
-
                 var $row_text = $(template( {
                     options : options,
                     columns: columns,
                     row: row
                 }));
-
                 if (rejects) {
                     $(".indicator-container", $row_text).html(
                         new RejectCauseIndicatorView({

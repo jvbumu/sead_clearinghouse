@@ -144,8 +144,6 @@ $$ LANGUAGE plpgsql;
 ** Assign gateway triggers
 *************************************************************************************************************/
 
-GRANT clearinghouse_worker TO mattias;
-
 /*
 select a.table_name, a.column_name, a.ordinal_position - 4, b.column_name, b.ordinal_position
 from information_schema.columns a

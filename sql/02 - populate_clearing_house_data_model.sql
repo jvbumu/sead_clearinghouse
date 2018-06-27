@@ -227,10 +227,6 @@ This is an auto-generated mail from the SEAD Clearing House system.
 
     If (Select Count(*) From clearing_house.tbl_clearinghouse_reports) = 0 Then
 
-		-- Select * From clearing_house.tbl_clearinghouse_reports
-		--Delete From clearing_house.tbl_clearinghouse_reports
-		--Delete From clearing_house.tbl_clearinghouse_reports
-
         Insert Into clearing_house.tbl_clearinghouse_reports (report_id, report_name, report_procedure)
             Values  ( 1, 'Locations', 'Select * From clearing_house.fn_clearinghouse_report_locations(?)'),
                     ( 2, 'Bibliography entries', 'Select * From clearing_house.fn_clearinghouse_report_bibliographic_entries(?)'),
@@ -241,10 +237,21 @@ This is an auto-generated mail from the SEAD Clearing House system.
                     ( 7, 'Ecological reference data - Taxonomic RGB codes', 'Select * From clearing_house.fn_clearinghouse_report_taxa_rdb(?)'),
                     ( 8, 'Ecological reference data - Taxonomic eco-codes', 'Select * From clearing_house.fn_clearinghouse_report_taxa_ecocodes(?)'),
                     ( 9, 'Ecological reference data - Taxonomic seasonanlity', 'Select * From clearing_house.fn_clearinghouse_report_taxa_seasonality(?)'),
-                    --(10, '*Ecological reference data - Taxonomic species description', 'Select * From clearing_house.fn_dummy_data_list_procedure(?)'),
+
+                    -- (10, '*Ecological reference data - Taxonomic species description', 'Select * From clearing_house.fn_dummy_data_list_procedure(?)'),
+
                     (11, 'Relative ages', 'Select * From clearing_house.fn_clearinghouse_report_relative_ages(?)'),
-                    (13, 'Methods', 'Select * From clearing_house.fn_clearinghouse_report_methods(?)');
-                    (14, 'Ceramic values', 'Select * From clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(?)');
+                    (12, 'Methods', 'Select * From clearing_house.fn_clearinghouse_report_methods(?)'),
+
+                    (13, 'Feature types', 'Select * From clearing_house.fn_clearinghouse_report_feature_types(?)'),
+
+                    (14, 'Sample group descriptions', 'Select * From clearing_house.fn_clearinghouse_report_sample_group_descriptions(?)'),
+                    (15, 'Sample group dimensions', 'Select * From clearing_house.fn_clearinghouse_report_sample_group_dimensions(?)'),
+
+                    (16, 'Sample dimensions', 'Select * From clearing_house.fn_clearinghouse_report_sample_dimensions(?)'),
+                    (17, 'Sample descriptions', 'Select * From clearing_house.fn_clearinghouse_report_sample_descriptions(?)'),
+
+                    (18, 'Ceramic values', 'Select * From clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(?)');
 
     End If;
 

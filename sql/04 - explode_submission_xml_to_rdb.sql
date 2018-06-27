@@ -193,8 +193,6 @@ Begin
             ) As v;
 
 End $BODY$ LANGUAGE plpgsql VOLATILE;
-ALTER FUNCTION clearing_house.fn_select_xml_content_records(integer)
-  OWNER TO clearinghouse_worker;
 
 /*****************************************************************************************************************************
 **	Function	fn_select_xml_content_values
@@ -244,9 +242,6 @@ Begin
 
 End
 $BODY$;
-
-ALTER FUNCTION clearing_house.fn_select_xml_content_values(integer, character varying)
-    OWNER TO clearinghouse_worker;
 
 /*****************************************************************************************************************************
 **	Function	fn_extract_and_store_submission_tables
@@ -431,7 +426,7 @@ End $$ Language plpgsql;
 **	Used By     fn_explode_submission_xml_to_rdb
 **	Revisions   DEPRECATED
 ******************************************************************************************************************************/
-Drop View If Exists clearing_house.view_clearinghouse_local_fk_references;
+-- Drop View If Exists clearing_house.view_clearinghouse_local_fk_references;
 -- Select * From clearing_house.view_clearinghouse_local_fk_references
 -- Create Or Replace View clearing_house.view_clearinghouse_local_fk_references As
 --     Select v.submission_id, v.local_db_id, c.table_id, c.column_id, v.fk_local_db_id, /* v.fk_public_db_id, */ fk_t.table_id as fk_table_id, fk_c.column_id as fk_column_id --, fk_v.value::int as fk_id
@@ -607,7 +602,7 @@ End $$ Language plpgsql;
 **	Used By     fn_explode_submission_xml_to_rdb
 **	Revisions
 ******************************************************************************************************************************/
-Drop Function If Exists clearing_house.fn_copy_extracted_values_to_entity_tables(p_submission_id int, p_dry_run boolean, p_add_missing_columns boolean);
+-- Drop Function If Exists clearing_house.fn_copy_extracted_values_to_entity_tables(p_submission_id int, p_dry_run boolean, p_add_missing_columns boolean);
 -- Select clearing_house.fn_copy_extracted_values_to_entity_tables(2)
 -- Create Or Replace Function clearing_house.fn_copy_extracted_values_to_entity_tables(p_submission_id int, p_dry_run boolean = FALSE, p_add_missing_columns boolean = FALSE)
 -- Returns void As $$
@@ -648,7 +643,7 @@ Drop Function If Exists clearing_house.fn_copy_extracted_values_to_entity_tables
 **	Used By     Clearing House "Process submission" use case (PHP process).
 **	Revisions
 ******************************************************************************************************************************/
- Drop Function If Exists explode_submission_xml_to_rdb(int);
+--  Drop Function If Exists explode_submission_xml_to_rdb(int);
 -- Select clearing_house.fn_explode_submission_xml_to_rdb(2)
 -- Create Or Replace Function clearing_house.fn_explode_submission_xml_to_rdb(submission_id int) Returns void As $$
 -- Begin

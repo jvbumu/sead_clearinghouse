@@ -39,7 +39,8 @@ namespace Services {
                             "column_name" => $x[0],
                             "column_field" => $column_name,
                             "data_type" => $x[1],
-                            "public_column_field" => 'public_' . $column_name
+                            "public_column_field" => 'public_' . $column_name,
+                            "class" => "rotate-45"
                         );
                     }
                 }
@@ -124,7 +125,5 @@ namespace Services {
 
             return $review_columns;
         }
-
-
     }
 }

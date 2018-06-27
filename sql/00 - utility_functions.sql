@@ -42,9 +42,7 @@ End $$ Language plpgsql;
 Create Or Replace Function clearing_house.fn_pascal_case_to_underscore(character varying(255))
 Returns character varying(255) As $$
 Begin
-
 	return lower(Left($1, 1) || regexp_replace(substring($1 from 2), E'([A-Z])', E'\_\\1','g'));
-
 End $$ Language plpgsql;
 /*****************************************************************************************************************************
 **	Function	fn_java_type_to_PostgreSQL
@@ -61,7 +59,6 @@ CREATE OR REPLACE FUNCTION clearing_house.fn_java_type_to_postgresql(
 RETURNS character varying
     LANGUAGE 'plpgsql'
 AS $BODY$
-
 Begin
 	If (lower($1) in ('java.util.date', 'java.sql.date')) Then
 		return 'date';
@@ -93,14 +90,12 @@ End
 
 $BODY$;
 
-ALTER FUNCTION clearing_house.fn_java_type_to_postgresql(character varying)
-    OWNER TO clearinghouse_worker;
 /*****************************************************************************************************************************
 **	Function	fn_clearinghouse_check_submission_length_exceeded
 **	Who			Roger Mähler
 **	What		Find string field values that exceeds DB varchar max length
 ******************************************************************************************************************************/
-Drop Function clearing_house.fn_clearinghouse_check_submission_length_exceeded(p_submission_id int);
+-- Drop Function clearing_house.fn_clearinghouse_check_submission_length_exceeded(p_submission_id int);
 Create Or Replace Function clearing_house.fn_clearinghouse_check_submission_length_exceeded(p_submission_id int)
 Returns Table (
 	submission_id				int,

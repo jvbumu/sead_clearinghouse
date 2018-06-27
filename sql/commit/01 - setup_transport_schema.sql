@@ -5,10 +5,10 @@ CREATE SCHEMA IF NOT EXISTS clearing_house_commit;
 
 /*********************************************************************************************************************************
 **  Function    fn_dba_sead_entity_tables
-**  When        
-**  What        
+**  When
+**  What
 **  Who         Roger Mähler
-**  Used By     
+**  Used By
 **  Revisions
 **********************************************************************************************************************************/
 -- Select * From  clearing_house.fn_dba_sead_entity_tables();
@@ -17,7 +17,7 @@ RETURNS void LANGUAGE 'plpgsql' AS $BODY$
 Begin
 
     Drop Table If Exists clearing_house.tbl_clearinghouse_entity_tables;
-    
+
     Create Table If Not Exists clearing_house.tbl_clearinghouse_entity_tables (
         table_schema information_schema.sql_identifier not null,
         table_name information_schema.sql_identifier PRIMARY KEY,
@@ -48,9 +48,6 @@ Begin
 End
 $BODY$;
 
-ALTER FUNCTION clearing_house.fn_dba_sead_entity_tables()
-    OWNER TO clearinghouse_worker;
-    
 Select clearing_house.fn_dba_sead_entity_tables();
 
 UPDATE clearing_house.tbl_clearinghouse_entity_tables
@@ -143,7 +140,7 @@ WHERE table_name IN (
     'tbl_chronologies',
     'tbl_projects'
  );
- 
+
 UPDATE clearing_house.tbl_clearinghouse_entity_tables
     SET is_local_lookup = 'YES'
 WHERE table_name IN (
