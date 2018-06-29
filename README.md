@@ -1,25 +1,90 @@
+# VISEAD ClearingHouse
 
-Webpackify project:
+A clearinghouse system for the SEAD database including script for reporting and manual imports.
 
-npm remove webpack webpack-cli -g
+## Getting Started
 
-npm init -y
-npm install webpack@next webpack-cli --save-dev
-npm install html-webpack-plugin --save-dev
-npm install eslint eslint-loader --save-dev
-npm install backbone --save
-npm install jquery --save
-npm install underscore --save
-npm install datatables --save
-npm install spin --save
-npm install bootstrap popper.js --save
-npm install datatables.net datatables.net-bs4 --save// https://www.datatables.net/download/npm
-npm install datatables.net-buttons datatables.net-buttons-bs4 --save
-npm install datatables.net-select datatables.net-select-bs4 --save
-npm install datatables.net-responsive datatables.net-responsive-bs4 --save
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-npm install "babel-loader@^8.0.0-beta" @babel/core @babel/preset-env webpack --save-dev
-npm i file-loader css-loader style-loader --save-dev
-npx webpack --config webpack.config.js
+### Prerequisites
 
-https://getcomposer.org/download/
+What things you need to install the software and how to install them
+
+```
+Give examples
+```
+
+### Installing
+
+Clone the project from source.
+```
+$ git clone https://github.com/humlab/sead_clearinghouse.git
+```
+Setup the clearinghouse database
+```
+$ export SEAD_CH_USER=clearinghouse_worker
+$ export SEAD_CH_PASSWORD=****
+$ cd sql
+$ ./install_clearinghouse_database.bash --dbhost=hostname --dbname=target-database
+```
+Compile application
+```
+$ npm run build:release
+
+```
+End with an example of getting some data out of the system or using it for a little demo
+
+## Running the tests
+
+Explain how to run the automated tests for this system
+
+### Break down into end to end tests
+
+Explain what these tests test and why
+
+```
+Give an example
+```
+
+### And coding style tests
+
+Explain what these tests test and why
+
+```
+Give an example
+```
+
+## Deployment
+
+Add additional notes about how to deploy this on a live system
+
+## Built With
+
+* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [Maven](https://maven.apache.org/) - Dependency Management
+* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
+
+## Authors
+
+* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+
+See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Hat tip to anyone whose code was used
+* Inspiration
+* etc
+

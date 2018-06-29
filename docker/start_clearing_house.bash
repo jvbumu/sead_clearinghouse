@@ -5,6 +5,7 @@ APP_PORT=8060
 APP_BUILD=NO
 DOCKER_FILE=docker/Dockerfile
 APP_RESTART=NO
+BUNDLE_FILE=bundle.zip
 
 for i in "$@"
 do
@@ -50,7 +51,17 @@ function remove_image {
 }
 
 function build_image {
+  if [ -f $BUNDLE_FILE ]; then
+    rm -rf public docker conf
+    unzip -q $BUNDLE_FILE
+    mv $BUNDLE_FILE ${BUNDLE_FILE}_installed_$(date +"%Y%m%d%H%M")
+  fi
+  if [ ! -d public ] || [ ! -d docker ] || [ ! -d conf ]; then
+    echo "Required folders not found: public docker conf"
+    exit 1
+  fi
   docker build -t $APP_NAME -f ${DOCKER_FILE} .
+  rm -rf public docker conf
 }
 
 function run_image {

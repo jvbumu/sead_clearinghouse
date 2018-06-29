@@ -97,11 +97,11 @@ def set_submission_state(connection, submission_id, state_id=2, state_text='Pend
     try:
         update_sql = '''
             UPDATE clearing_house.tbl_clearinghouse_submissions
-                SET submission_state_id = %s, status_text = ''%s''
+                SET submission_state_id = %s, status_text = %s
             WHERE submission_id = %s
         '''
         cursor = connection.cursor()
-        cursor.execute(update_sql, (submission_id, state_id, state_text, ))
+        cursor.execute(update_sql, (state_id, state_text, submission_id))
         cursor.connection.commit()
         cursor.close()
     except Exception as _:
@@ -125,13 +125,3 @@ def explode_xmls(db_opts):
         except:
             logger.exception('ABORTED CRITICAL ERROR %s ', submission_id)
 
-db_opts = dict(
-    database="sead_master_9_ceramics",
-    user=os.environ['SEAD_CH_USER'],
-    password=os.environ['SEAD_CH_PASSWORD'],
-    host="snares.humlab.umu.se",
-    port=5432
-)
-
-if __name__ == "__main__":
-    explode_xmls(db_opts)

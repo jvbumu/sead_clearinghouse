@@ -10,10 +10,13 @@ import logging
 from utility import tidy_xml, flatten_sets, setup_logger
 from upload_xml import upload_xml
 from explode_xml import explode_xml_to_rdb, truncate_all_clearinghouse_entity_tables
+
+logger = logging.getLogger('Excel XML processor')
+
 from data_specification import DataTableSpecification
 from functools import reduce
 
-logger = logging.getLogger('Excel XML processor')
+jj = os.path.join
 
 class MetaData:
 
@@ -28,18 +31,26 @@ class MetaData:
         self.ForeignKeyAliases = {
             'updated_dataset_id': 'dataset_id'
         }
+        self._ForeignKey_Hash = None
+        self._PrimaryKey_Hash = None
+        self._Classname_Cache = None
 
     def load(self, filename):
 
+        def recode_excel_sheet_name(row):
+            value = row['excel_sheet']
+            if pd.notnull(value) and len(value) > 0 and value != 'nan':
+                logger.info("Using alias %s for %s", value, row['table_name'])
+                return value
+            return row['table_name']
+
         self.Tables = pd.read_excel(filename, 'Tables',
             dtype={
-                'Table': 'str',
-                'JavaClass': 'str',
-                'Pk_NAME': 'str',
-                'ExcelSheet': 'str',
-                'OnlyNewData': 'str',
-                'NewData': 'str',
-                'Notes': 'str'
+                'table_name': 'str',
+                'java_class': 'str',
+                'pk_name': 'str',
+                'excel_sheet': 'str',
+                'notes': 'str'
             })
 
         self.Columns = pd.read_excel(filename, 'Columns',
@@ -52,26 +63,34 @@ class MetaData:
                 # 'length': np.int32,
                 # 'size': np.int32,
                 'type2': 'str',
-                'Class': 'str'
+                'class': 'str'
             })  # .set_index(['table_name', 'column_name'])
 
-        self.Tables['table_name'] = self.Tables['Table']
-        self.Tables = self.Tables.set_index('Table')
-        self.Tables.loc[self.Tables.ExcelSheet == 'nan', 'ExcelSheet'] = self.Tables.loc[self.Tables.ExcelSheet == 'nan', 'table_name']
-        self.Tables['OnlyNewData'] = self.Tables.OnlyNewData.str.upper()
-        self.Tables['NewData'] = self.Tables.NewData.str.upper()
+        self.Tables['table_name_index'] = self.Tables['table_name']
+        self.Tables = self.Tables.set_index('table_name_index')
 
-        self.PrimaryKeys = pd.merge(self.Tables, self.Columns, how='inner', left_on=['table_name', 'Pk_NAME'], right_on=['table_name', 'column_name'])[['table_name', 'column_name', 'JavaClass']]
+        self.Tables['excel_sheet'] = self.Tables.apply(recode_excel_sheet_name, axis=1)
+
+        self.PrimaryKeys = pd.merge(self.Tables, self.Columns, how='inner', left_on=['table_name', 'pk_name'], right_on=['table_name', 'column_name'])[['table_name', 'column_name', 'java_class']]
         self.PrimaryKeys.columns = ['table_name', 'column_name', 'class_name']
 
-        self.ForeignKeys = pd.merge(self.Columns, self.PrimaryKeys, how='inner', left_on=['column_name', 'Class'], right_on=['column_name', 'class_name'])[['table_name_x', 'table_name_y', 'column_name', 'class_name' ]]
+        self.ForeignKeys = pd.merge(self.Columns, self.PrimaryKeys, how='inner', left_on=['column_name', 'class'], right_on=['column_name', 'class_name'])[['table_name_x', 'table_name_y', 'column_name', 'class_name' ]]
         self.ForeignKeys = self.ForeignKeys[self.ForeignKeys.table_name_x != self.ForeignKeys.table_name_y]
 
+        self._ForeignKey_Hash = {
+            x: True for x in list(self.ForeignKeys.table_name_x + '#' + self.ForeignKeys.column_name)
+        }
+
+        self._PrimaryKey_Hash = {
+            x: True for x in self.Tables.table_name + '#' + self.Tables.pk_name
+        }
+
+        self._Classname_Cache = self.Tables.set_index('java_class')['table_name'].to_dict()
         return self
 
-    def tables_with_data(self):
-        return self.Tables.loc[
-            np.logical_or((self.Tables.OnlyNewData == 'YES'), (self.Tables.NewData == 'YES'))]['table_name'].values.tolist()
+    @property
+    def tablenames(self):
+        return self.Tables["table_name"].tolist()
 
     def table_fields(self, table_name):
         return self.Columns[(self.Columns.table_name == table_name)]
@@ -79,7 +98,7 @@ class MetaData:
     # def get_columns(self, table_name):
     #     return self.Columns[(self.Columns.table_name == table_name)].to_dict()
 
-    def table_exists(self, table_name):
+    def is_table(self, table_name):
         return table_name in self.Tables.table_name.values
 
     def get_table(self, table_name):
@@ -89,16 +108,21 @@ class MetaData:
         try:
             if '.' in class_name:
                 class_name = class_name.split('.')[-1]
-            return self.Tables.loc[(self.Tables.JavaClass == class_name)]['table_name'].iloc[0]
+            # return self.Tables.loc[(self.Tables.java_class == class_name)]['table_name'].iloc[0]
+            return self._Classname_Cache[class_name]
         except:
+            logger.warning('get_tablename_by_classname Unknown class: %s', class_name)
             return None
 
     def is_fk(self, table_name, column_name):
-        return ((self.Tables.table_name != table_name) & (self.Tables.Pk_NAME == column_name)).any() \
-            or (column_name in self.ForeignKeyAliases)
+        if column_name in self.ForeignKeyAliases:
+            return True
+        return (table_name + '#' + column_name) in self._ForeignKey_Hash
+        # return ((self.Tables.table_name != table_name) & (self.Tables.pk_name == column_name)).any()
 
     def is_pk(self, table_name, column_name):
-        return ((self.Tables.table_name == table_name) & (self.Tables.Pk_NAME == column_name)).any()
+        return (table_name + '#' + column_name) in self._PrimaryKey_Hash
+        # return ((self.Tables.table_name == table_name) & (self.Tables.pk_name == column_name)).any()
 
     def get_pk_name(self, table_name):
         try:
@@ -126,27 +150,7 @@ class ValueData:
     def __init__(self, metaData):
         self.MetaData = metaData
         self.DataTables = None
-
-    def load2(self, source):
-        from openpyxl import load_workbook
-        wb = load_workbook(source)  # , read_only=True)
-
-        def load_sheet(sheet_name):
-            df = None
-            try:
-                ws = wb.get_sheet_by_name(sheet_name)
-                if ws is not None:
-                    df = pd.DataFrame(ws.values)
-                    logger.info('READ   ValueData: sheet={}'.format(sheet_name))
-            except:
-                pass
-            return df
-
-        self.DataTables = {
-            x['table_name']: load_sheet(x['ExcelSheet']) for _, x in self.MetaData.Tables.iterrows()
-        }
-        self.update_system_id()
-        return self
+        self.DataTableIndex = None
 
     def load(self, source):
 
@@ -158,12 +162,15 @@ class ValueData:
                 df = reader.parse(sheetname)
             except:
                 pass
-            logger.info('SHEET {}: {}'.format(sheetname, 'READ' if df is not None else 'FAILED'))
+            logger.info('SHEET {}: {}'.format(sheetname, 'READ' if df is not None else 'NOT FOUND'))
             return df
 
         self.DataTables = {
-            x['table_name']: load_sheet(x['ExcelSheet']) for i, x in self.MetaData.Tables.iterrows()
+            x['table_name']: load_sheet(x['excel_sheet']) for i, x in self.MetaData.Tables.iterrows()
         }
+        self.DataTableIndex = load_sheet('data_table_index')
+        if self.DataTableIndex is None:
+            logger.exception('Data file has no data table index')
         reader.close()
         self.update_system_id()
         return self
@@ -176,16 +183,19 @@ class ValueData:
         return self
 
     def exists(self, table_name):
-        return table_name in self.DataTables.keys()
-
-    def has_data(self, table_name):
-        return self.exists(table_name) and self.DataTables[table_name] is not None
+        return table_name in self.DataTables.keys() and self.DataTables[table_name] is not None
 
     def has_system_id(self, table_name):
-        return self.has_data(table_name) and 'system_id' in self.DataTables[table_name].columns
+        return self.exists(table_name) and 'system_id' in self.DataTables[table_name].columns
 
-    def tables_with_data(self):
-        return [ x for x in self.DataTables.keys() if self.has_data(x) ]
+    @property
+    def tablenames(self):
+        return [ x for x in self.DataTables.keys() if self.exists(x) ]
+
+    @property
+    def data_tablenames(self):
+        # return self.MetaData.tables_with_data()
+        return self.DataTableIndex["table_name"].tolist()
 
     def cast_table(self, table_name):
         data_table = self.ValueData.Tables[table_name]
@@ -198,12 +208,12 @@ class ValueData:
 
     def update_system_id(self):
 
-        for table_name in self.MetaData.tables_with_data():
+        for table_name in self.data_tablenames:
             try:
                 data_table = self.DataTables[table_name]
                 table_definition = self.MetaData.get_table(table_name)
 
-                pk_name = table_definition['Pk_NAME']
+                pk_name = table_definition['pk_name']
 
                 if pk_name == 'ceramics_id':
                     pk_name = 'ceramic_id'
@@ -271,15 +281,15 @@ class XmlProcessor:
 
                 data_table = data.DataTables[table_name]
                 table_definition = data.MetaData.get_table(table_name)
-                pk_name = table_definition['Pk_NAME']
+                pk_name = table_definition['pk_name']
 
-                table_namespace = "com.sead.database.{}".format(table_definition['JavaClass'])
+                table_namespace = "com.sead.database.{}".format(table_definition['java_class'])
 
                 if data_table is None:
                     continue
 
-                self.emit('<{} length="{}">'.format(table_definition['JavaClass'], data_table.shape[0]), 1)  # data_table.length
-                # self.emit_tag(table_definition['JavaClass'], dict(length=data_table.shape[0]), close=False, indent=1)
+                self.emit('<{} length="{}">'.format(table_definition['java_class'], data_table.shape[0]), 1)  # data_table.length
+                # self.emit_tag(table_definition['java_class'], dict(length=data_table.shape[0]), close=False, indent=1)
 
                 for index, item in data_table.iterrows():
 
@@ -310,7 +320,7 @@ class XmlProcessor:
                                 column_name = column['column_name']
                                 is_fk = data.MetaData.is_fk(table_name, column_name)
                                 is_pk = data.MetaData.is_pk(table_name, column_name)
-                                class_name = column['Class']
+                                class_name = column['class']
 
                                 # TODO Move to Specification
                                 if column_name[-3:] == '_id' and not (is_fk or is_pk):
@@ -388,7 +398,7 @@ class XmlProcessor:
                     class_name = data.MetaData.get_classname_by_tablename(table_name)
                     for key in referenced_keyset:
                         self.emit('<com.sead.database.{} id="{}" clonedId="{}"/>'.format(class_name, int(key), int(key)), 2)
-                self.emit('</{}>'.format(table_definition['JavaClass']), 1)
+                self.emit('</{}>'.format(table_definition['java_class']), 1)
 
             except:
                 logger.exception('CRITICAL ERROR')
@@ -421,60 +431,41 @@ class XmlProcessor:
             logger.error("\n".join(self.specification.errors))
             raise DataImportError("Process ABORTED since data does not conform to SPECIFICATION")
 
-        table_names = data.MetaData.tables_with_data() if table_names is None else table_names
-        extra_names = set(data.MetaData.Tables["table_name"].tolist()) - set(data.tables_with_data()) if extra_names is None else extra_names
+        data_tablenames = data.data_tablenames if table_names is None else table_names
+        extra_names = set(data.MetaData.tablenames) - set(data.tablenames) if extra_names is None else extra_names
 
         self.emit('<?xml version="1.0" ?>')
         self.emit('<sead-data-upload>')
         self.process_lookups(data, extra_names)
-        self.process_data(data, table_names)
+        self.process_data(data, data_tablenames)
         self.emit('</sead-data-upload>')
 
-source_folder = "C:\\Users\\roma0050\\Google Drive\\Project\\Projects\\VISEAD (Humlab)\\SEAD Ceramics & Dendro"
+def process_excel_to_xml(option, basename, timestamp):
+    '''
+    Reads Excel files and convert content to an CH XML-file.
+    Stores data in output_filename and returns filename for a cleaned up version of the XML
+    '''
+    meta_filename = jj(option['input_folder'], option['meta_filename'])
+    data_filename = jj(option['input_folder'], option['data_filename'])
+    output_filename = jj(option['output_folder'], '{}_{}.xml'.format(basename, timestamp))
 
-db_opts = dict(
-    database="sead_master_9_ceramics",
-    user=os.environ['SEAD_CH_USER'],
-    password=os.environ['SEAD_CH_PASSWORD'],
-    host="snares.humlab.umu.se",
-    port=5432
-)
+    meta_data = MetaData().load(meta_filename)
 
-def process_xml(reset_entity_db=False):
+    data = ValueData(meta_data).load(data_filename)
 
-    options = [
+    with io.open(output_filename, 'w', encoding='utf8') as outstream:
+        service = XmlProcessor(outstream)
+        service.process(data, option['table_names'])
 
-        dict(
-            skip=True,
-            input_folder=os.path.join(source_folder, 'Dendro import'),
-            output_folder=os.path.join(source_folder, 'output'),
-            meta_filename='table metadata BUILD DENDRO 20180613.xlsx',
-            data_filename='01_BYGG_20180612.xlsm',
-            data_types='Dendro BYGG',
-            table_names=None
-        ),
+    tidy_output_filename = tidy_xml(output_filename)
 
-        dict(
-            skip=False,
-            input_folder=os.path.join(source_folder, 'Dendro import'),
-            output_folder=os.path.join(source_folder, 'output'),
-            meta_filename='table metadata ARKEO DENDRO 20180613.xlsx',
-            data_filename='02_Ark_dendro_20180613.xlsm',
-            data_types='Dendro ARKEO',
-            table_names=None
-        ),
+    if tidy_output_filename != output_filename:
+        os.remove(output_filename)
 
-        dict(
-            skip=True,
-            input_folder=os.path.join(source_folder, 'Ceramics import'),
-            output_folder=os.path.join(source_folder, 'output'),
-            meta_filename='table_metadata_20180608.xlsx',
-            data_filename='tunnslipstabell - in progress 20180612.xlsm',
-            data_types='Ceramics',
-            table_names=None
-        )
+    return tidy_output_filename
 
-    ]
+def process_xml(options, db_opts, reset_entity_db=False):
+
     if reset_entity_db:
         truncate_all_clearinghouse_entity_tables(**db_opts)
 
@@ -489,57 +480,45 @@ def process_xml(reset_entity_db=False):
 
             timestamp = time.strftime("%Y%m%d-%H%M%S")
 
-            meta_filename = os.path.join(option['input_folder'], option['meta_filename'])
-            data_filename = os.path.join(option['input_folder'], option['data_filename'])
-            log_filename = os.path.join(option['output_folder'], '{}_{}.log'.format(basename, timestamp))
-            output_filename = os.path.join(option['output_folder'], '{}_{}.xml'.format(basename, timestamp))
-
+            log_filename = jj(option['output_folder'], '{}_{}.log'.format(basename, timestamp))
             setup_logger(logger, log_filename)
 
             logger.info('PROCESS OF %s STARTED', basename)
 
-            meta_data = MetaData().load(meta_filename)
+            submission_id = option.get("submission_id", 0)
 
-            data = ValueData(meta_data).load(data_filename)
+            if submission_id == 0:
 
-            with io.open(output_filename, 'w', encoding='utf8') as outstream:
-                service = XmlProcessor(outstream)
-                service.process(data, option['table_names'])
+                logger.info(' ---> UPLOAD OF %s STARTED', basename)
 
-            tidy_xml_filename = tidy_xml(output_filename)
+                if option.get('output_filename', '') != '':
+                    logger.info(' ---> USING EXISTING XML FILE %s!', basename)
+                    output_filename = option.get('output_filename', '')
+                else:
+                    logger.info(' ---> PROCESSING EXCEL DATA %s!', basename)
+                    output_filename = process_excel_to_xml(option, basename, timestamp)
 
-            submission_id = upload_xml(tidy_xml_filename, submission_state_id=1, data_types=option['data_types'], upload_user_id=4, **db_opts)
+                submission_id = upload_xml(output_filename, submission_state_id=1, data_types=option['data_types'], upload_user_id=4, **db_opts)
 
+            else:
+                logger.info(' ---> USING ALREADY UPLOADED DATA ID=%s FOR %s', submission_id, basename)
+
+            logger.info(' ---> EXPLODE OF %s STARTED', basename)
             explode_xml_to_rdb(submission_id, **db_opts)
+            logger.info(' ---> PROCESS OF %s DONE!', basename)
 
         except:
             logger.exception('ABORTED CRITICAL ERROR %s ', basename)
 
-# Partial executions:
-# def upload_xmls():
-#     options = [
-#         dict(data_types='Dendro BYGG', tidy_xml_filename='01_BYGG_20180612_20180612-182341_tidy.xml'),
-#         dict(data_types='Dendro ARKEO', tidy_xml_filename='02_Ark_dendro_20180612_20180612-202836_tidy.xml'),
-#         dict(data_types='Ceramics', tidy_xml_filename='tunnslipstabell - in progress 20180612_20180612-183324_tidy.xml')
-#     ]
-#     for option in options:
-#         try:
-#             tidy_xml_filename = os.path.join(source_folder, 'output', option['tidy_xml_filename'])
-#             submission_id = upload_xml(tidy_xml_filename, submission_state_id=1, data_types=option['data_types'], upload_user_id=4, **db_opts)
-#         except:
-#             logger.exception('ABORTED CRITICAL ERROR %s ', option['tidy_xml_filename'])
-
-# def explode_xmls():
-#     setup_logger('explode.log', level=logging.DEBUG)
-#     submission_ids = [ 1, 2, 3 ]
-#     for submission_id in submission_ids:
-#         try:
-#             explode_xml_to_rdb(submission_id, **db_opts)
-#         except:
-#             logger.exception('ABORTED CRITICAL ERROR %s ', submission_id)
-
 if __name__ == "__main__":
-    process_xml(reset_entity_db=False)
 
+    import argparse
+    import importlib
+    parser = argparse.ArgumentParser(description='SEAD CH XML import')
+    parser.add_argument('-f','--optionfile', help='Import options filename without extension', required=True)
+    args = vars(parser.parse_args())
+    opts = importlib.import_module(args['optionfile'])
 
+    logger.warning("Deploy target is %s on %s", opts.db_opts.get('database', '?'), opts.db_opts.get('host', '?'))
 
+    process_xml(opts.run_opts, opts.db_opts, reset_entity_db=False)

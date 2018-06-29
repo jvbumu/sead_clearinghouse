@@ -3,12 +3,15 @@ archive/
 *.log
 conf/
 public/
+dist/
 .svn/
 .vscode/settings.json
 .vscode
+.vs/
 input/
 output/
 production/
 package-lock.json
 __pycache__/
+*.pyperf
 vendor/

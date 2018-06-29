@@ -1,10 +1,22 @@
 #!/bin/bash
+
 DBHOST=snares.humlab.umu.se
 DBPORT=5432
 DBNAME=sead_dev_clearinghouse
-SEAD_CH_USER=clearinghouse_worker
+DBUSER=${SEAD_CH_USER}
 
-psql --host=$DBHOST --port=$DBPORT --username=$SEAD_CH_USER --dbname=$DBNAME --password -v ON_ERROR_STOP=1 <<EOF
+for i in "$@"; do
+    case $i in
+        -h=*|--dbhost=*); DBHOST="${i#*=}"; shift;;
+        -p=*|--port=*); DBPORT="${i#*=}"; shift ;;
+        -d=*|--dbname=*); DBNAME="${i#*=}"; shift;;
+        -u=*|--dbuser=*); DBUSER="${i#*=}"; shift ;;
+        *);;
+    esac
+done
+echo "Deploy target ${DBNAME} on ${DBHOST}"
+
+psql --host=$DBHOST --port=$DBPORT --username=$DBUSER --dbname=$DBNAME --password -v ON_ERROR_STOP=1 <<EOF
     BEGIN;
 
         SET client_min_messages TO WARNING;

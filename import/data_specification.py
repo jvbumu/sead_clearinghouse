@@ -16,7 +16,7 @@ class DataTableSpecification:
         self.errors = []
         self.warnings = []
 
-        for table_name in data.MetaData.tables_with_data():
+        for table_name in data.data_tablenames:
             self.is_satisfied_by_table(data, table_name)
 
         return len(self.errors) == 0
@@ -25,23 +25,23 @@ class DataTableSpecification:
 
         try:
             # Must exist as data table in metadata
-            if table_name not in data.tables_with_data():
+            if table_name not in data.tablenames:
                 self.errors.append("{0} not defined as data table".format(table_name))
 
             # Must have a system identit
             if not data.has_system_id(table_name):
                 self.errors.append("{0} has no system id data column".format(table_name))
 
-            if not data.MetaData.table_exists(table_name):
+            if not data.MetaData.is_table(table_name):
                 self.errors.append("{0} not found in meta data".format(table_name))
 
-            if not data.has_data(table_name):
+            if not data.exists(table_name):
                 self.errors.append("{0} has NO DATA!".format(table_name))
 
             # Verify that all fields in MetaFields exists DataTable.columns
             meta_column_names = sorted(data.MetaData.table_fields(table_name)['column_name'].values.tolist())
             data_column_names = sorted(data.DataTables[table_name].columns.values.tolist()) \
-                if data.has_data(table_name) and data.MetaData.table_exists(table_name) else []
+                if data.exists(table_name) and data.MetaData.is_table(table_name) else []
 
             missing_column_names = list(set(meta_column_names) - set(data_column_names) - set(self.ignore_columns))
             extra_column_names = list(set(data_column_names) - set(meta_column_names) - set(self.ignore_columns) - set(['system_id']))

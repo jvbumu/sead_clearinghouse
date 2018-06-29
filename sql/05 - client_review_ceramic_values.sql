@@ -19,21 +19,14 @@ Returns Table (
     public_measurement_value	character varying,
 
 	entity_type_id				int
-
 ) As $$
 Declare
     entity_type_id int;
-    -- public_ds_id int;
 Begin
 
     entity_type_id := clearing_house.fn_get_entity_type_for('tbl_ceramics');
 
-	-- Select x.public_db_id Into public_ds_id
-	-- From clearing_house.view_datasets x
-	-- Where x.local_db_id = -$2;
-
 	Return Query
-
         With LDB As (
             Select	d.submission_id                         As submission_id,
                     d.source_id                             As source_id,
@@ -79,14 +72,11 @@ Begin
             Select	d.dataset_id 			                As dataset_id,
                     ps.physical_sample_id                   As physical_sample_id,
                     m.method_id                             As method_id,
-
                     c.ceramics_id                           As ceramics_id,
-
                     ps.sample_name                          As sample_name,
                     m.method_name                           As method_name,
                     cl.name                                 As lookup_name,
                     c.measurement_value                     As measurement_value
-
             From public.tbl_datasets d
             Join public.tbl_analysis_entities ae
               On ae.dataset_id = d.dataset_id
@@ -101,7 +91,6 @@ Begin
             -- Where ae.dataset_id = public_ds_id -- perf
         )
             Select
-
                 -- LDB.local_dataset_id 			                As dataset_id,
                 -- LDB.local_physical_sample_id 			        As physical_sample_id,
                 LDB.local_db_id                                 As local_db_id,
@@ -121,9 +110,7 @@ Begin
                 RDB.lookup_name									As public_lookup_name,
                 RDB.measurement_value							As public_measurement_value,
 
-                entity_type_id									As entity_type_id --,
-                -- to_char(LDB.date_updated,'YYYY-MM-DD')			As date_updated
-
+                entity_type_id									As entity_type_id
             From LDB
             Left Join RDB
               On 1 = 1
@@ -139,29 +126,28 @@ Begin
 
 End $$ Language plpgsql;
 
-
 -- Drop Function clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(p_submission_id int)
 -- select * from clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(1)
 Create Or Replace Function clearing_house.fn_clearinghouse_review_ceramic_values_crosstab(p_submission_id int)
 RETURNS TABLE (sample_name text, local_db_id int, public_db_id int, entity_type_id int, json_data_values json)
 AS $$
 	DECLARE
-		v_categories_sql text;
-		v_data_values_sql text;
+		v_category_sql text;
+		v_source_sql text;
 		v_typed_fields text;
 		v_field_names text;
 		v_column_names text;
 		v_sql text;
 BEGIN
-
-	v_categories_sql = '
+	v_category_sql = '
 		SELECT name
 		FROM clearing_house.tbl_ceramics_lookup
 		ORDER BY name
 	';
-	v_data_values_sql = format('
-		SELECT	sample_name, local_db_id, public_db_id, entity_type_id,
-				lookup_name,
+	v_source_sql = format('
+		SELECT	sample_name,                                            -- row_name
+                local_db_id, public_db_id, entity_type_id,              -- extra_columns
+				lookup_name,                                            -- category
 				ARRAY[lookup_name, ''text'', max(measurement_value), max(public_measurement_value)] as measurement_value
 		FROM clearing_house.fn_clearinghouse_review_dataset_ceramic_values_client_data(%s, null) c
 		WHERE TRUE
@@ -170,23 +156,28 @@ BEGIN
 	', p_submission_id);
 
 	SELECT string_agg(format('%I text[]', name), ', ' order by name) as typed_fields,
-		   string_agg(format('COALESCE(%I, ARRAY[%L, '''', null, null])', name, name), ', ' order by name) AS field_names,
 		   string_agg(format('ARRAY[%L, ''local'', ''public'']', name), ', ' order by name) AS column_names
 	INTO v_typed_fields, v_field_names, v_column_names
-	FROM clearing_house.tbl_ceramics_lookup
-	;
+	FROM clearing_house.tbl_ceramics_lookup;
 
-	SELECT format('
-		SELECT ''HEADER'', ARRAY[%s]
-		UNION ALL
-		SELECT sample_name, local_db_id, public_db_id, entity_type_id, array_to_json(ARRAY[%s]) AS json_data_values
-		FROM crosstab(%L, %L) AS ct(sample_name text, local_db_id int, public_db_id int, entity_type_id int, %s)',
-				  v_column_names, v_field_names, v_data_values_sql, v_categories_sql, v_typed_fields)
-	INTO v_sql;
+    IF v_column_names IS NULL THEN
 
-	-- RAISE NOTICE '%', v_sql;
+        RETURN QUERY
+            SELECT *
+            FROM (VALUES (null::text, null::int, null::int, null::int, null::json)) AS V
+            WHERE FALSE;
 
-	RETURN QUERY EXECUTE v_sql;
+    ELSE
+
+        SELECT format('
+            SELECT sample_name, local_db_id, public_db_id, entity_type_id, array_to_json(ARRAY[%s]) AS json_data_values
+            FROM crosstab(%L, %L) AS ct(sample_name text, local_db_id int, public_db_id int, entity_type_id int, %s)',
+                      v_column_names, v_source_sql, v_category_sql, v_typed_fields)
+        INTO v_sql;
+
+        RETURN QUERY EXECUTE v_sql;
+
+    END IF;
 
 END
 $$ LANGUAGE 'plpgsql';

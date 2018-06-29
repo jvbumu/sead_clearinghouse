@@ -2,8 +2,9 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlPlugin = require("html-webpack-plugin");
-// Will be used to copy API dir: https://webpack.js.org/plugins/copy-webpack-plugin/
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+const target = "dev";
 
 module.exports = {
     entry: path.join(__dirname, 'src/js/main.js'),
@@ -74,12 +75,10 @@ module.exports = {
         }),
         new CopyWebpackPlugin([
             {
-                from: 'src/api/',
-                to: 'public/api',
-                ignore: [ '*.json' ],
+                from: 'conf/' + target,
+                to: 'zip/conf',
                 toType: 'dir',
-                force: true,
-                copyUnmodified: false
+                force: true
             }
         ])
     ],
@@ -97,6 +96,6 @@ module.exports = {
     },
     devtool: 'source-map',
     devServer: {
-        publicPath: path.join('/dist/')
+        publicPath: path.join('/public/')
     }
 };

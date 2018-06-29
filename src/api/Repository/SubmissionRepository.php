@@ -1,13 +1,13 @@
 <?php
-  
+
 namespace Repository {
 
     class SubmissionRepository extends RepositoryBase {
-       
+
         function __construct(&$conn, $schema_name) {
             parent::__construct($conn, "tbl_clearinghouse_submissions", array("submission_id"), $schema_name, "submission_id");
         }
-       
+
         public function findAllNew()
         {
             return parent::find(array("submission_state_id" => strval(\Model\Submission::State_New)));
@@ -20,14 +20,14 @@ namespace Repository {
         }
 
         public function findReport($specification)
-        {  
+        {
             return parent::getAdapter()->fetch_all(SubmissionQueryBuilder::getQueryRel(array(), FALSE, $specification));
         }
-        
+
         public function processExplodeXML2RDB($id)
         {
             $statement = parent::getAdapter()->prepare('Select clearing_house.fn_explode_submission_xml_to_rdb(?)');
-            $statement->bindParam(1, $id, \PDO::PARAM_INT); 
+            $statement->bindParam(1, $id, \PDO::PARAM_INT);
             $result = $statement->execute();
             return $result;
         }
@@ -38,7 +38,7 @@ namespace Repository {
             $submission["status_text"] = $message;
             $this->save($submission, array("submission_state_id", "status_text"));
         }
-        
+
         /*************************************************************************************************************************************
          * Returns hiearchy of objects associated to a submission, the data is displayed in the navigation tree
          *************************************************************************************************************************************/
@@ -46,7 +46,7 @@ namespace Repository {
         {
             $data = $this->getAdapter()->query(SubmissionQueryBuilder::getContentReportSql($submission_id))->fetchAll(\PDO::FETCH_ASSOC);
             $datasets = $this->getAdapter()->query(SubmissionQueryBuilder::getSampleGroupDataSetReportSql($submission_id))->fetchAll(\PDO::FETCH_ASSOC);
-            
+
              //array_values(array_filter($datasets, function ($x) use ($sample_group_id) { return $x["sample_group_id"] == $sample_group_id; }))
              $sample_group_data_sets = array();
              foreach ($datasets as $item){
@@ -109,28 +109,28 @@ namespace Repository {
                     $sample_group["samples"] = array_values($sample_group["samples"]);
                 }
             }
-            
+
             return $submission;
         }
     }
 
-    
+
     class SubmissionQueryBuilder extends RepositoryBase {
 
         public static function getQueryRel($filter, $include_data=TRUE, $specification=NULL)
-        {   
+        {
             $where_clause = "";
             foreach ($filter as $column => $value) {
                 $where_clause .= " And $column = " . $value . " ";
             }
-            
+
             if ($specification != NULL) {
                 $specification_filter = $specification->toSQL();
                 if ($specification_filter <> "") {
                     $where_clause = "(" . $where_clause . ") And $specification_filter";
                 }
             }
-            
+
             $sql = "
                 Select s.submission_id,
                        s.submission_state_id,
@@ -158,28 +158,30 @@ namespace Repository {
                   On g.grade_id = u.data_provider_grade_id
                 Where 1 = 1 " . QueryHelper::generateWhere($filter) . " "
             ;
-            
+
             return $sql;
         }
-        
+
         public static function getContentReportSql($submission_id)
         {
             $sql = '
                     Select s.site_id, s.site_name, g.sample_group_id, g.sample_group_name, v.physical_sample_id, v.sample_name
                     From clearing_house.view_sites s
                     Left Join clearing_house.view_sample_groups g
-                      On g.site_id = s.merged_db_id
+                      On g.submission_id In (0, s.submission_id)
+                     And g.site_id = s.merged_db_id
                     Left Join clearing_house.tbl_physical_samples v
-                      On v.sample_group_id = g.merged_db_id
+                      On v.submission_id In (0, s.submission_id)
+                     And v.sample_group_id = g.merged_db_id
                     Where s.submission_id = ' . strval($submission_id) . '
                     Order By s.site_id, g.sample_group_id, v.physical_sample_id'
                     ;
 
             return $sql;
         }
-        
+
         public static function getSampleGroupDataSetReportSql($submission_id)
-        {           
+        {
             $sql = 'Select	g.sample_group_id, d.dataset_id, d.dataset_name, d.data_type_id, Count(*) as v_count
                     From clearing_house.view_sample_groups g
                     Join clearing_house.view_physical_samples v
@@ -189,15 +191,15 @@ namespace Repository {
                       On e.physical_sample_id = v.merged_db_id
                      And e.submission_id In (0, g.submission_id)
                     Join clearing_house.view_datasets d
-                      On d.merged_db_id = e.dataset_id	
+                      On d.merged_db_id = e.dataset_id
                      And d.submission_id In (0, g.submission_id)
                     Where g.submission_id = ' . strval($submission_id) . '
                     Group By g.sample_group_id, d.dataset_id, d.dataset_name, d.data_type_id
 ';
             return $sql;
         }
-                
-        
+
+
     }
 
 }

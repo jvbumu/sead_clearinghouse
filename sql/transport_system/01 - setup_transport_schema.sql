@@ -5,10 +5,10 @@ CREATE SCHEMA IF NOT EXISTS clearing_house_commit;
 
 /*********************************************************************************************************************************
 **  Function    fn_dba_sead_entity_tables
-**  When
-**  What
+**  When        
+**  What        
 **  Who         Roger Mähler
-**  Used By
+**  Used By     
 **  Revisions
 **********************************************************************************************************************************/
 -- Select * From  clearing_house.fn_dba_sead_entity_tables();
@@ -17,7 +17,7 @@ RETURNS void LANGUAGE 'plpgsql' AS $BODY$
 Begin
 
     Drop Table If Exists clearing_house.tbl_clearinghouse_entity_tables;
-
+    
     Create Table If Not Exists clearing_house.tbl_clearinghouse_entity_tables (
         table_schema information_schema.sql_identifier not null,
         table_name information_schema.sql_identifier PRIMARY KEY,
@@ -48,6 +48,9 @@ Begin
 End
 $BODY$;
 
+ALTER FUNCTION clearing_house.fn_dba_sead_entity_tables()
+    OWNER TO clearinghouse_worker;
+    
 Select clearing_house.fn_dba_sead_entity_tables();
 
 UPDATE clearing_house.tbl_clearinghouse_entity_tables
@@ -140,7 +143,7 @@ WHERE table_name IN (
     'tbl_chronologies',
     'tbl_projects'
  );
-
+ 
 UPDATE clearing_house.tbl_clearinghouse_entity_tables
     SET is_local_lookup = 'YES'
 WHERE table_name IN (
@@ -186,27 +189,3 @@ With table_columns As (
   From table_columns tc
   Join clearing_house.tbl_clearinghouse_entity_tables t
     On t.table_name = tc.table_name
-
-do $$
-Declare
-    -- entity clearing_house.tbl_physical_samples;
-    entity_column row;
-Begin
-    for entity_column in (
-        Select *
-        From clearing_house.fn_dba_get_sead_public_db_schema()
-        Where table_name = 'tbl_physical_samples'
-        Order By ordinal_position asc
-    ) Begin
-        Raise Notice
-    End;
-
-End; $$ language plpgsql;
-
--- TODO: Loopa genom kolumner och bygga vy kolumn för kolumn?
-    if x.is_pk Then
-        column[i] = 'x.global_db_id'
-    Else If x.is_fk Then
-        column[i] = 'fk_' || i::text || '.global_db_id as x.column_name'
-    Else
-        column
