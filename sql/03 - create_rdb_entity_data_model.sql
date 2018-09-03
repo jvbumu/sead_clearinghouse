@@ -188,7 +188,6 @@ Create Or Replace Function clearing_house.fn_add_new_public_db_columns(
 ) Returns void As $$
 
 	Declare xml_columns character varying(255)[];
-	Declare schema_columns character varying(255)[];
 	Declare sql text;
 	Declare x RECORD;
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+EXPORT PGOPTIONS='--client-min-messages=warning'
+
 DBHOST=snares.humlab.umu.se
 DBPORT=5432
 DBNAME=sead_dev_clearinghouse
@@ -16,7 +18,7 @@ for i in "$@"; do
 done
 echo "Deploy target ${DBNAME} on ${DBHOST}"
 
-psql --host=$DBHOST --port=$DBPORT --username=$DBUSER --dbname=$DBNAME --password -v ON_ERROR_STOP=1 <<EOF
+psql --host=$DBHOST --port=$DBPORT --username=$DBUSER --dbname=$DBNAME --password -q -X -1 -v ON_ERROR_STOP=1 <<EOF
     BEGIN;
 
         SET client_min_messages TO WARNING;

@@ -18,6 +18,7 @@ Returns Table (
 	master_name                     character varying,
 	previous_dataset_name           character varying,
 	method_name                     character varying,
+    project_name                    text,
     project_stage_name              text,
 	record_type_id                  int,
 
@@ -27,6 +28,7 @@ Returns Table (
 	public_master_name              character varying,
 	public_previous_dataset_name    character varying,
 	public_method_name              character varying,
+	public_project_name             text,
 	public_project_stage_name       text,
 	public_record_type_id           int,
 
@@ -43,7 +45,7 @@ Begin
 
 	Return Query
 
-		With sample (submission_id, source_id, local_db_id, public_db_id, merged_db_id, dataset_name, data_type_name, master_name, previous_dataset_name, method_name, project_stage_name, record_type_id) As (
+		With sample (submission_id, source_id, local_db_id, public_db_id, merged_db_id, dataset_name, data_type_name, master_name, previous_dataset_name, method_name, project_name, project_stage_name, record_type_id) As (
             Select  d.submission_id                                         As submission_id,
                     d.source_id                                             As source_id,
                     d.local_db_id                                           As local_db_id,
@@ -54,7 +56,8 @@ Begin
                     dm.master_name                                          As master_name,
                     ud.dataset_name                                         As previous_dataset_name,
                     m.method_name                                           As method_name,
-                    p.project_name || pt.project_type_name || ps.stage_name As project_stage_name,
+                    p.project_name                                          As project_name,
+                    format('%s, %s', pt.project_type_name, ps.stage_name)   As project_stage_name,
                     m.record_type_id                                        As record_type_id
                     /* Används för att skilja proxy types: 1) measured value 2) abundance */
             From clearing_house.view_datasets d
@@ -87,6 +90,7 @@ Begin
 				LDB.master_name                     As master_name,
 				LDB.previous_dataset_name           As previous_dataset_name,
 				LDB.method_name                     As method_name,
+				LDB.project_name                    As project_name,
 				LDB.project_stage_name              As project_stage_name,
 				LDB.record_type_id                  As record_type_id,
 
@@ -96,6 +100,7 @@ Begin
 				RDB.master_name                     As public_master_name,
 				RDB.previous_dataset_name           As public_previous_dataset_name,
 				RDB.method_name                     As public_method_name,
+				RDB.project_name                    As public_project_name,
 				RDB.project_stage_name              As public_project_stage_name,
 				RDB.record_type_id                  As public_record_type_id,
 
@@ -128,14 +133,12 @@ Returns Table (
 
 	local_db_id					int,
 
-    first_name					character varying,
-    last_name					character varying,
+    full_name					text,
     contact_type_name			character varying,
 
 	public_db_id 				int,
 
-    public_first_name			character varying,
-    public_last_name			character varying,
+    public_full_name			text,
     public_contact_type_name	character varying,
 
     date_updated				text,
@@ -153,14 +156,12 @@ Begin
 		Select
 			LDB.local_db_id				               					As local_db_id,
 
-			LDB.first_name												As first_name,
-			LDB.last_name												As last_name,
+			format('%s %s', LDB.first_name, LDB.last_name)				As full_name,
 			LDB.contact_type_name										As contact_type_name,
 
 			LDB.public_db_id				            				As public_db_id,
 
-			RDB.first_name												As public_first_name,
-			RDB.last_name												As public_last_name,
+			format('%s %s', RDB.first_name, RDB.last_name)				As public_full_name,
 			RDB.contact_type_name										As public_contact_type_name,
 
 			to_char(LDB.date_updated,'YYYY-MM-DD')						As date_updated,
@@ -235,17 +236,17 @@ Returns Table (
 
 	local_db_id					int,
 
-    first_name					character varying,
-    last_name					character varying,
+    full_name					text,
     submission_type				character varying,
     notes						text,
+    date_submitted				text,
 
 	public_db_id 				int,
 
-    public_first_name			character varying,
-    public_last_name			character varying,
+    public_full_name     		text,
     public_submission_type		character varying,
     public_notes				text,
+    public_date_submitted		text,
 
     date_updated				text,
 	entity_type_id				int
@@ -263,17 +264,17 @@ Begin
 
 			LDB.local_db_id				               					As local_db_id,
 
-			LDB.first_name												As first_name,
-			LDB.last_name												As last_name,
+			format('%s %s', LDB.first_name, LDB.last_name)				As last_name,
 			LDB.submission_type											As submission_type,
 			LDB.notes													As notes,
+			to_char(LDB.date_submitted,'YYYY-MM-DD')					As date_submitted,
 
 			LDB.public_db_id				            				As public_db_id,
 
-			RDB.first_name												As public_first_name,
-			RDB.last_name												As public_last_name,
+			format('%s %s', RDB.first_name, RDB.last_name)				As public_full_name,
 			RDB.submission_type											As public_submission_type,
 			RDB.notes													As public_notes,
+			to_char(RDB.date_submitted,'YYYY-MM-DD')					As public_date_submitted,
 
 			to_char(LDB.date_updated,'YYYY-MM-DD')						As date_updated,
 
@@ -294,6 +295,7 @@ Begin
 					c.last_name											As last_name,
 					dst.submission_type									As submission_type,
 					ds.notes											As notes,
+					ds.date_submitted									As date_submitted,
 
 					ds.date_updated
 
@@ -318,6 +320,7 @@ Begin
 					c.last_name											As last_name,
 					dst.submission_type									As submission_type,
 					ds.notes											As notes,
+					ds.date_submitted									As date_submitted,
 
 					ds.date_updated
 

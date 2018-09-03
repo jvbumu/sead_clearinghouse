@@ -466,7 +466,7 @@ End $$ Language plpgsql;
 **	What		Returns sample group descriptions positions review data used by client
 **	Uses
 **	Used By
-**	Revisions
+**	Revisions   20180702 Merged sample_group_position & dimension_name
 ******************************************************************************************************************************/
 -- Drop Function clearing_house.fn_clearinghouse_review_sample_group_positions_client_data(int, int)
 -- Select * From clearing_house.fn_clearinghouse_review_sample_group_positions_client_data(2, -40)
@@ -474,16 +474,14 @@ Create Or Replace Function clearing_house.fn_clearinghouse_review_sample_group_p
 Returns Table (
 
 	local_db_id						int,
-    sample_group_position			numeric(20,10),
+    sample_group_position			text,
     position_accuracy				character varying(128),
     method_name						character varying(50),
-    dimension_name					character varying(50),
 
 	public_db_id 					int,
-    public_sample_group_position	numeric(20,10),
+    public_sample_group_position	text,
     public_position_accuracy		character varying(128),
     public_method_name				character varying(50),
-    public_dimension_name			character varying(50),
 
 	entity_type_id					int
 
@@ -498,15 +496,15 @@ Begin
 
 		Select
 			LDB.local_db_id				               	As local_db_id,
-			LDB.sample_group_position                   As sample_group_position,
+			format('%s %s', LDB.dimension_name,
+                LDB.sample_group_position)              As sample_group_position,
 			LDB.position_accuracy                       As position_accuracy,
 			LDB.method_name                       		As method_name,
-			LDB.dimension_name                       	As dimension_name,
 			LDB.public_db_id				            As public_db_id,
-			RDB.sample_group_position                   As public_sample_group_position,
+			format('%s %s', RDB.dimension_name,
+                RDB.sample_group_position)              As public_sample_group_position,
 			RDB.position_accuracy                       As public_position_accuracy,
 			RDB.method_name                       		As public_method_name,
-			RDB.dimension_name                       	As public_dimension_name,
 			entity_type_id								As entity_type_id
 		From (
 			Select	sg.source_id						As source_id,
