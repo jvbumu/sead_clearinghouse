@@ -28,17 +28,16 @@ var DataSet_Column_Store = window.DataSet_Column_Store = {
 
         contacts: [
             { column_name: "Id", column_field: "local_db_id" },
-            { column_name: "First name", column_field: "first_name", public_column_field: "public_first_name" },
-            { column_name: "Last name", column_field: "last_name", public_column_field: "public_last_name" },
+            { column_name: "Name", column_field: "full_name", public_column_field: "public_full_name" },
             { column_name: "Contact type", column_field: "contact_type_name", public_column_field: "public_contact_type_name" },
             { column_name: "Updated", column_field: "date_updated" }
         ],
 
         submissions: [
             { column_name: "Id", column_field: "local_db_id" },
-            { column_name: "First name", column_field: "first_name", public_column_field: "public_first_name" },
-            { column_name: "Last name", column_field: "last_name", public_column_field: "public_last_name" },
+            { column_name: "Name", column_field: "full_name", public_column_field: "public_full_name" },
             { column_name: "Submission type", column_field: "submission_type", public_column_field: "public_submission_type" },
+            { column_name: "Date submitted", column_field: "date_submitted", public_column_field: "public_date_submitted" },
             { column_name: "Notes", column_field: "notes", public_column_field: "public_notes" },
             { column_name: "Updated", column_field: "date_updated" }
         ],

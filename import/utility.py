@@ -4,11 +4,14 @@ import tidylib
 import base64
 import zlib
 import logging
+import time
 
-def setup_logger(logger, filename, level=logging.DEBUG):
+def setup_logger(logger, filename=None, level=logging.DEBUG):
     '''
     Setup logging of import messages to both file and console
     '''
+
+    filename = filename or '/tmp/explode_{}.log'.format(time.strftime("%Y%m%d-%H%M%S"))
     logger.handlers = []
 
     logger.setLevel(level)

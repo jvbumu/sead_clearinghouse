@@ -57,7 +57,7 @@ var Sample_Group_Column_Store = window.Sample_Group_Column_Store = {
             { column_name: "Position", column_field: "sample_group_position", public_column_field: "public_sample_group_position" },
             { column_name: "Accuracy", column_field: "position_accuracy", public_column_field: "public_position_accuracy" },
             { column_name: "Method", column_field: "method_name", public_column_field: "public_method_name" },
-            { column_name: "Dimension", column_field: "dimension_name", public_column_field: "public_dimension_name" },
+            // { column_name: "Dimension", column_field: "dimension_name", public_column_field: "public_dimension_name" },
             { column_name: "Updated", column_field: "date_updated" }
         ]
     })

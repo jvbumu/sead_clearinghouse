@@ -1,6 +1,6 @@
 @Echo Off
 
-Echo "This script is deprecated and should not be used. It has been replaced with upload_xml.py"
+Echo "This script is DEPRECATED and should not be used. It has been replaced by new features in process.py"
 pause
 goto :eof
 
