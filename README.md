@@ -8,13 +8,15 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+* Linux w/ bash (tested on Debian)
+* Docker
+* PostgreSQL
 
-```
-Give examples
-```
+May work on other distributions/systems as well but untested.
 
 ### Installing
+
+*DISCLAIMER: DOES NOT ACTUALLY WORK - DON'T EVEN TRY THIS - but in theory it would be these steps:*
 
 Clone the project from source.
 ```
@@ -29,40 +31,25 @@ $ ./install_clearinghouse_database.bash --dbhost=hostname --dbname=target-databa
 ```
 Compile application
 ```
+This will build the npm client-side package as well as prepare for docker serverside build.
 $ npm run build:release
 
+Go into dist directory
+$ cd dist
+
+Run start script with build option to build the docker container and run it.
+$ ./start_clearing_house.bash --build
+
+System should now be running at http://example.com:8060
 ```
-End with an example of getting some data out of the system or using it for a little demo
 
 ## Running the tests
 
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
+Tests are for weaklings.
 
 ## Built With
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+* [PHP Composer](https://getcomposer.org/) - Dependency manager
 
 ## Contributing
 
@@ -74,9 +61,9 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Roger Mähler** - *Principal work* - [Roger Mähler](http://humlab.umu.se/sv/om-oss/personal/roger-maehler/)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+* **Johan von Boer** - *Various fixes* - [Johan von Boer](http://www.humlab.umu.se/sv/om-oss/personal/johan-von-boer)
 
 ## License
 
@@ -84,7 +71,5 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+* We acknowledge noone! There is no other but us! You don't exist, nor you, or you!
 
